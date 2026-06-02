@@ -40,6 +40,25 @@ UITTAP             = {'lt2': 0, '2-4': 1, '4-6': 2, '6-8': 3, '8-10': 4, '10-12'
 
 GAS_TOESTELLEN = ('keukengeiser', 'badgeiser', 'combitoestel', 'wkk')
 
+# ---------- verwarming-mapping (uit 8 echte exports, 2026-06-02; bevestigd) ----------
+VW_SYSTEEM       = {'individueel': 0, 'collectief': 1, 'warmtelev_ind': 2, 'warmtelev_gem': 3}
+VW_AANTAL_OPW    = {'een': 0, 'twee': 1}
+VW_TYPE_OPWEKKER = {'lokaal_gas': 0, 'lokaal_olie': 1, 'elektrisch': 2, 'moederhaard': 3, 'gasketel': 4,
+                    'olieketel': 5, 'wkk': 6, 'wp_gasabsorptie': 7, 'wp_gasmotor': 8, 'wp_elektrisch': 9,
+                    'biomassakachel': 10, 'biomassaketel': 11, 'warmtelevering': 12}
+VW_SUBTYPE       = {'cr': 0, 'vr': 1, 'hr100': 2, 'hr104': 3, 'hr107': 4}
+VW_TYPE_WP       = {'water_water': 0, 'lucht_water': 1, 'lucht_lucht': 2}
+VW_BRON_WP       = {'buitenlucht': 1, 'retourlucht': 4}            # buitenlucht=1 bevestigd
+VW_OPSTELPLAATS  = {'binnen': 0, 'buiten': 1}
+VW_LOKALE_KACHEL = {'met_afvoer': 0, 'zonder_afvoer': 1}           # zonder=1 bevestigd, met=aanname
+VW_AFGIFTE       = {'radiatoren': 0, 'ventilator_radiatoren': 1, 'vloer': 2, 'lucht': 3, 'overig': 4}
+VW_REGELING      = {'hoofdvertrek': 0, 'centraal_naregeling': 1, 'individueel': 2}
+VW_MEDIUM        = {'water': 0, 'lokaal': 1}
+VW_AANVOERTEMP   = {'45_40': 3, '55_47': 5, '70_60': 8, '90_70': 11}
+VW_DISTRTYPE     = {'tweepijps': 0}                               # tweepijps=0 bevestigd
+VW_WARMTEMETERS  = {'een_of_meer': 0, 'geen': 1}
+VW_AFLEVERTEMP   = {'onbekend': 3, 'lt60': 0, 'ge60': 1}          # onbekend=3 bevestigd
+
 def _find(root, path):
     """child-navigatie met ondersteuning voor Tag[n] (1-based), zonder ET-predicaat-afhankelijkheid."""
     el = root
@@ -221,11 +240,91 @@ def _fill_tapwater(root, S, o, pre):
     if o.get(pre + 'circulatie'):
         _set(root, S + 'CirculatieleidingAanwezig', 1)
 
+# ---------- INSTALLATIE: verwarming ----------
+def _fill_verwarming_opwekker(root, O, o, pre, systeem):
+    """Vul één VerwarmingOpwekker (O = pad met trailing '/') uit velden met prefix pre (bv. 'vo1_')."""
+    warmtelev = systeem in ('warmtelev_ind', 'warmtelev_gem')
+    typ = 'warmtelevering' if warmtelev else o.get(pre + 'type')
+    _set(root, O + 'TypeOpwekker', VW_TYPE_OPWEKKER.get(typ, -1))
+    _set(root, O + 'Merk', (o.get(pre + 'merk') or '').strip())
+    _set(root, O + 'Type', (o.get(pre + 'typenr') or '').strip())
+    _set(root, O + 'Installatiejaar', (o.get(pre + 'jaar') or '').strip())
+
+    if typ in ('gasketel', 'olieketel'):
+        _set(root, O + 'SubType', VW_SUBTYPE.get(o.get(pre + 'subtype'), -1))
+        _set(root, O + 'OpstelplaatsOpwekker', VW_OPSTELPLAATS.get(o.get(pre + 'opstelplaats'), -1))
+        if o.get(pre + 'direct_lucht'):
+            _set(root, O + 'DirectGestookteLuchtverwarming', 1)
+        if o.get(pre + 'open_verbranding'):
+            _set(root, O + 'OpenVerbrandingstoestel', 1)
+    elif typ in ('wp_elektrisch', 'wp_gasabsorptie', 'wp_gasmotor'):
+        _set(root, O + 'TypeWarmtepomp', VW_TYPE_WP.get(o.get(pre + 'type_wp'), -1))
+        _set(root, O + 'BronWarmtepomp', VW_BRON_WP.get(o.get(pre + 'bron_wp'), -1))
+        _set(root, O + 'OpstelplaatsOpwekker', VW_OPSTELPLAATS.get(o.get(pre + 'opstelplaats'), -1))
+        if o.get(pre + 'min_cop'):
+            _set(root, O + 'VoldoetAanMinCOP', 1)
+        if o.get(pre + 'additioneel'):
+            _set(root, O + 'IsAdditioneelGeplaatstBijRenovatie', 1)
+    elif typ in ('lokaal_gas', 'lokaal_olie'):
+        _set(root, O + 'LokaleKachel', VW_LOKALE_KACHEL.get(o.get(pre + 'lokale_kachel'), -1))
+        if o.get(pre + 'heeft_stekker'):
+            _set(root, O + 'HeeftStekker', 1)
+        if o.get(pre + 'open_verbranding'):
+            _set(root, O + 'OpenVerbrandingstoestel', 1)
+    elif typ == 'elektrisch':
+        if o.get(pre + 'heeft_stekker'):
+            _set(root, O + 'HeeftStekker', 1)
+    elif typ == 'warmtelevering':
+        _set(root, O + 'Aflevertemperatuur', VW_AFLEVERTEMP.get(o.get(pre + 'aflevertemp'), -1))
+
+    if o.get(pre + 'kwaliteitsverklaring'):
+        _set(root, O + 'KwaliteitsverklaringWarmteopwekker', 1)
+
+def _fill_verwarming(root, o):
+    systeem = o.get('vw_systeem') or 'individueel'
+    warmtelev = systeem in ('warmtelev_ind', 'warmtelev_gem')
+    V = 'Installaties/Installatie/Verwarming/'
+    _set(root, V + 'Verwarmingsysteem', VW_SYSTEEM.get(systeem, -1))
+    if systeem in ('collectief', 'warmtelev_gem'):
+        _set(root, V + 'AgAangeslotenOpInstallatie', (o.get('vw_gebruiksopp') or '').strip())
+    num = 1 if warmtelev else (2 if o.get('vw_aantal_opwekkers') == 'twee' else 1)
+    _set(root, V + 'AantalWarmteopwekkers', num - 1)   # 0-geindexeerd: Een=0, Twee=1
+    for idx in range(1, num + 1):
+        O = V + 'VerwarmingOpwekkerList/VerwarmingOpwekker[%d]/' % idx
+        _fill_verwarming_opwekker(root, O, o, 'vo%d_' % idx, systeem)
+
+    AF = 'Installaties/Installatie/VerwarmingAfgifte/'
+    afg = o.get('vw_afgifte')
+    _set(root, AF + 'Afgiftesysteem', VW_AFGIFTE.get(afg, -1))
+    if afg == 'ventilator_radiatoren':
+        _set(root, AF + 'AantalVentilatoren', (o.get('vw_aantal_ventilatoren') or '').strip())
+    _set(root, AF + 'Regeling', VW_REGELING.get(o.get('vw_regeling'), -1))
+
+    DI = 'Installaties/Installatie/VerwarmingDistributie/'
+    medium = o.get('vw_medium')
+    _set(root, DI + 'DistributieMedium', VW_MEDIUM.get(medium, -1))
+    if medium == 'water':
+        _set(root, DI + 'WaterAanvoertemperatuur', VW_AANVOERTEMP.get(o.get('vw_aanvoertemp'), -1))
+        _set(root, DI + 'DistributieType', VW_DISTRTYPE.get(o.get('vw_distributietype'), -1))
+        if o.get('vw_waterzijdig'):
+            _set(root, DI + 'WaterzijdigIngeregeld', 1)
+        if o.get('vw_aanvullende_pompen'):
+            _set(root, DI + 'AanvullendePompenAanwezig', 1)
+        if o.get('vw_onverwarmd_leidingen'):
+            _set(root, DI + 'OnverwarmdLeidingenDoorRuimte', 1)
+        _set(root, DI + 'AantalBouwlagenWaardoorLeidingenLopen', (o.get('vw_aantal_bouwlagen') or '').strip())
+    if systeem in ('collectief', 'warmtelev_ind', 'warmtelev_gem'):
+        _set(root, DI + 'AantalWarmtemeters', VW_WARMTEMETERS.get(o.get('vw_warmtemeters'), -1))
+
 def build_installatie(o, tpl_path):
     """o = dict met opnamevelden. Geeft xml_bytes (Installatiebibliotheek)."""
     tree = ET.parse(tpl_path)
     root = tree.getroot()
     _fresh_guids(root)
+
+    has_vw = bool(o.get('vo1_type') or o.get('vw_afgifte') or ((o.get('vw_systeem') or 'individueel') != 'individueel'))
+    if has_vw:
+        _fill_verwarming(root, o)
 
     has_tw = bool(o.get('tw_aantal') or o.get('tw1_aangesloten') or o.get('tw1_type_opwekker') or o.get('tw1_type_installatie'))
     if has_tw:

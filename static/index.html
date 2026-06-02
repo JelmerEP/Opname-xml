@@ -98,6 +98,83 @@
     </fieldset>
 
     <fieldset class="tap">
+      <legend>Verwarming</legend>
+      <label class="lbl">Type systeem</label>
+      <select name="vw_systeem">
+        <option value="individueel">Individueel</option>
+        <option value="collectief">Gemeenschappelijk/collectief</option>
+        <option value="warmtelev_ind">Warmtelevering derden (individueel)</option>
+        <option value="warmtelev_gem">Warmtelevering derden (gemeenschappelijk)</option>
+      </select>
+      <label data-show="vw_systeem=collectief,warmtelev_gem" hidden>Totaal gebruiksoppervlakte systeem (m²)<input name="vw_gebruiksopp" inputmode="decimal"></label>
+
+      <div data-show="vw_systeem=individueel,collectief" hidden>
+        <label class="lbl">Aantal warmteopwekkers</label>
+        <div class="opts" data-name="vw_aantal_opwekkers">
+          <button type="button" data-val="een">Eén</button>
+          <button type="button" data-val="twee">Twee (hybride)</button>
+        </div>
+      </div>
+
+      <div id="vopw1"></div>
+      <div id="vopw2" data-show="vw_aantal_opwekkers=twee" hidden></div>
+
+      <h4>Afgifte</h4>
+      <label>Afgiftesysteem
+        <select name="vw_afgifte">
+          <option value="">— kies —</option>
+          <option value="radiatoren">Radiatoren / convectoren</option>
+          <option value="ventilator_radiatoren">Ventilator gedreven radiatoren/convectoren</option>
+          <option value="vloer">Vloer-/wandverwarming</option>
+          <option value="lucht">Luchtverwarming</option>
+          <option value="overig">Overig of onbekend</option>
+        </select>
+      </label>
+      <label data-show="vw_afgifte=ventilator_radiatoren" hidden>Aantal ventilatoren<input name="vw_aantal_ventilatoren" inputmode="numeric"></label>
+      <label>Regeling
+        <select name="vw_regeling">
+          <option value="">— kies —</option>
+          <option value="hoofdvertrek">Regeling in hoofdvertrek (kamerthermostaat)</option>
+          <option value="centraal_naregeling">Centrale regeling met naregeling per ruimte</option>
+          <option value="individueel">Individuele regeling per ruimte</option>
+        </select>
+      </label>
+
+      <h4>Distributie</h4>
+      <label>Distributiemedium
+        <select name="vw_medium">
+          <option value="water">Water</option>
+          <option value="lokaal">Geen (lokaal)</option>
+        </select>
+      </label>
+      <div data-show="vw_medium=water" hidden>
+        <label>Wateraanvoertemperatuur
+          <select name="vw_aanvoertemp">
+            <option value="">— kies —</option>
+            <option value="45_40">45/40 °C</option><option value="55_47">55/47 °C</option>
+            <option value="70_60">70/60 °C</option><option value="90_70">90/70 °C</option>
+          </select>
+        </label>
+        <label>Type distributie
+          <select name="vw_distributietype">
+            <option value="tweepijps">Tweepijpssysteem</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" name="vw_waterzijdig"> Waterzijdig ingeregeld</label>
+        <label class="chk"><input type="checkbox" name="vw_aanvullende_pompen"> Aanvullende pompen aanwezig</label>
+        <label class="chk"><input type="checkbox" name="vw_onverwarmd_leidingen"> Leidingen door onverwarmde ruimte</label>
+        <label>Aantal bouwlagen waardoor leidingen lopen<input name="vw_aantal_bouwlagen" inputmode="numeric"></label>
+      </div>
+      <label data-show="vw_systeem=collectief,warmtelev_ind,warmtelev_gem" hidden>Aantal warmtemeters
+        <select name="vw_warmtemeters">
+          <option value="">— kies —</option>
+          <option value="een_of_meer">Eén of meer warmtemeters aanwezig</option>
+          <option value="geen">Geen warmtemeters aanwezig</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset class="tap">
       <legend>Tapwater</legend>
       <label class="lbl">Aantal warmtapwatersystemen</label>
       <div class="opts" data-name="tw_aantal">
@@ -353,6 +430,102 @@
     </label>
 
     <label class="chk"><input type="checkbox" name="tw__N___circulatie"> Circulatieleiding aanwezig</label>
+  </div>
+</template>
+
+<!-- ===== Verwarming-opwekker-sjabloon; app.js instantieert voor opwekker 1 + 2 ===== -->
+<template id="vopwTemplate">
+  <div class="opw">
+    <h4>Opwekker __N__</h4>
+    <!-- normale opwekker (individueel/collectief) -->
+    <div data-show="vw_systeem=individueel,collectief" hidden>
+      <label>Type opwekker
+        <select name="vo__N___type">
+          <option value="">— kies —</option>
+          <option value="gasketel">Gasgestookte ketel</option>
+          <option value="wp_elektrisch">Warmtepomp elektrisch</option>
+          <option value="lokaal_gas">Lokaal gaskachel</option>
+          <option value="lokaal_olie">Lokaal oliekachel</option>
+          <option value="elektrisch">Elektrische verwarming</option>
+          <option value="moederhaard">Moederhaard</option>
+          <option value="olieketel">Oliegestookte ketel</option>
+          <option value="wkk">WKK</option>
+          <option value="wp_gasabsorptie">Warmtepomp gasabsorptie</option>
+          <option value="wp_gasmotor">Warmtepomp gasmotor</option>
+          <option value="biomassakachel">Biomassakachel</option>
+          <option value="biomassaketel">Biomassaketel centraal opgesteld</option>
+        </select>
+      </label>
+      <label>Merk<input name="vo__N___merk"></label>
+      <label>Type<input name="vo__N___typenr"></label>
+      <label>Installatiejaar<input name="vo__N___jaar" inputmode="numeric"></label>
+
+      <div data-show="vo__N___type=gasketel,olieketel" hidden>
+        <label>Subtype
+          <select name="vo__N___subtype">
+            <option value="">— kies —</option>
+            <option value="cr">CR</option><option value="vr">VR</option>
+            <option value="hr100">HR100</option><option value="hr104">HR104</option><option value="hr107">HR107</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" name="vo__N___direct_lucht"> Direct gestookte luchtverwarming</label>
+      </div>
+
+      <div data-show="vo__N___type=wp_elektrisch,wp_gasabsorptie,wp_gasmotor" hidden>
+        <label>Type warmtepomp
+          <select name="vo__N___type_wp">
+            <option value="">— kies —</option>
+            <option value="lucht_water">Lucht / water</option>
+            <option value="lucht_lucht">Lucht / lucht</option>
+            <option value="water_water">Water / water</option>
+          </select>
+        </label>
+        <label>Bron warmtepomp
+          <select name="vo__N___bron_wp">
+            <option value="">— kies —</option>
+            <option value="buitenlucht">Buitenlucht</option>
+            <option value="retourlucht">Retourlucht</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" name="vo__N___min_cop"> Voldoet aan minimale COP</label>
+        <label class="chk"><input type="checkbox" name="vo__N___additioneel"> Additioneel geplaatst bij renovatie</label>
+      </div>
+
+      <div data-show="vo__N___type=lokaal_gas,lokaal_olie" hidden>
+        <label>Lokaal (stralingsverwarming)
+          <select name="vo__N___lokale_kachel">
+            <option value="">— kies —</option>
+            <option value="met_afvoer">Met afvoer</option>
+            <option value="zonder_afvoer">Zonder afvoer</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" name="vo__N___heeft_stekker"> Heeft stekker</label>
+      </div>
+
+      <label data-show="vo__N___type=gasketel,olieketel,wp_elektrisch,wp_gasabsorptie,wp_gasmotor" hidden>Opstelplaats opwekker
+        <select name="vo__N___opstelplaats">
+          <option value="">— kies —</option>
+          <option value="binnen">Binnen thermische zone</option>
+          <option value="buiten">Buiten thermische zone</option>
+        </select>
+      </label>
+      <label class="chk" data-show="vo__N___type=gasketel,olieketel,lokaal_gas,lokaal_olie" hidden><input type="checkbox" name="vo__N___open_verbranding"> Open verbrandingstoestel</label>
+      <label class="chk"><input type="checkbox" name="vo__N___kwaliteitsverklaring"> Kwaliteitsverklaring warmteopwekker</label>
+    </div>
+
+    <!-- warmtelevering derden (opwekker automatisch) -->
+    <div data-show="vw_systeem=warmtelev_ind,warmtelev_gem" hidden>
+      <p class="hint small">Warmtelevering derden — opwekker automatisch; alleen kwaliteitsverklaring/aflevertemperatuur.</p>
+      <label>Aflevertemperatuur
+        <select name="vo__N___aflevertemp">
+          <option value="">— kies —</option>
+          <option value="onbekend">Onbekend</option>
+          <option value="lt60">&lt; 60 °C</option>
+          <option value="ge60">&ge; 60 °C</option>
+        </select>
+      </label>
+      <label class="chk"><input type="checkbox" name="vo__N___kwaliteitsverklaring"> Kwaliteitsverklaring warmteopwekker</label>
+    </div>
   </div>
 </template>
 

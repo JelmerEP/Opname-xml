@@ -12,12 +12,9 @@ function naamVan(o){ const hnr=[o.huisnummer,o.huisletter].filter(Boolean).join(
 
 // ---------- systeem-sjabloon instantiëren (1 bron -> systeem 1 én 2) ----------
 function buildSystems(){
-  const tpl = document.getElementById('sysTemplate');
-  if(!tpl) return;
-  const html = tpl.innerHTML;
-  const s1 = document.getElementById('sys1'), s2 = document.getElementById('sys2');
-  if(s1) s1.innerHTML = html.replace(/__N__/g,'1');
-  if(s2) s2.innerHTML = html.replace(/__N__/g,'2');
+  const inst=(tplId,id,n)=>{ const t=document.getElementById(tplId), el=document.getElementById(id); if(t&&el) el.innerHTML=t.innerHTML.replace(/__N__/g,n); };
+  inst('sysTemplate','sys1','1');  inst('sysTemplate','sys2','2');    // tapwater
+  inst('vopwTemplate','vopw1','1'); inst('vopwTemplate','vopw2','2'); // verwarming-opwekkers
 }
 
 // ---------- afgeleide vlaggen voor samengestelde conditionals ----------
