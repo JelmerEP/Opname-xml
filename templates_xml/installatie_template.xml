@@ -1,0 +1,1628 @@
+<Project Index="-1">
+	<Guid>1bc2b7b8-9867-4917-b2cd-b28b36a3ce41</Guid>
+	<Hidden>0</Hidden>
+	<CreatedBy>-1</CreatedBy>
+	<ApplicationVersion>12.0</ApplicationVersion>
+	<XmlVersie>120000061</XmlVersie>
+	<FullApplicationVersion>12.0.0</FullApplicationVersion>
+	<CalculationKernelVersion>1.6</CalculationKernelVersion>
+	<CalculationKernelVersionMwa>2.2</CalculationKernelVersionMwa>
+	<LatestXmlUpgrade>120000055</LatestXmlUpgrade>
+	<Backup>0</Backup>
+	<FileName />
+	<IsVoorbeeldproject>0</IsVoorbeeldproject>
+	<IsBasisVoorraadPrimairSysteem>0</IsBasisVoorraadPrimairSysteem>
+	<OriginalVoorbeeldprojectFile />
+	<Algemeen Index="-1">
+		<Guid>5bd93cb0-d8f8-4d3d-880c-80fe7c76797c</Guid>
+		<Projectgegevens Index="-1">
+			<Guid>702174a7-26f9-48b0-8434-110a1321a4ad</Guid>
+			<UpdateMetConnectorNaam>1</UpdateMetConnectorNaam>
+			<UpdateMetConnectorPostcode>1</UpdateMetConnectorPostcode>
+			<UpdateMetConnectorHuisnummer>1</UpdateMetConnectorHuisnummer>
+			<UpdateMetConnectorHuisletterHuisnummertoevoeging>1</UpdateMetConnectorHuisletterHuisnummertoevoeging>
+			<UpdateMetConnectorDetailaanduiding>1</UpdateMetConnectorDetailaanduiding>
+			<UpdateMetConnectorStraat>1</UpdateMetConnectorStraat>
+			<UpdateMetConnectorPlaats>1</UpdateMetConnectorPlaats>
+			<UpdateMetConnectorEenheid>1</UpdateMetConnectorEenheid>
+			<UpdateMetConnectorComplex>1</UpdateMetConnectorComplex>
+			<UpdateMetConnectorBuurt>1</UpdateMetConnectorBuurt>
+			<UpdateMetConnectorWijk>1</UpdateMetConnectorWijk>
+			<IsMeenemenInSync>1</IsMeenemenInSync>
+			<UpdateMetConnectorGemeente>1</UpdateMetConnectorGemeente>
+			<UpdateMetConnectorVestiging>1</UpdateMetConnectorVestiging>
+			<UpdateMetConnectorTechnischComplex>0</UpdateMetConnectorTechnischComplex>
+			<UpdateMetConnectorFinancieelComplex>0</UpdateMetConnectorFinancieelComplex>
+			<Objecttype>-1</Objecttype>
+			<Bouwfase>-1</Bouwfase>
+			<Opname>-1</Opname>
+			<IsMaatwerk>0</IsMaatwerk>
+			<Warmteverliesberekening>0</Warmteverliesberekening>
+			<UWaardeRaamMetOmtrekEnOppervlakte>0</UWaardeRaamMetOmtrekEnOppervlakte>
+			<Naam />
+			<ProjectNr />
+			<OpnameDatum />
+			<RapportDatum />
+			<UpdateMetConnectorBouwjaar>1</UpdateMetConnectorBouwjaar>
+			<UpdateMetConnectorRenovatiejaar>1</UpdateMetConnectorRenovatiejaar>
+			<Omschrijving />
+			<MeenemenInRegistratiemomenten>1</MeenemenInRegistratiemomenten>
+			<ToonDeelvoorraad>1</ToonDeelvoorraad>
+		</Projectgegevens>
+		<Opdrachtgever Index="-1">
+			<Guid>301aeb9e-5db0-4fe6-96fd-7700f8b6814a</Guid>
+			<Bedrijf />
+			<Persoon />
+			<Afdeling />
+			<Straat />
+			<Nummer>0</Nummer>
+			<Extensie />
+			<Postcode />
+			<Plaats />
+			<Telefoon />
+			<Email />
+		</Opdrachtgever>
+		<Financieel Index="-1">
+			<Guid>d950938b-e496-4d1a-b518-d42178ef8305</Guid>
+			<Elektriciteit Index="-1">
+				<Guid>5f5d1919-0154-4f05-909a-851cb6e9b98c</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Elektriciteit>
+			<TerugleveringTotGrens Index="-1">
+				<Guid>b7f1e840-640d-4cfd-87c2-f2f77ce7106c</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</TerugleveringTotGrens>
+			<TerugleveringBovenGrens Index="-1">
+				<Guid>d0fddd59-73fd-473f-af92-32e5031f1299</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</TerugleveringBovenGrens>
+			<Salderingspercentage>0</Salderingspercentage>
+			<HeeftSlimmeMeter>0</HeeftSlimmeMeter>
+			<Opbrengstpercentage>0</Opbrengstpercentage>
+			<Gas Index="-1">
+				<Guid>bc5374c6-10e3-4b16-8188-87ea6d079480</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Gas>
+			<Warmtenet Index="-1">
+				<Guid>d6464879-9812-4e51-ba6b-f3e0a7c15de4</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Warmtenet>
+			<Koudenet Index="-1">
+				<Guid>6acbaae8-517c-46ba-a5b0-5703a6077fc5</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Koudenet>
+			<Biomassa Index="-1">
+				<Guid>b8341f6b-ceff-4e3c-a92a-cc234b8ca50b</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Biomassa>
+			<Stookolie Index="-1">
+				<Guid>cf7813b0-ea61-4f66-a5e4-7103daf98767</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Stookolie>
+			<Water Index="-1">
+				<Guid>2c922ddc-c538-4441-a3ff-93fc7ae22662</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Water>
+			<VerminderingEnergiebelasting>0.00</VerminderingEnergiebelasting>
+			<InclBtw>1</InclBtw>
+			<Levensduur>0</Levensduur>
+			<RenteInvestering>0.00</RenteInvestering>
+			<ToenameEnergie>0.00</ToenameEnergie>
+		</Financieel>
+		<Adviseur Index="-1">
+			<Guid>4c667715-161c-492b-8e03-aae29bf51aee</Guid>
+			<Bedrijf />
+			<Adviseur />
+			<Adres />
+			<Postcode />
+			<Plaats />
+			<Telefoon />
+			<Email />
+		</Adviseur>
+	</Algemeen>
+	<Objecten Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Objecten>
+	<Installaties Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+		<Installatie Index="0">
+			<Guid>949f0d73-ad16-4260-b141-d2a2632c40b9</Guid>
+			<Naam>Installatie</Naam>
+			<Opmerkingen />
+			<KoelingBron>-1</KoelingBron>
+			<KoelingOpmerkingen />
+			<VerwarmingBron>-1</VerwarmingBron>
+			<VerwarmingOpmerkingen />
+			<Ventilatie Index="-1">
+				<Guid>93d0ca45-7324-4818-911d-ad41d3ccd0e3</Guid>
+				<Systeem>-1</Systeem>
+				<CollectiefSysteemOokGebruiktVoorAndereRekenzones>0</CollectiefSysteemOokGebruiktVoorAndereRekenzones>
+				<GebruiksoppervlakteCollectief>0.00</GebruiksoppervlakteCollectief>
+				<AantalIdentiekeSystemen>0</AantalIdentiekeSystemen>
+				<AantalIdentiekeSystemenAuto>1</AantalIdentiekeSystemenAuto>
+				<Ventilatiesysteem>-1</Ventilatiesysteem>
+				<VentilatiesysteemList Index="-1">
+					<Guid>00000000-0000-0000-0000-000000000000</Guid>
+					<Ventilatiesysteem Index="0">
+						<Guid>b9241749-ab19-486a-8d9c-fd6df88064e6</Guid>
+						<IsLbkAanwezig>0</IsLbkAanwezig>
+						<OpstelplaatsLbk>1</OpstelplaatsLbk>
+						<IsVerwarmingAangeslotenOpLbk>0</IsVerwarmingAangeslotenOpLbk>
+						<IsKoelingAangeslotenOpLbk>0</IsKoelingAangeslotenOpLbk>
+						<TypeWtw>-1</TypeWtw>
+						<KwaliteitsverklaringInvoermethodeWTW>0</KwaliteitsverklaringInvoermethodeWTW>
+						<KwaliteitsverklaringMerk />
+						<TypeVerklaringKvWtw>-1</TypeVerklaringKvWtw>
+						<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+						<RendementKvWtw>0.000</RendementKvWtw>
+						<RendementKvWtwInclusiefDissipatie>0</RendementKvWtwInclusiefDissipatie>
+						<CodeKvWtw />
+						<Volumeregeling>-1</Volumeregeling>
+						<Bypass>-1</Bypass>
+						<BypassPercentage>0</BypassPercentage>
+						<BypassFabricagejaar>-1</BypassFabricagejaar>
+						<KoudeterugwinningWtw>0</KoudeterugwinningWtw>
+						<IsolatieKanaalBuitenaansluiting>-1</IsolatieKanaalBuitenaansluiting>
+						<IsolatieDikteKanaalBuitenaansluiting>0</IsolatieDikteKanaalBuitenaansluiting>
+						<LambdaKanaalBuitenaansluiting>0.000</LambdaKanaalBuitenaansluiting>
+						<LengteKanaalBuitenaansluiting>-1</LengteKanaalBuitenaansluiting>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+						<KwaliteitsverklaringType />
+						<Subsysteem>-1</Subsysteem>
+						<Verblijfsgebied>0.00</Verblijfsgebied>
+						<IsSysteemVoorzienVanPassieveKoeling>0</IsSysteemVoorzienVanPassieveKoeling>
+						<ZwembadAanwezig>0</ZwembadAanwezig>
+						<GebruiksoppervlakteZwembadruimte>0.00</GebruiksoppervlakteZwembadruimte>
+						<KwaliteitsverklaringMerkWTW />
+						<KwaliteitsverklaringIdWTW>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringIdWTW>
+						<IsDebietBekend>0</IsDebietBekend>
+						<Debiet>0</Debiet>
+						<Debietregeling>-1</Debietregeling>
+						<Terugregeling>-1</Terugregeling>
+						<Recirculatie>-1</Recirculatie>
+						<WerkelijkeLengteKanaalBuitenaansluiting>0.00</WerkelijkeLengteKanaalBuitenaansluiting>
+						<RecirculatiePercentage>0</RecirculatiePercentage>
+						<KwaliteitsverklaringVla>0</KwaliteitsverklaringVla>
+						<FCtrl>0.00</FCtrl>
+						<CodeKvVla />
+						<Luchtdichtheidsklasse>-1</Luchtdichtheidsklasse>
+						<IsToevoerkanalenBuitenVerwarmdeZone>0</IsToevoerkanalenBuitenVerwarmdeZone>
+						<LengteKanalen>-1</LengteKanalen>
+						<IsolatiewaardeKanalen>-1</IsolatiewaardeKanalen>
+						<OpgaveVentilatoren>-1</OpgaveVentilatoren>
+						<AantalVentilatoren>-1</AantalVentilatoren>
+						<TypeElektromotor>-1</TypeElektromotor>
+						<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+						<TypeVerklaring>-1</TypeVerklaring>
+						<ConstanteA>0.0000000</ConstanteA>
+						<ConstanteB>0.0000000</ConstanteB>
+						<ConstanteC>0.0000000</ConstanteC>
+						<CodeVentilator />
+						<VentilatorList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+							<Ventilator Index="0">
+								<Guid>d53f4525-e828-4e2d-96bf-9da819746886</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+							<Ventilator Index="1">
+								<Guid>57777473-71ef-44d9-924c-f20817d5378e</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+							<Ventilator Index="2">
+								<Guid>4606c296-f081-45c6-b620-97e2c5b92d54</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+							<Ventilator Index="3">
+								<Guid>6612c1f8-6939-468e-9923-3ba571627808</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+						</VentilatorList>
+						<IsLintVerwarmingAanwezig>0</IsLintVerwarmingAanwezig>
+						<LintVerwarming>-1</LintVerwarming>
+						<AandeelDebietVoorverwarmd>0</AandeelDebietVoorverwarmd>
+						<MaximaalVermogen>0</MaximaalVermogen>
+						<MaximaleTemperatuurSprong>0</MaximaleTemperatuurSprong>
+						<BuitenluchtTempVoorInschakelen>0</BuitenluchtTempVoorInschakelen>
+						<MaxInblaastempVoorRegeling>0</MaxInblaastempVoorRegeling>
+					</Ventilatiesysteem>
+					<Ventilatiesysteem Index="1">
+						<Guid>6303f83a-e146-41af-86ac-0854cd06d54f</Guid>
+						<IsLbkAanwezig>0</IsLbkAanwezig>
+						<OpstelplaatsLbk>1</OpstelplaatsLbk>
+						<IsVerwarmingAangeslotenOpLbk>0</IsVerwarmingAangeslotenOpLbk>
+						<IsKoelingAangeslotenOpLbk>0</IsKoelingAangeslotenOpLbk>
+						<TypeWtw>-1</TypeWtw>
+						<KwaliteitsverklaringInvoermethodeWTW>0</KwaliteitsverklaringInvoermethodeWTW>
+						<KwaliteitsverklaringMerk />
+						<TypeVerklaringKvWtw>-1</TypeVerklaringKvWtw>
+						<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+						<RendementKvWtw>0.000</RendementKvWtw>
+						<RendementKvWtwInclusiefDissipatie>0</RendementKvWtwInclusiefDissipatie>
+						<CodeKvWtw />
+						<Volumeregeling>-1</Volumeregeling>
+						<Bypass>-1</Bypass>
+						<BypassPercentage>0</BypassPercentage>
+						<BypassFabricagejaar>-1</BypassFabricagejaar>
+						<KoudeterugwinningWtw>0</KoudeterugwinningWtw>
+						<IsolatieKanaalBuitenaansluiting>-1</IsolatieKanaalBuitenaansluiting>
+						<IsolatieDikteKanaalBuitenaansluiting>0</IsolatieDikteKanaalBuitenaansluiting>
+						<LambdaKanaalBuitenaansluiting>0.000</LambdaKanaalBuitenaansluiting>
+						<LengteKanaalBuitenaansluiting>-1</LengteKanaalBuitenaansluiting>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+						<KwaliteitsverklaringType />
+						<Subsysteem>-1</Subsysteem>
+						<Verblijfsgebied>0.00</Verblijfsgebied>
+						<IsSysteemVoorzienVanPassieveKoeling>0</IsSysteemVoorzienVanPassieveKoeling>
+						<ZwembadAanwezig>0</ZwembadAanwezig>
+						<GebruiksoppervlakteZwembadruimte>0.00</GebruiksoppervlakteZwembadruimte>
+						<KwaliteitsverklaringMerkWTW />
+						<KwaliteitsverklaringIdWTW>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringIdWTW>
+						<IsDebietBekend>0</IsDebietBekend>
+						<Debiet>0</Debiet>
+						<Debietregeling>-1</Debietregeling>
+						<Terugregeling>-1</Terugregeling>
+						<Recirculatie>-1</Recirculatie>
+						<WerkelijkeLengteKanaalBuitenaansluiting>0.00</WerkelijkeLengteKanaalBuitenaansluiting>
+						<RecirculatiePercentage>0</RecirculatiePercentage>
+						<KwaliteitsverklaringVla>0</KwaliteitsverklaringVla>
+						<FCtrl>0.00</FCtrl>
+						<CodeKvVla />
+						<Luchtdichtheidsklasse>-1</Luchtdichtheidsklasse>
+						<IsToevoerkanalenBuitenVerwarmdeZone>0</IsToevoerkanalenBuitenVerwarmdeZone>
+						<LengteKanalen>-1</LengteKanalen>
+						<IsolatiewaardeKanalen>-1</IsolatiewaardeKanalen>
+						<OpgaveVentilatoren>-1</OpgaveVentilatoren>
+						<AantalVentilatoren>-1</AantalVentilatoren>
+						<TypeElektromotor>-1</TypeElektromotor>
+						<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+						<TypeVerklaring>-1</TypeVerklaring>
+						<ConstanteA>0.0000000</ConstanteA>
+						<ConstanteB>0.0000000</ConstanteB>
+						<ConstanteC>0.0000000</ConstanteC>
+						<CodeVentilator />
+						<VentilatorList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+							<Ventilator Index="0">
+								<Guid>b6f67129-c5cf-4de5-814a-29eae417a679</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+							<Ventilator Index="1">
+								<Guid>b27db248-11d4-49df-9a23-05c63d703780</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+							<Ventilator Index="2">
+								<Guid>ee33f9ef-2383-4ae9-8dc8-5e9591030cc8</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+							<Ventilator Index="3">
+								<Guid>36f1c62a-cc48-48a3-a913-a60a2a2d66ea</Guid>
+								<NominaalVermogen>0</NominaalVermogen>
+								<ElektrischAsvermogen>0</ElektrischAsvermogen>
+								<TypeElektromotor>-1</TypeElektromotor>
+								<Stroomsterkte>0.00</Stroomsterkte>
+								<Spanning>0.00</Spanning>
+								<Arbeidsfactor>0.00</Arbeidsfactor>
+								<FabricagejaarVentilator>-1</FabricagejaarVentilator>
+							</Ventilator>
+						</VentilatorList>
+						<IsLintVerwarmingAanwezig>0</IsLintVerwarmingAanwezig>
+						<LintVerwarming>-1</LintVerwarming>
+						<AandeelDebietVoorverwarmd>0</AandeelDebietVoorverwarmd>
+						<MaximaalVermogen>0</MaximaalVermogen>
+						<MaximaleTemperatuurSprong>0</MaximaleTemperatuurSprong>
+						<BuitenluchtTempVoorInschakelen>0</BuitenluchtTempVoorInschakelen>
+						<MaxInblaastempVoorRegeling>0</MaxInblaastempVoorRegeling>
+					</Ventilatiesysteem>
+				</VentilatiesysteemList>
+				<Bron>-1</Bron>
+				<Opmerkingen />
+			</Ventilatie>
+			<KoelingAfgifte Index="-1">
+				<Guid>f17034c2-2430-4940-bb4f-fc249eb570cb</Guid>
+				<Afgiftesysteem>-1</Afgiftesysteem>
+				<AantalToestellen>0</AantalToestellen>
+				<VentilatorvermogenBekend>0</VentilatorvermogenBekend>
+				<VermogenPerVentilator>0.00</VermogenPerVentilator>
+				<AfgiftesysteemRegeling>-1</AfgiftesysteemRegeling>
+			</KoelingAfgifte>
+			<KoelingDistributie Index="-1">
+				<Guid>b34171ac-2166-49de-b9a4-fece014a0226</Guid>
+				<Distributiemedium>-1</Distributiemedium>
+				<Wateraanvoertemperatuur>-1</Wateraanvoertemperatuur>
+				<WaterzijdigInregelen>0</WaterzijdigInregelen>
+				<Ingeregeld>-1</Ingeregeld>
+				<Circulatiepomp>-1</Circulatiepomp>
+				<CirculatiepompTotaalVermogen>0</CirculatiepompTotaalVermogen>
+				<CirculatiepompEnergieEfficientieIndex>0.00</CirculatiepompEnergieEfficientieIndex>
+				<TweedeCirculatiepompAanwezig>0</TweedeCirculatiepompAanwezig>
+				<TweedeCirculatiepomp>-1</TweedeCirculatiepomp>
+				<TweedeCirculatiepompVermogen>0</TweedeCirculatiepompVermogen>
+				<TweedeCirculatiepompEnergieEfficientieIndex>0.00</TweedeCirculatiepompEnergieEfficientieIndex>
+				<LeidingenDoorOngekoeldeRuimte>0</LeidingenDoorOngekoeldeRuimte>
+				<OngekoeldeRuimteLeidingenLengte>-1</OngekoeldeRuimteLeidingenLengte>
+				<OngekoeldeRuimteLeidinglengte>0.00</OngekoeldeRuimteLeidinglengte>
+				<OngekoeldeRuimteMaximaleLeidinglengte>0.00</OngekoeldeRuimteMaximaleLeidinglengte>
+				<OngekoeldeRuimteLeidingenGeisoleerd>-1</OngekoeldeRuimteLeidingenGeisoleerd>
+				<OngekoeldeRuimteIsolatiejaar>-1</OngekoeldeRuimteIsolatiejaar>
+				<KleppenBeugelsGeisoleerd>0</KleppenBeugelsGeisoleerd>
+				<OngekoeldeRuimteOmgevingLeidingen>-1</OngekoeldeRuimteOmgevingLeidingen>
+				<OngekoeldeRuimteDiepteLeidingenVloerWandPlafond>0</OngekoeldeRuimteDiepteLeidingenVloerWandPlafond>
+				<OngekoeldeRuimteWarmtegeleidingscoefficientMateriaalIngebed>0.000</OngekoeldeRuimteWarmtegeleidingscoefficientMateriaalIngebed>
+				<OngekoeldeRuimteBinnendiameterLeidingZonderIsolatie>0</OngekoeldeRuimteBinnendiameterLeidingZonderIsolatie>
+				<OngekoeldeRuimteBuitendiameterLeidingZonderIsolatie>0</OngekoeldeRuimteBuitendiameterLeidingZonderIsolatie>
+				<OngekoeldeRuimteDiameterLeidingMetIsolatie>0</OngekoeldeRuimteDiameterLeidingMetIsolatie>
+				<OngekoeldeRuimteWarmtegeleidingscoefficientIsolatiemateriaal>0.000</OngekoeldeRuimteWarmtegeleidingscoefficientIsolatiemateriaal>
+				<OngekoeldeRuimteWarmtegeleidingscoefficientLeidingmateriaal>0.000</OngekoeldeRuimteWarmtegeleidingscoefficientLeidingmateriaal>
+				<AantalBouwlagenWaardoorLeidingenLopen>0</AantalBouwlagenWaardoorLeidingenLopen>
+				<AantalWarmtemeters>0</AantalWarmtemeters>
+			</KoelingDistributie>
+			<KoelingOpwekking Index="-1">
+				<Guid>75e6b774-e9bd-46ed-a341-7838f5eee143</Guid>
+				<KoelingAanwezig>0</KoelingAanwezig>
+				<Koelsysteem>-1</Koelsysteem>
+				<Oppervlak>0.00</Oppervlak>
+				<AantalIdentiekeSystemen>0</AantalIdentiekeSystemen>
+				<AantalIdentiekeSystemenAuto>1</AantalIdentiekeSystemenAuto>
+				<AantalOpwekkers>-1</AantalOpwekkers>
+				<KoelingOpwekkers Index="-1">
+					<Guid>00000000-0000-0000-0000-000000000000</Guid>
+					<KoelingOpwekker Index="0">
+						<Guid>fbba3e16-1204-41b2-a05b-a99d207088dc</Guid>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<Expansie>-1</Expansie>
+						<Splitsysteem>-1</Splitsysteem>
+						<Aandrijving>-1</Aandrijving>
+						<ElektrischVermogenGasmotor>0.00</ElektrischVermogenGasmotor>
+						<WkkVermogen>0.00</WkkVermogen>
+						<Fabricagejaar>-1</Fabricagejaar>
+						<KoudeAfgifte>-1</KoudeAfgifte>
+						<VrijePassieveKoeling>-1</VrijePassieveKoeling>
+						<TotaalVermogen>0.00</TotaalVermogen>
+						<AangeslotenOpWarmtepomp>0</AangeslotenOpWarmtepomp>
+						<BodemtemperatuurBovenNulGraden>0</BodemtemperatuurBovenNulGraden>
+						<WarmtepompRegeneratieTapwater>0</WarmtepompRegeneratieTapwater>
+						<Tapwatersysteem>-1</Tapwatersysteem>
+						<KwaliteitsverklaringKoudeOpwekker>0</KwaliteitsverklaringKoudeOpwekker>
+						<Rendement>0.000</Rendement>
+						<PrimaireEnergiefactor>0.0000</PrimaireEnergiefactor>
+						<PrimaireEnergiefactorUitsluitendGemeten>0</PrimaireEnergiefactorUitsluitendGemeten>
+						<FactorHernieuwbaar>0.0000</FactorHernieuwbaar>
+						<Co2Emissiecoefficient>0.0000</Co2Emissiecoefficient>
+						<Code />
+					</KoelingOpwekker>
+					<KoelingOpwekker Index="1">
+						<Guid>85b0f814-2103-4fcd-8ebc-07799ec74978</Guid>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<Expansie>-1</Expansie>
+						<Splitsysteem>-1</Splitsysteem>
+						<Aandrijving>-1</Aandrijving>
+						<ElektrischVermogenGasmotor>0.00</ElektrischVermogenGasmotor>
+						<WkkVermogen>0.00</WkkVermogen>
+						<Fabricagejaar>-1</Fabricagejaar>
+						<KoudeAfgifte>-1</KoudeAfgifte>
+						<VrijePassieveKoeling>-1</VrijePassieveKoeling>
+						<TotaalVermogen>0.00</TotaalVermogen>
+						<AangeslotenOpWarmtepomp>0</AangeslotenOpWarmtepomp>
+						<BodemtemperatuurBovenNulGraden>0</BodemtemperatuurBovenNulGraden>
+						<WarmtepompRegeneratieTapwater>0</WarmtepompRegeneratieTapwater>
+						<Tapwatersysteem>-1</Tapwatersysteem>
+						<KwaliteitsverklaringKoudeOpwekker>0</KwaliteitsverklaringKoudeOpwekker>
+						<Rendement>0.000</Rendement>
+						<PrimaireEnergiefactor>0.0000</PrimaireEnergiefactor>
+						<PrimaireEnergiefactorUitsluitendGemeten>0</PrimaireEnergiefactorUitsluitendGemeten>
+						<FactorHernieuwbaar>0.0000</FactorHernieuwbaar>
+						<Co2Emissiecoefficient>0.0000</Co2Emissiecoefficient>
+						<Code />
+					</KoelingOpwekker>
+					<KoelingOpwekker Index="2">
+						<Guid>1447dcd2-d914-46e1-991d-1e36db414668</Guid>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<Expansie>-1</Expansie>
+						<Splitsysteem>-1</Splitsysteem>
+						<Aandrijving>-1</Aandrijving>
+						<ElektrischVermogenGasmotor>0.00</ElektrischVermogenGasmotor>
+						<WkkVermogen>0.00</WkkVermogen>
+						<Fabricagejaar>-1</Fabricagejaar>
+						<KoudeAfgifte>-1</KoudeAfgifte>
+						<VrijePassieveKoeling>-1</VrijePassieveKoeling>
+						<TotaalVermogen>0.00</TotaalVermogen>
+						<AangeslotenOpWarmtepomp>0</AangeslotenOpWarmtepomp>
+						<BodemtemperatuurBovenNulGraden>0</BodemtemperatuurBovenNulGraden>
+						<WarmtepompRegeneratieTapwater>0</WarmtepompRegeneratieTapwater>
+						<Tapwatersysteem>-1</Tapwatersysteem>
+						<KwaliteitsverklaringKoudeOpwekker>0</KwaliteitsverklaringKoudeOpwekker>
+						<Rendement>0.000</Rendement>
+						<PrimaireEnergiefactor>0.0000</PrimaireEnergiefactor>
+						<PrimaireEnergiefactorUitsluitendGemeten>0</PrimaireEnergiefactorUitsluitendGemeten>
+						<FactorHernieuwbaar>0.0000</FactorHernieuwbaar>
+						<Co2Emissiecoefficient>0.0000</Co2Emissiecoefficient>
+						<Code />
+					</KoelingOpwekker>
+				</KoelingOpwekkers>
+			</KoelingOpwekking>
+			<Verwarming Index="-1">
+				<Guid>81120ab8-2b03-452d-8039-7b8ebf294c8d</Guid>
+				<Verwarmingsysteem>-1</Verwarmingsysteem>
+				<AgAangeslotenOpInstallatie>0.00</AgAangeslotenOpInstallatie>
+				<AantalIdentiekeSystemen>0</AantalIdentiekeSystemen>
+				<AantalIdentiekeSystemenAuto>1</AantalIdentiekeSystemenAuto>
+				<AantalWarmteopwekkers>0</AantalWarmteopwekkers>
+				<VerwarmingOpwekkerList Index="-1">
+					<Guid>00000000-0000-0000-0000-000000000000</Guid>
+					<VerwarmingOpwekker Index="0">
+						<Guid>1bfdaa9c-cd53-46b3-b5f8-579200209296</Guid>
+						<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+						<KwaliteitsverklaringTypeBron>-1</KwaliteitsverklaringTypeBron>
+						<KwaliteitsverklaringWarmtenet>-1</KwaliteitsverklaringWarmtenet>
+						<KwaliteitsverklaringRendement>0.000</KwaliteitsverklaringRendement>
+						<KwaliteitsverklaringEnergiefractie>0.000</KwaliteitsverklaringEnergiefractie>
+						<KwaliteitsverklaringCollectieveBronWarmtepomp>1</KwaliteitsverklaringCollectieveBronWarmtepomp>
+						<KwaliteitsverklaringPrimaireEnergiefactor>0.0000</KwaliteitsverklaringPrimaireEnergiefactor>
+						<KwaliteitsverklaringPrimaireEnergiefactorUitsluitendGemeten>0</KwaliteitsverklaringPrimaireEnergiefactorUitsluitendGemeten>
+						<KwaliteitsverklaringFactorHernieuwbaar>0.0000</KwaliteitsverklaringFactorHernieuwbaar>
+						<KwaliteitsverklaringCO2Emissiecoefficient>0.0000</KwaliteitsverklaringCO2Emissiecoefficient>
+						<KwaliteitsverklaringWkkOmzettingsgetalWarmte>0.000</KwaliteitsverklaringWkkOmzettingsgetalWarmte>
+						<KwaliteitsverklaringWkkOmzettingsgetalElektriciteit>0.000</KwaliteitsverklaringWkkOmzettingsgetalElektriciteit>
+						<KwaliteitsverklaringDuurzaamBeng3>0</KwaliteitsverklaringDuurzaamBeng3>
+						<KwaliteitsverklaringLuchtdebietToestel>0.0</KwaliteitsverklaringLuchtdebietToestel>
+						<KwaliteitsverklaringModulerendeWarmtepomp>1</KwaliteitsverklaringModulerendeWarmtepomp>
+						<KwaliteitsverklaringMinimaalVermogen>0.000</KwaliteitsverklaringMinimaalVermogen>
+						<KwaliteitsverklaringCode />
+						<Hulpenergie>-1</Hulpenergie>
+						<HulpenergieTypeVerklaring>-1</HulpenergieTypeVerklaring>
+						<HulpenergieType />
+						<HulpenergieConstanteA>0.0000000000</HulpenergieConstanteA>
+						<HulpenergieConstanteB>0.0000000000</HulpenergieConstanteB>
+						<HulpenergieConstanteC>0.0000000000</HulpenergieConstanteC>
+						<HulpenergieBNominaal>0.00</HulpenergieBNominaal>
+						<HulpenergieWaux>0.00</HulpenergieWaux>
+						<KwaliteitsverklaringWarmteopwekkerId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringWarmteopwekkerId>
+						<HulpenergieCode />
+						<HulpenergieFabricagejaarToestel>-1</HulpenergieFabricagejaarToestel>
+						<KwaliteitsverklaringMerk />
+						<FabricagejaarToestelWkk>-1</FabricagejaarToestelWkk>
+						<StandbyKwaliteitsverklaring>0</StandbyKwaliteitsverklaring>
+						<StandbyElektriciteitsgebruik>0.000</StandbyElektriciteitsgebruik>
+						<StandbyCode />
+						<Aflevertemperatuur>-1</Aflevertemperatuur>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<HeeftStekker>0</HeeftStekker>
+						<LokaleKachel>-1</LokaleKachel>
+						<SubType>-1</SubType>
+						<AantalToestellenMetWaakvlam>0</AantalToestellenMetWaakvlam>
+						<DirectGestookteLuchtverwarming>0</DirectGestookteLuchtverwarming>
+						<HreLabelPresent>0</HreLabelPresent>
+						<ElektrischVermogenWkk>0.0</ElektrischVermogenWkk>
+						<HulpenergieInvoermethode>1</HulpenergieInvoermethode>
+						<HulpenergieId>00000000-0000-0000-0000-000000000000</HulpenergieId>
+						<HulpenergieMerk />
+						<VoldoetAanMinCOP>0</VoldoetAanMinCOP>
+						<TypeWarmtepomp>-1</TypeWarmtepomp>
+						<TypeBron>2</TypeBron>
+						<BronWarmtepomp>-1</BronWarmtepomp>
+						<TypeGrondwateraquifer>-1</TypeGrondwateraquifer>
+						<TypeBiomassakachel>-1</TypeBiomassakachel>
+						<BiomassaToestel>-1</BiomassaToestel>
+						<IsAdditioneelGeplaatstBijRenovatie>0</IsAdditioneelGeplaatstBijRenovatie>
+						<OpstelplaatsOpwekker>1</OpstelplaatsOpwekker>
+						<OpenVerbrandingstoestel>0</OpenVerbrandingstoestel>
+						<StandbyInvoermethode>-1</StandbyInvoermethode>
+						<StandbyId>00000000-0000-0000-0000-000000000000</StandbyId>
+						<StandbyMerk />
+						<NominaleBelasting>0.0</NominaleBelasting>
+						<StandbyAantal>0</StandbyAantal>
+						<Vermogens />
+						<Opwekkingsvermogen>0.0</Opwekkingsvermogen>
+						<KwaliteitsverklaringWarmteopwekker>0</KwaliteitsverklaringWarmteopwekker>
+					</VerwarmingOpwekker>
+					<VerwarmingOpwekker Index="1">
+						<Guid>d480e049-8e0a-450b-bf19-e73d0be59075</Guid>
+						<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+						<KwaliteitsverklaringTypeBron>-1</KwaliteitsverklaringTypeBron>
+						<KwaliteitsverklaringWarmtenet>-1</KwaliteitsverklaringWarmtenet>
+						<KwaliteitsverklaringRendement>0.000</KwaliteitsverklaringRendement>
+						<KwaliteitsverklaringEnergiefractie>0.000</KwaliteitsverklaringEnergiefractie>
+						<KwaliteitsverklaringCollectieveBronWarmtepomp>1</KwaliteitsverklaringCollectieveBronWarmtepomp>
+						<KwaliteitsverklaringPrimaireEnergiefactor>0.0000</KwaliteitsverklaringPrimaireEnergiefactor>
+						<KwaliteitsverklaringPrimaireEnergiefactorUitsluitendGemeten>0</KwaliteitsverklaringPrimaireEnergiefactorUitsluitendGemeten>
+						<KwaliteitsverklaringFactorHernieuwbaar>0.0000</KwaliteitsverklaringFactorHernieuwbaar>
+						<KwaliteitsverklaringCO2Emissiecoefficient>0.0000</KwaliteitsverklaringCO2Emissiecoefficient>
+						<KwaliteitsverklaringWkkOmzettingsgetalWarmte>0.000</KwaliteitsverklaringWkkOmzettingsgetalWarmte>
+						<KwaliteitsverklaringWkkOmzettingsgetalElektriciteit>0.000</KwaliteitsverklaringWkkOmzettingsgetalElektriciteit>
+						<KwaliteitsverklaringDuurzaamBeng3>0</KwaliteitsverklaringDuurzaamBeng3>
+						<KwaliteitsverklaringLuchtdebietToestel>0.0</KwaliteitsverklaringLuchtdebietToestel>
+						<KwaliteitsverklaringModulerendeWarmtepomp>1</KwaliteitsverklaringModulerendeWarmtepomp>
+						<KwaliteitsverklaringMinimaalVermogen>0.000</KwaliteitsverklaringMinimaalVermogen>
+						<KwaliteitsverklaringCode />
+						<Hulpenergie>-1</Hulpenergie>
+						<HulpenergieTypeVerklaring>-1</HulpenergieTypeVerklaring>
+						<HulpenergieType />
+						<HulpenergieConstanteA>0.0000000000</HulpenergieConstanteA>
+						<HulpenergieConstanteB>0.0000000000</HulpenergieConstanteB>
+						<HulpenergieConstanteC>0.0000000000</HulpenergieConstanteC>
+						<HulpenergieBNominaal>0.00</HulpenergieBNominaal>
+						<HulpenergieWaux>0.00</HulpenergieWaux>
+						<KwaliteitsverklaringWarmteopwekkerId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringWarmteopwekkerId>
+						<HulpenergieCode />
+						<HulpenergieFabricagejaarToestel>-1</HulpenergieFabricagejaarToestel>
+						<KwaliteitsverklaringMerk />
+						<FabricagejaarToestelWkk>-1</FabricagejaarToestelWkk>
+						<StandbyKwaliteitsverklaring>0</StandbyKwaliteitsverklaring>
+						<StandbyElektriciteitsgebruik>0.000</StandbyElektriciteitsgebruik>
+						<StandbyCode />
+						<Aflevertemperatuur>-1</Aflevertemperatuur>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<HeeftStekker>0</HeeftStekker>
+						<LokaleKachel>-1</LokaleKachel>
+						<SubType>-1</SubType>
+						<AantalToestellenMetWaakvlam>0</AantalToestellenMetWaakvlam>
+						<DirectGestookteLuchtverwarming>0</DirectGestookteLuchtverwarming>
+						<HreLabelPresent>0</HreLabelPresent>
+						<ElektrischVermogenWkk>0.0</ElektrischVermogenWkk>
+						<HulpenergieInvoermethode>1</HulpenergieInvoermethode>
+						<HulpenergieId>00000000-0000-0000-0000-000000000000</HulpenergieId>
+						<HulpenergieMerk />
+						<VoldoetAanMinCOP>0</VoldoetAanMinCOP>
+						<TypeWarmtepomp>-1</TypeWarmtepomp>
+						<TypeBron>2</TypeBron>
+						<BronWarmtepomp>-1</BronWarmtepomp>
+						<TypeGrondwateraquifer>-1</TypeGrondwateraquifer>
+						<TypeBiomassakachel>-1</TypeBiomassakachel>
+						<BiomassaToestel>-1</BiomassaToestel>
+						<IsAdditioneelGeplaatstBijRenovatie>0</IsAdditioneelGeplaatstBijRenovatie>
+						<OpstelplaatsOpwekker>1</OpstelplaatsOpwekker>
+						<OpenVerbrandingstoestel>0</OpenVerbrandingstoestel>
+						<StandbyInvoermethode>-1</StandbyInvoermethode>
+						<StandbyId>00000000-0000-0000-0000-000000000000</StandbyId>
+						<StandbyMerk />
+						<NominaleBelasting>0.0</NominaleBelasting>
+						<StandbyAantal>0</StandbyAantal>
+						<Vermogens />
+						<Opwekkingsvermogen>0.0</Opwekkingsvermogen>
+						<KwaliteitsverklaringWarmteopwekker>0</KwaliteitsverklaringWarmteopwekker>
+					</VerwarmingOpwekker>
+					<VerwarmingOpwekker Index="2">
+						<Guid>fefc81bf-d6ab-4123-b232-1bb84a2c4693</Guid>
+						<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+						<KwaliteitsverklaringTypeBron>-1</KwaliteitsverklaringTypeBron>
+						<KwaliteitsverklaringWarmtenet>-1</KwaliteitsverklaringWarmtenet>
+						<KwaliteitsverklaringRendement>0.000</KwaliteitsverklaringRendement>
+						<KwaliteitsverklaringEnergiefractie>0.000</KwaliteitsverklaringEnergiefractie>
+						<KwaliteitsverklaringCollectieveBronWarmtepomp>1</KwaliteitsverklaringCollectieveBronWarmtepomp>
+						<KwaliteitsverklaringPrimaireEnergiefactor>0.0000</KwaliteitsverklaringPrimaireEnergiefactor>
+						<KwaliteitsverklaringPrimaireEnergiefactorUitsluitendGemeten>0</KwaliteitsverklaringPrimaireEnergiefactorUitsluitendGemeten>
+						<KwaliteitsverklaringFactorHernieuwbaar>0.0000</KwaliteitsverklaringFactorHernieuwbaar>
+						<KwaliteitsverklaringCO2Emissiecoefficient>0.0000</KwaliteitsverklaringCO2Emissiecoefficient>
+						<KwaliteitsverklaringWkkOmzettingsgetalWarmte>0.000</KwaliteitsverklaringWkkOmzettingsgetalWarmte>
+						<KwaliteitsverklaringWkkOmzettingsgetalElektriciteit>0.000</KwaliteitsverklaringWkkOmzettingsgetalElektriciteit>
+						<KwaliteitsverklaringDuurzaamBeng3>0</KwaliteitsverklaringDuurzaamBeng3>
+						<KwaliteitsverklaringLuchtdebietToestel>0.0</KwaliteitsverklaringLuchtdebietToestel>
+						<KwaliteitsverklaringModulerendeWarmtepomp>1</KwaliteitsverklaringModulerendeWarmtepomp>
+						<KwaliteitsverklaringMinimaalVermogen>0.000</KwaliteitsverklaringMinimaalVermogen>
+						<KwaliteitsverklaringCode />
+						<Hulpenergie>-1</Hulpenergie>
+						<HulpenergieTypeVerklaring>-1</HulpenergieTypeVerklaring>
+						<HulpenergieType />
+						<HulpenergieConstanteA>0.0000000000</HulpenergieConstanteA>
+						<HulpenergieConstanteB>0.0000000000</HulpenergieConstanteB>
+						<HulpenergieConstanteC>0.0000000000</HulpenergieConstanteC>
+						<HulpenergieBNominaal>0.00</HulpenergieBNominaal>
+						<HulpenergieWaux>0.00</HulpenergieWaux>
+						<KwaliteitsverklaringWarmteopwekkerId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringWarmteopwekkerId>
+						<HulpenergieCode />
+						<HulpenergieFabricagejaarToestel>-1</HulpenergieFabricagejaarToestel>
+						<KwaliteitsverklaringMerk />
+						<FabricagejaarToestelWkk>-1</FabricagejaarToestelWkk>
+						<StandbyKwaliteitsverklaring>0</StandbyKwaliteitsverklaring>
+						<StandbyElektriciteitsgebruik>0.000</StandbyElektriciteitsgebruik>
+						<StandbyCode />
+						<Aflevertemperatuur>-1</Aflevertemperatuur>
+						<Merk />
+						<Type />
+						<Installatiejaar>0</Installatiejaar>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<HeeftStekker>0</HeeftStekker>
+						<LokaleKachel>-1</LokaleKachel>
+						<SubType>-1</SubType>
+						<AantalToestellenMetWaakvlam>0</AantalToestellenMetWaakvlam>
+						<DirectGestookteLuchtverwarming>0</DirectGestookteLuchtverwarming>
+						<HreLabelPresent>0</HreLabelPresent>
+						<ElektrischVermogenWkk>0.0</ElektrischVermogenWkk>
+						<HulpenergieInvoermethode>1</HulpenergieInvoermethode>
+						<HulpenergieId>00000000-0000-0000-0000-000000000000</HulpenergieId>
+						<HulpenergieMerk />
+						<VoldoetAanMinCOP>0</VoldoetAanMinCOP>
+						<TypeWarmtepomp>-1</TypeWarmtepomp>
+						<TypeBron>2</TypeBron>
+						<BronWarmtepomp>-1</BronWarmtepomp>
+						<TypeGrondwateraquifer>-1</TypeGrondwateraquifer>
+						<TypeBiomassakachel>-1</TypeBiomassakachel>
+						<BiomassaToestel>-1</BiomassaToestel>
+						<IsAdditioneelGeplaatstBijRenovatie>0</IsAdditioneelGeplaatstBijRenovatie>
+						<OpstelplaatsOpwekker>1</OpstelplaatsOpwekker>
+						<OpenVerbrandingstoestel>0</OpenVerbrandingstoestel>
+						<StandbyInvoermethode>-1</StandbyInvoermethode>
+						<StandbyId>00000000-0000-0000-0000-000000000000</StandbyId>
+						<StandbyMerk />
+						<NominaleBelasting>0.0</NominaleBelasting>
+						<StandbyAantal>0</StandbyAantal>
+						<Vermogens />
+						<Opwekkingsvermogen>0.0</Opwekkingsvermogen>
+						<KwaliteitsverklaringWarmteopwekker>0</KwaliteitsverklaringWarmteopwekker>
+					</VerwarmingOpwekker>
+				</VerwarmingOpwekkerList>
+			</Verwarming>
+			<VerwarmingAfgifte Index="-1">
+				<Guid>340677ad-19ba-4713-bc91-c9b07e48e75b</Guid>
+				<Afgiftesysteem>-1</Afgiftesysteem>
+				<TypeLuchtverwarming>-1</TypeLuchtverwarming>
+				<AantalVentilatoren>0</AantalVentilatoren>
+				<VentilatorvermogenBekend>0</VentilatorvermogenBekend>
+				<VermogenPerVentilator>0.00</VermogenPerVentilator>
+				<VentilatorenIndirecteLuchtverwarmer>-1</VentilatorenIndirecteLuchtverwarmer>
+				<Vertrekhoogte>-1</Vertrekhoogte>
+				<TerugkeerWarmeLucht>-1</TerugkeerWarmeLucht>
+				<TypeDirecteLuchtverwarmer>-1</TypeDirecteLuchtverwarmer>
+				<AantalRadialeVentilatoren>0</AantalRadialeVentilatoren>
+				<RadialeVentilatorvermogenBekend>0</RadialeVentilatorvermogenBekend>
+				<VermogenPerRadialeVentilator>0</VermogenPerRadialeVentilator>
+				<Regeling>-1</Regeling>
+			</VerwarmingAfgifte>
+			<VerwarmingDistributie Index="-1">
+				<Guid>c8867c44-c2f0-40cd-9180-3adf1655c570</Guid>
+				<DistributieMedium>-1</DistributieMedium>
+				<WaterAanvoertemperatuur>-1</WaterAanvoertemperatuur>
+				<DistributieType>-1</DistributieType>
+				<AantalAfgiftesystemen>0</AantalAfgiftesystemen>
+				<WaterzijdigIngeregeld>0</WaterzijdigIngeregeld>
+				<SysteemIngeregeld>-1</SysteemIngeregeld>
+				<Hoofdpomp>-1</Hoofdpomp>
+				<HoofdpompVermogen>0</HoofdpompVermogen>
+				<HoofdpompEnergieEfficientieIndex>0.00</HoofdpompEnergieEfficientieIndex>
+				<AanvullendePompenAanwezig>0</AanvullendePompenAanwezig>
+				<AanvullendePompen>-1</AanvullendePompen>
+				<AanvullendePompenVermogen>0</AanvullendePompenVermogen>
+				<AanvullendePompenEnergieEfficientieIndex>0.000</AanvullendePompenEnergieEfficientieIndex>
+				<VerwarmingssysteemTapwater>0</VerwarmingssysteemTapwater>
+				<VerwarmingLeidingen Index="-1">
+					<Guid>6ae68ba4-bbc4-406c-a4ee-583c28066bef</Guid>
+					<IsolatieKleppenAppendagesBeugels>-1</IsolatieKleppenAppendagesBeugels>
+					<LeidinglengteDistributieleidingen>-1</LeidinglengteDistributieleidingen>
+					<Leidinglengte>0.00</Leidinglengte>
+					<MaximaleLeidinglengte>0.00</MaximaleLeidinglengte>
+					<LeidingenGeisoleerd>-1</LeidingenGeisoleerd>
+					<IsolatieJaar>-1</IsolatieJaar>
+					<OmgevingLeidingen>-1</OmgevingLeidingen>
+					<DiepteLeidingenVloerWandPlafond>0</DiepteLeidingenVloerWandPlafond>
+					<WarmtegeleidingMateriaalInbedding>0.000</WarmtegeleidingMateriaalInbedding>
+					<BinnendiameterLeidingZonderIsolatie>0</BinnendiameterLeidingZonderIsolatie>
+					<DiameterLeidingMetIsolatie>0</DiameterLeidingMetIsolatie>
+					<WarmtegeleidingIsolatiemateriaal>0.000</WarmtegeleidingIsolatiemateriaal>
+					<BuitendiameterLeidingZonderIsolatie>0</BuitendiameterLeidingZonderIsolatie>
+					<WarmtegeleidingLeidingmateriaal>0.000</WarmtegeleidingLeidingmateriaal>
+				</VerwarmingLeidingen>
+				<OnverwarmdLeidingenDoorRuimte>0</OnverwarmdLeidingenDoorRuimte>
+				<LeidingenOnverwarmdeRuimte Index="-1">
+					<Guid>f6085d87-9bdd-4758-8645-51e1946d8ed6</Guid>
+					<IsolatieKleppenAppendagesBeugels>-1</IsolatieKleppenAppendagesBeugels>
+					<LeidinglengteDistributieleidingen>-1</LeidinglengteDistributieleidingen>
+					<Leidinglengte>0.00</Leidinglengte>
+					<MaximaleLeidinglengte>0.00</MaximaleLeidinglengte>
+					<LeidingenGeisoleerd>-1</LeidingenGeisoleerd>
+					<IsolatieJaar>-1</IsolatieJaar>
+					<OmgevingLeidingen>-1</OmgevingLeidingen>
+					<DiepteLeidingenVloerWandPlafond>0</DiepteLeidingenVloerWandPlafond>
+					<WarmtegeleidingMateriaalInbedding>0.000</WarmtegeleidingMateriaalInbedding>
+					<BinnendiameterLeidingZonderIsolatie>0</BinnendiameterLeidingZonderIsolatie>
+					<DiameterLeidingMetIsolatie>0</DiameterLeidingMetIsolatie>
+					<WarmtegeleidingIsolatiemateriaal>0.000</WarmtegeleidingIsolatiemateriaal>
+					<BuitendiameterLeidingZonderIsolatie>0</BuitendiameterLeidingZonderIsolatie>
+					<WarmtegeleidingLeidingmateriaal>0.000</WarmtegeleidingLeidingmateriaal>
+				</LeidingenOnverwarmdeRuimte>
+				<AantalBouwlagenWaardoorLeidingenLopen>0</AantalBouwlagenWaardoorLeidingenLopen>
+				<AantalWarmtemeters>1</AantalWarmtemeters>
+				<AantalBuffervaten>-1</AantalBuffervaten>
+				<VerwarmingBuffervatList Index="-1">
+					<Guid>00000000-0000-0000-0000-000000000000</Guid>
+					<VerwarmingBuffervat Index="0">
+						<Guid>6e3b0ffd-0a98-4179-a84a-26392d201db0</Guid>
+						<Aantal>0</Aantal>
+						<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+						<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+						<Volume>0</Volume>
+						<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+						<KwaliteitsverklaringMerk />
+						<KwaliteitsverklaringType />
+						<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+						<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+						<WatertemperatuurBuffervatTestresultaten>0.0</WatertemperatuurBuffervatTestresultaten>
+						<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+						<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+						<Code />
+						<WarmteverliezenBuffervatObv>-1</WarmteverliezenBuffervatObv>
+						<EnergielabelBuffervat>-1</EnergielabelBuffervat>
+						<FabricagejaarBuffervat>-1</FabricagejaarBuffervat>
+						<OpstelplaatsBuffervat>1</OpstelplaatsBuffervat>
+					</VerwarmingBuffervat>
+					<VerwarmingBuffervat Index="1">
+						<Guid>9b492a42-ebb5-4e13-9c29-fcf07832bfbd</Guid>
+						<Aantal>0</Aantal>
+						<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+						<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+						<Volume>0</Volume>
+						<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+						<KwaliteitsverklaringMerk />
+						<KwaliteitsverklaringType />
+						<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+						<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+						<WatertemperatuurBuffervatTestresultaten>0.0</WatertemperatuurBuffervatTestresultaten>
+						<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+						<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+						<Code />
+						<WarmteverliezenBuffervatObv>-1</WarmteverliezenBuffervatObv>
+						<EnergielabelBuffervat>-1</EnergielabelBuffervat>
+						<FabricagejaarBuffervat>-1</FabricagejaarBuffervat>
+						<OpstelplaatsBuffervat>1</OpstelplaatsBuffervat>
+					</VerwarmingBuffervat>
+					<VerwarmingBuffervat Index="2">
+						<Guid>6aaa9f42-f057-459e-b3ed-b6209e49d8f6</Guid>
+						<Aantal>0</Aantal>
+						<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+						<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+						<Volume>0</Volume>
+						<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+						<KwaliteitsverklaringMerk />
+						<KwaliteitsverklaringType />
+						<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+						<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+						<WatertemperatuurBuffervatTestresultaten>0.0</WatertemperatuurBuffervatTestresultaten>
+						<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+						<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+						<Code />
+						<WarmteverliezenBuffervatObv>-1</WarmteverliezenBuffervatObv>
+						<EnergielabelBuffervat>-1</EnergielabelBuffervat>
+						<FabricagejaarBuffervat>-1</FabricagejaarBuffervat>
+						<OpstelplaatsBuffervat>1</OpstelplaatsBuffervat>
+					</VerwarmingBuffervat>
+					<VerwarmingBuffervat Index="3">
+						<Guid>83013561-d6f3-4ccc-94f9-f892d485ac86</Guid>
+						<Aantal>0</Aantal>
+						<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+						<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+						<Volume>0</Volume>
+						<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+						<KwaliteitsverklaringMerk />
+						<KwaliteitsverklaringType />
+						<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+						<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+						<WatertemperatuurBuffervatTestresultaten>0.0</WatertemperatuurBuffervatTestresultaten>
+						<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+						<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+						<Code />
+						<WarmteverliezenBuffervatObv>-1</WarmteverliezenBuffervatObv>
+						<EnergielabelBuffervat>-1</EnergielabelBuffervat>
+						<FabricagejaarBuffervat>-1</FabricagejaarBuffervat>
+						<OpstelplaatsBuffervat>1</OpstelplaatsBuffervat>
+					</VerwarmingBuffervat>
+				</VerwarmingBuffervatList>
+			</VerwarmingDistributie>
+			<Tapwater Index="-1">
+				<Guid>de608773-6a9a-40f9-9909-75d751ba11e0</Guid>
+				<AantalWarmtapwatersystemen>-1</AantalWarmtapwatersystemen>
+				<TapwatersysteemList Index="-1">
+					<Guid>00000000-0000-0000-0000-000000000000</Guid>
+					<Tapwatersysteem Index="0">
+						<Guid>1abc628d-2d28-4693-a9d9-9f026c1666e3</Guid>
+						<AantalBouwlagenAangeslotenOpWarmtapwatersysteem>0</AantalBouwlagenAangeslotenOpWarmtapwatersysteem>
+						<AfleversetAanwezig>0</AfleversetAanwezig>
+						<IndividueleAfleversetPerObject>1</IndividueleAfleversetPerObject>
+						<AantalAfleversets>0</AantalAfleversets>
+						<IsolatieKleppenAppendagesBeugels>-1</IsolatieKleppenAppendagesBeugels>
+						<LengteCirculatieleiding>-1</LengteCirculatieleiding>
+						<LengteCirculatieleidingValue>0.00</LengteCirculatieleidingValue>
+						<MaximaleLengteCirculatieleidingValue>0.00</MaximaleLengteCirculatieleidingValue>
+						<TapwaterOpwekkerList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+							<TapwaterOpwekker Index="0">
+								<Guid>121012c5-1cb4-4c16-ad91-3e4e28fb27b0</Guid>
+								<Merk />
+								<Type />
+								<Jaar>0</Jaar>
+								<TypeToestel>-1</TypeToestel>
+								<TypeOpwekkerIndirectVerwarmdVat>-1</TypeOpwekkerIndirectVerwarmdVat>
+								<OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>0</OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>
+								<Verwarmingsopwekker>-1</Verwarmingsopwekker>
+								<Gaskeur>-1</Gaskeur>
+								<CwKlasse>-1</CwKlasse>
+								<BronWarmtepomp>-1</BronWarmtepomp>
+								<FunctiesOpwekker>-1</FunctiesOpwekker>
+								<BronWarmtepompIndirectVerwarmdVat>-1</BronWarmtepompIndirectVerwarmdVat>
+								<NominaalVermogenBekend>-1</NominaalVermogenBekend>
+								<NominaalVermogen>0.00</NominaalVermogen>
+								<BoosterwarmtepompGekoppeldAan>-1</BoosterwarmtepompGekoppeldAan>
+								<VermogenGasboiler>-1</VermogenGasboiler>
+								<Opstelplaats>-1</Opstelplaats>
+								<TypeBiomassa>-1</TypeBiomassa>
+								<IsolatieVat>-1</IsolatieVat>
+								<VolumeBoilervatBekend>0</VolumeBoilervatBekend>
+								<VolumeBoilervat>0</VolumeBoilervat>
+								<Installatiejaar>-1</Installatiejaar>
+								<ElektrischVermogenWKK>0.00</ElektrischVermogenWKK>
+								<BouwjaarWKK>-1</BouwjaarWKK>
+								<Hre>0</Hre>
+								<OpenVerbrandingstoestel>0</OpenVerbrandingstoestel>
+								<NominaleBelasting>0.0</NominaleBelasting>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<Aanvoertemperatuur>-1</Aanvoertemperatuur>
+								<KwaliteitsverklaringInvoermethode>1</KwaliteitsverklaringInvoermethode>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<PrimaireEnergiefactor>0.0000</PrimaireEnergiefactor>
+								<FactorHernieuwbaar>0.0000</FactorHernieuwbaar>
+								<Co2Emissiecoefficient>0.0000</Co2Emissiecoefficient>
+								<CopBoosterwarmtepomp>0.00</CopBoosterwarmtepomp>
+								<StandbyElektriciteitsvraagPls>0.0000</StandbyElektriciteitsvraagPls>
+								<PrimaireEnergiefactorUitsluitendGemeten>0</PrimaireEnergiefactorUitsluitendGemeten>
+								<Ventilatielucht>0.0</Ventilatielucht>
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<BcrgType />
+								<WarmtepompOpMenglucht>0</WarmtepompOpMenglucht>
+								<OmzettingsgetalWarmte>0.000</OmzettingsgetalWarmte>
+								<OmzettingsgetalElektrisch>0.000</OmzettingsgetalElektrisch>
+								<Meetgegevens Index="-1">
+									<Guid>00000000-0000-0000-0000-000000000000</Guid>
+									<TapwaterMeetgegevens Index="0">
+										<Guid>f6db19c5-1b51-4a0b-9732-7291d2195531</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+									<TapwaterMeetgegevens Index="1">
+										<Guid>3cf7a869-bfa3-4741-ab08-341fe4cb2ad9</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+								</Meetgegevens>
+								<Rendement>0.000</Rendement>
+								<BrutoWarmtapwaterbehoefte>0.00</BrutoWarmtapwaterbehoefte>
+								<DuurzaamBeng3>0</DuurzaamBeng3>
+								<Code />
+								<CwMixedairMi>0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000</CwMixedairMi>
+								<FwBuitenlucht>0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00</FwBuitenlucht>
+								<Aflevertemperatuur>-1</Aflevertemperatuur>
+							</TapwaterOpwekker>
+							<TapwaterOpwekker Index="1">
+								<Guid>5861b107-c146-4740-bd74-f3cb28ad0ef6</Guid>
+								<Merk />
+								<Type />
+								<Jaar>0</Jaar>
+								<TypeToestel>-1</TypeToestel>
+								<TypeOpwekkerIndirectVerwarmdVat>-1</TypeOpwekkerIndirectVerwarmdVat>
+								<OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>0</OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>
+								<Verwarmingsopwekker>-1</Verwarmingsopwekker>
+								<Gaskeur>-1</Gaskeur>
+								<CwKlasse>-1</CwKlasse>
+								<BronWarmtepomp>-1</BronWarmtepomp>
+								<FunctiesOpwekker>-1</FunctiesOpwekker>
+								<BronWarmtepompIndirectVerwarmdVat>-1</BronWarmtepompIndirectVerwarmdVat>
+								<NominaalVermogenBekend>-1</NominaalVermogenBekend>
+								<NominaalVermogen>0.00</NominaalVermogen>
+								<BoosterwarmtepompGekoppeldAan>-1</BoosterwarmtepompGekoppeldAan>
+								<VermogenGasboiler>-1</VermogenGasboiler>
+								<Opstelplaats>-1</Opstelplaats>
+								<TypeBiomassa>-1</TypeBiomassa>
+								<IsolatieVat>-1</IsolatieVat>
+								<VolumeBoilervatBekend>0</VolumeBoilervatBekend>
+								<VolumeBoilervat>0</VolumeBoilervat>
+								<Installatiejaar>-1</Installatiejaar>
+								<ElektrischVermogenWKK>0.00</ElektrischVermogenWKK>
+								<BouwjaarWKK>-1</BouwjaarWKK>
+								<Hre>0</Hre>
+								<OpenVerbrandingstoestel>0</OpenVerbrandingstoestel>
+								<NominaleBelasting>0.0</NominaleBelasting>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<Aanvoertemperatuur>-1</Aanvoertemperatuur>
+								<KwaliteitsverklaringInvoermethode>1</KwaliteitsverklaringInvoermethode>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<PrimaireEnergiefactor>0.0000</PrimaireEnergiefactor>
+								<FactorHernieuwbaar>0.0000</FactorHernieuwbaar>
+								<Co2Emissiecoefficient>0.0000</Co2Emissiecoefficient>
+								<CopBoosterwarmtepomp>0.00</CopBoosterwarmtepomp>
+								<StandbyElektriciteitsvraagPls>0.0000</StandbyElektriciteitsvraagPls>
+								<PrimaireEnergiefactorUitsluitendGemeten>0</PrimaireEnergiefactorUitsluitendGemeten>
+								<Ventilatielucht>0.0</Ventilatielucht>
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<BcrgType />
+								<WarmtepompOpMenglucht>0</WarmtepompOpMenglucht>
+								<OmzettingsgetalWarmte>0.000</OmzettingsgetalWarmte>
+								<OmzettingsgetalElektrisch>0.000</OmzettingsgetalElektrisch>
+								<Meetgegevens Index="-1">
+									<Guid>00000000-0000-0000-0000-000000000000</Guid>
+									<TapwaterMeetgegevens Index="0">
+										<Guid>23ab701b-64e8-429c-82e7-46e2eed795aa</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+									<TapwaterMeetgegevens Index="1">
+										<Guid>37bfae75-75b0-4333-b2b9-41530991d415</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+								</Meetgegevens>
+								<Rendement>0.000</Rendement>
+								<BrutoWarmtapwaterbehoefte>0.00</BrutoWarmtapwaterbehoefte>
+								<DuurzaamBeng3>0</DuurzaamBeng3>
+								<Code />
+								<CwMixedairMi>0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000</CwMixedairMi>
+								<FwBuitenlucht>0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00</FwBuitenlucht>
+								<Aflevertemperatuur>-1</Aflevertemperatuur>
+							</TapwaterOpwekker>
+						</TapwaterOpwekkerList>
+						<AantalVoorraadvaten>-1</AantalVoorraadvaten>
+						<TapwaterVoorraadvatList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+							<TapwaterVoorraadvat Index="0">
+								<Guid>ddfb823d-a6aa-4ad0-86f3-d874c79b118e</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+							<TapwaterVoorraadvat Index="1">
+								<Guid>6005a699-2ada-4530-8959-cfcb31b87d38</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+							<TapwaterVoorraadvat Index="2">
+								<Guid>1f695518-ab37-4a26-96c7-88ff8f748b77</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+							<TapwaterVoorraadvat Index="3">
+								<Guid>e5ab832e-c185-4653-b5d0-5eaa3e0967cf</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+						</TapwaterVoorraadvatList>
+						<DwtwAanwezig>0</DwtwAanwezig>
+						<AantalDouches>0</AantalDouches>
+						<TapwaterDwtwList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+						</TapwaterDwtwList>
+						<LeidinglengteNaarKeuken>-1</LeidinglengteNaarKeuken>
+						<LeidinglengteNaarBadkamer>-1</LeidinglengteNaarBadkamer>
+						<Leidinglengte>-1</Leidinglengte>
+						<CirculatieleidingAanwezig>0</CirculatieleidingAanwezig>
+						<AantalAangeslotenWoonfuncties>-1</AantalAangeslotenWoonfuncties>
+						<BepaalAangeslotenWoonfunctiesUitAlgemeneGegevens>1</BepaalAangeslotenWoonfunctiesUitAlgemeneGegevens>
+						<VermogenPompCirculatieleiding>-1</VermogenPompCirculatieleiding>
+						<Vermogen>0</Vermogen>
+						<Energieefficientieindex>0.00</Energieefficientieindex>
+						<Code />
+						<Pompregeling>-1</Pompregeling>
+						<TypeInstallatie>0</TypeInstallatie>
+						<TotaalGebruiksoppervlakteSysteem>0.00</TotaalGebruiksoppervlakteSysteem>
+						<TapwaterLeidingen Index="-1">
+							<Guid>49fd62c0-1a9c-413a-a6dd-9c9ac77baf64</Guid>
+							<LeidingenGeisoleerd>-1</LeidingenGeisoleerd>
+							<Diameter>-1</Diameter>
+							<Isolatiedikte>-1</Isolatiedikte>
+							<OmgevingLeidingen>-1</OmgevingLeidingen>
+							<DiepteLeidingenVloerWandPlafond>0</DiepteLeidingenVloerWandPlafond>
+							<WarmtegeleidingMateriaalInbedding>0.000</WarmtegeleidingMateriaalInbedding>
+							<DiameterLeidingZonderIsolatie>0</DiameterLeidingZonderIsolatie>
+							<DiameterLeidingMetIsolatie>0</DiameterLeidingMetIsolatie>
+							<WarmtegeleidingIsolatiemateriaal>0.000</WarmtegeleidingIsolatiemateriaal>
+							<BinnenDiameterLeiding>0</BinnenDiameterLeiding>
+							<BuitenDiameterLeiding>0</BuitenDiameterLeiding>
+							<WarmtegeleidingLeidingmateriaal>0.000</WarmtegeleidingLeidingmateriaal>
+						</TapwaterLeidingen>
+						<LeidingenDoorOnverwarmdeRuimte>0</LeidingenDoorOnverwarmdeRuimte>
+						<IsolatieKleppenAppendagesBeugelsOnverwarmdeRuimte>-1</IsolatieKleppenAppendagesBeugelsOnverwarmdeRuimte>
+						<LeidinglengteOnverwarmdeRuimte>-1</LeidinglengteOnverwarmdeRuimte>
+						<LeidinglengteOnverwarmdeRuimteValue>0.00</LeidinglengteOnverwarmdeRuimteValue>
+						<AangeslotenGebruiksoppervlakte>0.00</AangeslotenGebruiksoppervlakte>
+						<AantalIdentiekeSystemen>0</AantalIdentiekeSystemen>
+						<AantalIdentiekeSystemenAuto>1</AantalIdentiekeSystemenAuto>
+						<AangeslotenOp>-1</AangeslotenOp>
+						<TapwaterLeidingenOnverwarmdeRuimte Index="-1">
+							<Guid>d5b4c988-68cf-435b-b099-f5430a532117</Guid>
+							<LeidingenGeisoleerd>-1</LeidingenGeisoleerd>
+							<Diameter>-1</Diameter>
+							<Isolatiedikte>-1</Isolatiedikte>
+							<OmgevingLeidingen>-1</OmgevingLeidingen>
+							<DiepteLeidingenVloerWandPlafond>0</DiepteLeidingenVloerWandPlafond>
+							<WarmtegeleidingMateriaalInbedding>0.000</WarmtegeleidingMateriaalInbedding>
+							<DiameterLeidingZonderIsolatie>0</DiameterLeidingZonderIsolatie>
+							<DiameterLeidingMetIsolatie>0</DiameterLeidingMetIsolatie>
+							<WarmtegeleidingIsolatiemateriaal>0.000</WarmtegeleidingIsolatiemateriaal>
+							<BinnenDiameterLeiding>0</BinnenDiameterLeiding>
+							<BuitenDiameterLeiding>0</BuitenDiameterLeiding>
+							<WarmtegeleidingLeidingmateriaal>0.000</WarmtegeleidingLeidingmateriaal>
+						</TapwaterLeidingenOnverwarmdeRuimte>
+						<AantalBadkamers>0</AantalBadkamers>
+						<AantalKeukens>0</AantalKeukens>
+						<IsSportzaalInGebouw>0</IsSportzaalInGebouw>
+						<GebruiksoppervlakteSportzaal>0.00</GebruiksoppervlakteSportzaal>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<AantalOpwekkers>-1</AantalOpwekkers>
+					</Tapwatersysteem>
+					<Tapwatersysteem Index="1">
+						<Guid>5f330c13-99f2-4c10-aa22-37bb2db59870</Guid>
+						<AantalBouwlagenAangeslotenOpWarmtapwatersysteem>0</AantalBouwlagenAangeslotenOpWarmtapwatersysteem>
+						<AfleversetAanwezig>0</AfleversetAanwezig>
+						<IndividueleAfleversetPerObject>1</IndividueleAfleversetPerObject>
+						<AantalAfleversets>0</AantalAfleversets>
+						<IsolatieKleppenAppendagesBeugels>-1</IsolatieKleppenAppendagesBeugels>
+						<LengteCirculatieleiding>-1</LengteCirculatieleiding>
+						<LengteCirculatieleidingValue>0.00</LengteCirculatieleidingValue>
+						<MaximaleLengteCirculatieleidingValue>0.00</MaximaleLengteCirculatieleidingValue>
+						<TapwaterOpwekkerList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+							<TapwaterOpwekker Index="0">
+								<Guid>146196c3-962d-4f8a-b4b4-ae86a43d634d</Guid>
+								<Merk />
+								<Type />
+								<Jaar>0</Jaar>
+								<TypeToestel>-1</TypeToestel>
+								<TypeOpwekkerIndirectVerwarmdVat>-1</TypeOpwekkerIndirectVerwarmdVat>
+								<OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>0</OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>
+								<Verwarmingsopwekker>-1</Verwarmingsopwekker>
+								<Gaskeur>-1</Gaskeur>
+								<CwKlasse>-1</CwKlasse>
+								<BronWarmtepomp>-1</BronWarmtepomp>
+								<FunctiesOpwekker>-1</FunctiesOpwekker>
+								<BronWarmtepompIndirectVerwarmdVat>-1</BronWarmtepompIndirectVerwarmdVat>
+								<NominaalVermogenBekend>-1</NominaalVermogenBekend>
+								<NominaalVermogen>0.00</NominaalVermogen>
+								<BoosterwarmtepompGekoppeldAan>-1</BoosterwarmtepompGekoppeldAan>
+								<VermogenGasboiler>-1</VermogenGasboiler>
+								<Opstelplaats>-1</Opstelplaats>
+								<TypeBiomassa>-1</TypeBiomassa>
+								<IsolatieVat>-1</IsolatieVat>
+								<VolumeBoilervatBekend>0</VolumeBoilervatBekend>
+								<VolumeBoilervat>0</VolumeBoilervat>
+								<Installatiejaar>-1</Installatiejaar>
+								<ElektrischVermogenWKK>0.00</ElektrischVermogenWKK>
+								<BouwjaarWKK>-1</BouwjaarWKK>
+								<Hre>0</Hre>
+								<OpenVerbrandingstoestel>0</OpenVerbrandingstoestel>
+								<NominaleBelasting>0.0</NominaleBelasting>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<Aanvoertemperatuur>-1</Aanvoertemperatuur>
+								<KwaliteitsverklaringInvoermethode>1</KwaliteitsverklaringInvoermethode>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<PrimaireEnergiefactor>0.0000</PrimaireEnergiefactor>
+								<FactorHernieuwbaar>0.0000</FactorHernieuwbaar>
+								<Co2Emissiecoefficient>0.0000</Co2Emissiecoefficient>
+								<CopBoosterwarmtepomp>0.00</CopBoosterwarmtepomp>
+								<StandbyElektriciteitsvraagPls>0.0000</StandbyElektriciteitsvraagPls>
+								<PrimaireEnergiefactorUitsluitendGemeten>0</PrimaireEnergiefactorUitsluitendGemeten>
+								<Ventilatielucht>0.0</Ventilatielucht>
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<BcrgType />
+								<WarmtepompOpMenglucht>0</WarmtepompOpMenglucht>
+								<OmzettingsgetalWarmte>0.000</OmzettingsgetalWarmte>
+								<OmzettingsgetalElektrisch>0.000</OmzettingsgetalElektrisch>
+								<Meetgegevens Index="-1">
+									<Guid>00000000-0000-0000-0000-000000000000</Guid>
+									<TapwaterMeetgegevens Index="0">
+										<Guid>59e5809c-5725-4c2c-ab03-4c7b98b78b64</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+									<TapwaterMeetgegevens Index="1">
+										<Guid>48c77684-a06f-4500-b190-452cc5d2ceb3</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+								</Meetgegevens>
+								<Rendement>0.000</Rendement>
+								<BrutoWarmtapwaterbehoefte>0.00</BrutoWarmtapwaterbehoefte>
+								<DuurzaamBeng3>0</DuurzaamBeng3>
+								<Code />
+								<CwMixedairMi>0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000</CwMixedairMi>
+								<FwBuitenlucht>0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00</FwBuitenlucht>
+								<Aflevertemperatuur>-1</Aflevertemperatuur>
+							</TapwaterOpwekker>
+							<TapwaterOpwekker Index="1">
+								<Guid>2e3dc583-828e-4f1e-8b8d-ad62b1976885</Guid>
+								<Merk />
+								<Type />
+								<Jaar>0</Jaar>
+								<TypeToestel>-1</TypeToestel>
+								<TypeOpwekkerIndirectVerwarmdVat>-1</TypeOpwekkerIndirectVerwarmdVat>
+								<OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>0</OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming>
+								<Verwarmingsopwekker>-1</Verwarmingsopwekker>
+								<Gaskeur>-1</Gaskeur>
+								<CwKlasse>-1</CwKlasse>
+								<BronWarmtepomp>-1</BronWarmtepomp>
+								<FunctiesOpwekker>-1</FunctiesOpwekker>
+								<BronWarmtepompIndirectVerwarmdVat>-1</BronWarmtepompIndirectVerwarmdVat>
+								<NominaalVermogenBekend>-1</NominaalVermogenBekend>
+								<NominaalVermogen>0.00</NominaalVermogen>
+								<BoosterwarmtepompGekoppeldAan>-1</BoosterwarmtepompGekoppeldAan>
+								<VermogenGasboiler>-1</VermogenGasboiler>
+								<Opstelplaats>-1</Opstelplaats>
+								<TypeBiomassa>-1</TypeBiomassa>
+								<IsolatieVat>-1</IsolatieVat>
+								<VolumeBoilervatBekend>0</VolumeBoilervatBekend>
+								<VolumeBoilervat>0</VolumeBoilervat>
+								<Installatiejaar>-1</Installatiejaar>
+								<ElektrischVermogenWKK>0.00</ElektrischVermogenWKK>
+								<BouwjaarWKK>-1</BouwjaarWKK>
+								<Hre>0</Hre>
+								<OpenVerbrandingstoestel>0</OpenVerbrandingstoestel>
+								<NominaleBelasting>0.0</NominaleBelasting>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<Aanvoertemperatuur>-1</Aanvoertemperatuur>
+								<KwaliteitsverklaringInvoermethode>1</KwaliteitsverklaringInvoermethode>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<PrimaireEnergiefactor>0.0000</PrimaireEnergiefactor>
+								<FactorHernieuwbaar>0.0000</FactorHernieuwbaar>
+								<Co2Emissiecoefficient>0.0000</Co2Emissiecoefficient>
+								<CopBoosterwarmtepomp>0.00</CopBoosterwarmtepomp>
+								<StandbyElektriciteitsvraagPls>0.0000</StandbyElektriciteitsvraagPls>
+								<PrimaireEnergiefactorUitsluitendGemeten>0</PrimaireEnergiefactorUitsluitendGemeten>
+								<Ventilatielucht>0.0</Ventilatielucht>
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<BcrgType />
+								<WarmtepompOpMenglucht>0</WarmtepompOpMenglucht>
+								<OmzettingsgetalWarmte>0.000</OmzettingsgetalWarmte>
+								<OmzettingsgetalElektrisch>0.000</OmzettingsgetalElektrisch>
+								<Meetgegevens Index="-1">
+									<Guid>00000000-0000-0000-0000-000000000000</Guid>
+									<TapwaterMeetgegevens Index="0">
+										<Guid>a346bfeb-f6b2-40f7-8b9e-2c74a6ac4997</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+									<TapwaterMeetgegevens Index="1">
+										<Guid>93400c0a-6271-4cd9-afd4-2f7d2195ab4f</Guid>
+										<AanduidingTappatroon>-1</AanduidingTappatroon>
+										<Tapklasse>-1</Tapklasse>
+										<QW>0.000</QW>
+										<EWGenIn>0.000</EWGenIn>
+										<WWGen>0.000</WWGen>
+										<FpracGi>0.00</FpracGi>
+										<DuurzaamBeng3>0</DuurzaamBeng3>
+										<RendementCOPdwh>0.000</RendementCOPdwh>
+									</TapwaterMeetgegevens>
+								</Meetgegevens>
+								<Rendement>0.000</Rendement>
+								<BrutoWarmtapwaterbehoefte>0.00</BrutoWarmtapwaterbehoefte>
+								<DuurzaamBeng3>0</DuurzaamBeng3>
+								<Code />
+								<CwMixedairMi>0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000</CwMixedairMi>
+								<FwBuitenlucht>0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00</FwBuitenlucht>
+								<Aflevertemperatuur>-1</Aflevertemperatuur>
+							</TapwaterOpwekker>
+						</TapwaterOpwekkerList>
+						<AantalVoorraadvaten>-1</AantalVoorraadvaten>
+						<TapwaterVoorraadvatList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+							<TapwaterVoorraadvat Index="0">
+								<Guid>56b01414-b8dd-45b7-8388-347e48883f9a</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+							<TapwaterVoorraadvat Index="1">
+								<Guid>ed862e53-3982-48c8-900f-e1e95bb89cc4</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+							<TapwaterVoorraadvat Index="2">
+								<Guid>c8ee8a2b-d89e-47f5-beab-f9ade96a27dd</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+							<TapwaterVoorraadvat Index="3">
+								<Guid>a86db7fe-6d0f-4d36-a490-e6310fcb5561</Guid>
+								<Aantal>0</Aantal>
+								<ForfaitairVolume>0</ForfaitairVolume>
+								<Aansluitwijze>-1</Aansluitwijze>
+								<Kwaliteitsverklaring>0</Kwaliteitsverklaring>
+								<InvoermethodeKwaliteitsverklaring>1</InvoermethodeKwaliteitsverklaring>
+								<Volume>0</Volume>
+								<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+								<KwaliteitsverklaringMerk />
+								<KwaliteitsverklaringType />
+								<TypeKwaliteitsverklaring>-1</TypeKwaliteitsverklaring>
+								<StandbyVerliesTestresultaten>0.00</StandbyVerliesTestresultaten>
+								<WatertemperatuurVoorraadvatTestresultaten>0.0</WatertemperatuurVoorraadvatTestresultaten>
+								<OmgevingstemperatuurTestresultaten>0.0</OmgevingstemperatuurTestresultaten>
+								<WarmteoverdrachtscoefficientTestresultaten>0.00</WarmteoverdrachtscoefficientTestresultaten>
+								<Code />
+								<WarmteverliezenVoorraadvatObv>-1</WarmteverliezenVoorraadvatObv>
+								<EnergielabelVoorraadvat>-1</EnergielabelVoorraadvat>
+								<FabricagejaarVoorraadvat>-1</FabricagejaarVoorraadvat>
+								<Opstelplaats>-1</Opstelplaats>
+							</TapwaterVoorraadvat>
+						</TapwaterVoorraadvatList>
+						<DwtwAanwezig>0</DwtwAanwezig>
+						<AantalDouches>0</AantalDouches>
+						<TapwaterDwtwList Index="-1">
+							<Guid>00000000-0000-0000-0000-000000000000</Guid>
+						</TapwaterDwtwList>
+						<LeidinglengteNaarKeuken>-1</LeidinglengteNaarKeuken>
+						<LeidinglengteNaarBadkamer>-1</LeidinglengteNaarBadkamer>
+						<Leidinglengte>-1</Leidinglengte>
+						<CirculatieleidingAanwezig>0</CirculatieleidingAanwezig>
+						<AantalAangeslotenWoonfuncties>-1</AantalAangeslotenWoonfuncties>
+						<BepaalAangeslotenWoonfunctiesUitAlgemeneGegevens>1</BepaalAangeslotenWoonfunctiesUitAlgemeneGegevens>
+						<VermogenPompCirculatieleiding>-1</VermogenPompCirculatieleiding>
+						<Vermogen>0</Vermogen>
+						<Energieefficientieindex>0.00</Energieefficientieindex>
+						<Code />
+						<Pompregeling>-1</Pompregeling>
+						<TypeInstallatie>0</TypeInstallatie>
+						<TotaalGebruiksoppervlakteSysteem>0.00</TotaalGebruiksoppervlakteSysteem>
+						<TapwaterLeidingen Index="-1">
+							<Guid>fae933fd-f316-4a01-b523-15217e1adfc5</Guid>
+							<LeidingenGeisoleerd>-1</LeidingenGeisoleerd>
+							<Diameter>-1</Diameter>
+							<Isolatiedikte>-1</Isolatiedikte>
+							<OmgevingLeidingen>-1</OmgevingLeidingen>
+							<DiepteLeidingenVloerWandPlafond>0</DiepteLeidingenVloerWandPlafond>
+							<WarmtegeleidingMateriaalInbedding>0.000</WarmtegeleidingMateriaalInbedding>
+							<DiameterLeidingZonderIsolatie>0</DiameterLeidingZonderIsolatie>
+							<DiameterLeidingMetIsolatie>0</DiameterLeidingMetIsolatie>
+							<WarmtegeleidingIsolatiemateriaal>0.000</WarmtegeleidingIsolatiemateriaal>
+							<BinnenDiameterLeiding>0</BinnenDiameterLeiding>
+							<BuitenDiameterLeiding>0</BuitenDiameterLeiding>
+							<WarmtegeleidingLeidingmateriaal>0.000</WarmtegeleidingLeidingmateriaal>
+						</TapwaterLeidingen>
+						<LeidingenDoorOnverwarmdeRuimte>0</LeidingenDoorOnverwarmdeRuimte>
+						<IsolatieKleppenAppendagesBeugelsOnverwarmdeRuimte>-1</IsolatieKleppenAppendagesBeugelsOnverwarmdeRuimte>
+						<LeidinglengteOnverwarmdeRuimte>-1</LeidinglengteOnverwarmdeRuimte>
+						<LeidinglengteOnverwarmdeRuimteValue>0.00</LeidinglengteOnverwarmdeRuimteValue>
+						<AangeslotenGebruiksoppervlakte>0.00</AangeslotenGebruiksoppervlakte>
+						<AantalIdentiekeSystemen>0</AantalIdentiekeSystemen>
+						<AantalIdentiekeSystemenAuto>1</AantalIdentiekeSystemenAuto>
+						<AangeslotenOp>-1</AangeslotenOp>
+						<TapwaterLeidingenOnverwarmdeRuimte Index="-1">
+							<Guid>26dc50dc-53c2-48f6-aa60-04c4a8b8c645</Guid>
+							<LeidingenGeisoleerd>-1</LeidingenGeisoleerd>
+							<Diameter>-1</Diameter>
+							<Isolatiedikte>-1</Isolatiedikte>
+							<OmgevingLeidingen>-1</OmgevingLeidingen>
+							<DiepteLeidingenVloerWandPlafond>0</DiepteLeidingenVloerWandPlafond>
+							<WarmtegeleidingMateriaalInbedding>0.000</WarmtegeleidingMateriaalInbedding>
+							<DiameterLeidingZonderIsolatie>0</DiameterLeidingZonderIsolatie>
+							<DiameterLeidingMetIsolatie>0</DiameterLeidingMetIsolatie>
+							<WarmtegeleidingIsolatiemateriaal>0.000</WarmtegeleidingIsolatiemateriaal>
+							<BinnenDiameterLeiding>0</BinnenDiameterLeiding>
+							<BuitenDiameterLeiding>0</BuitenDiameterLeiding>
+							<WarmtegeleidingLeidingmateriaal>0.000</WarmtegeleidingLeidingmateriaal>
+						</TapwaterLeidingenOnverwarmdeRuimte>
+						<AantalBadkamers>0</AantalBadkamers>
+						<AantalKeukens>0</AantalKeukens>
+						<IsSportzaalInGebouw>0</IsSportzaalInGebouw>
+						<GebruiksoppervlakteSportzaal>0.00</GebruiksoppervlakteSportzaal>
+						<TypeOpwekker>-1</TypeOpwekker>
+						<AantalOpwekkers>-1</AantalOpwekkers>
+					</Tapwatersysteem>
+				</TapwatersysteemList>
+				<Bron>-1</Bron>
+				<Opmerkingen />
+			</Tapwater>
+			<ZonneEnergieList Index="-1">
+				<Guid>00000000-0000-0000-0000-000000000000</Guid>
+			</ZonneEnergieList>
+			<VochtRegeling Index="-1">
+				<Guid>79d90772-52f2-4350-b904-8e12bba93eae</Guid>
+				<BevochtigingAanwezig>0</BevochtigingAanwezig>
+				<Merk />
+				<Type />
+				<Installatiejaar>0</Installatiejaar>
+				<BevochtigingNietInLBK>0</BevochtigingNietInLBK>
+				<BevochtigdGebruikersoppervlak>0</BevochtigdGebruikersoppervlak>
+				<TypeBevochtigingsinstallatie>-1</TypeBevochtigingsinstallatie>
+				<Bron>-1</Bron>
+				<Opmerkingen />
+			</VochtRegeling>
+		</Installatie>
+	</Installaties>
+	<Constructies Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Constructies>
+	<Maatregelen Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Maatregelen>
+	<Energieplannen Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Energieplannen>
+	<Nta8800ResultatenList Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Nta8800ResultatenList>
+	<WarmteverliesResultatenList Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</WarmteverliesResultatenList>
+	<ObjectResultatenList Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</ObjectResultatenList>
+	<VrijeVeldenDefinities Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</VrijeVeldenDefinities>
+	<Registratiemomenten Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Registratiemomenten>
+</Project>

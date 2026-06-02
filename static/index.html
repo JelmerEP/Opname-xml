@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6feb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+<title>EP-Wonen Opname</title>
+</head>
+<body>
+<header>
+  <h1>EP-Wonen — Opname</h1>
+  <span id="net" class="net">online</span>
+</header>
+
+<main>
+  <p class="hint">Object + tapwater. Vul in, sla op, en genereer de Vabi-import-ZIP (Objecten- + Installatiebibliotheek).</p>
+
+  <form id="opname">
+    <fieldset>
+      <legend>Algemeen</legend>
+      <label>Opnamedatum<input type="date" name="opnamedatum"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Adres</legend>
+      <label>Straat<input name="straat" autocomplete="off"></label>
+      <div class="row">
+        <label>Huisnummer<input name="huisnummer" inputmode="numeric"></label>
+        <label>Toevoeging<input name="huisletter" placeholder="bv. D"></label>
+      </div>
+      <div class="row">
+        <label>Postcode<input name="postcode" placeholder="1234AB"></label>
+        <label>Woonplaats<input name="woonplaats"></label>
+      </div>
+      <div class="row">
+        <label>Bouwjaar<input name="bouwjaar" inputmode="numeric"></label>
+        <label>Gebouwhoogte (m)<input name="gebouwhoogte" inputmode="decimal" placeholder="bv. 7.6"></label>
+      </div>
+      <p class="hint small">BAG-koppeling (bouwjaar + hoogte automatisch) volgt in een latere stap.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Type woning</legend>
+      <div class="opts" data-name="type_woning">
+        <button type="button" data-val="eengezinswoning">Eengezinswoning</button>
+        <button type="button" data-val="appartement">Appartement</button>
+      </div>
+    </fieldset>
+
+    <fieldset data-show="type_woning=eengezinswoning" hidden>
+      <legend>Subtype (eengezinswoning)</legend>
+      <div class="opts" data-name="subtype_grond">
+        <button type="button" data-val="vrijstaand">Vrijstaand</button>
+        <button type="button" data-val="twee-onder-een-kap">Twee-onder-een-kap</button>
+        <button type="button" data-val="hoekwoning">Hoekwoning</button>
+        <button type="button" data-val="tussenwoning">Tussenwoning</button>
+      </div>
+      <legend>Daktype</legend>
+      <div class="opts" data-name="daktype">
+        <button type="button" data-val="hellend">Hellend</button>
+        <button type="button" data-val="deels plat">Deels plat</button>
+        <button type="button" data-val="plat">Plat</button>
+      </div>
+    </fieldset>
+
+    <fieldset data-show="type_woning=appartement" hidden>
+      <legend>Subtype (appartement)</legend>
+      <div class="opts" data-name="subtype_app">
+        <button type="button" data-val="tussen">Tussen</button>
+        <button type="button" data-val="hoek">Hoek (kop/eind)</button>
+      </div>
+      <legend>Ligging</legend>
+      <div class="opts" data-name="ligging_app">
+        <button type="button" data-val="onderste">Onderste</button>
+        <button type="button" data-val="midden">Midden</button>
+        <button type="button" data-val="bovenste">Bovenste</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Bouwwijze vloeren</legend>
+      <div class="opts" data-name="bouwwijze_vloer">
+        <button type="button" data-val="licht">Licht</button>
+        <button type="button" data-val="zwaar">Zwaar</button>
+        <button type="button" data-val="zeer zwaar">Zeer zwaar</button>
+      </div>
+      <legend>Bouwwijze wanden</legend>
+      <div class="opts" data-name="bouwwijze_wand">
+        <button type="button" data-val="licht">Licht</button>
+        <button type="button" data-val="zwaar">Zwaar</button>
+        <button type="button" data-val="zeer zwaar">Zeer zwaar</button>
+      </div>
+    </fieldset>
+
+    <fieldset class="tap">
+      <legend>Tapwater</legend>
+      <label class="lbl">Aantal warmtapwatersystemen</label>
+      <div class="opts" data-name="tw_aantal">
+        <button type="button" data-val="een">Eén</button>
+        <button type="button" data-val="twee">Twee</button>
+      </div>
+
+      <!-- ===== Systeem 1 ===== -->
+      <div class="sys">
+        <h3>Systeem 1</h3>
+        <label class="lbl">Type installatie</label>
+        <div class="opts" data-name="tw1_type_installatie">
+          <button type="button" data-val="individueel">Individueel</button>
+          <button type="button" data-val="collectief">Collectief</button>
+        </div>
+
+        <label class="lbl">Tapwatersysteem aangesloten op</label>
+        <div class="opts" data-name="tw1_aangesloten">
+          <button type="button" data-val="hele">Hele woning</button>
+          <button type="button" data-val="badkamer">Badkamer</button>
+          <button type="button" data-val="keuken">Keuken</button>
+        </div>
+        <div class="row" data-show="tw1_aangesloten=hele" hidden>
+          <label>Aantal badkamers<input name="tw1_badkamers" inputmode="numeric" placeholder="0"></label>
+          <label>Aantal keukens<input name="tw1_keukens" inputmode="numeric" placeholder="0"></label>
+        </div>
+
+        <label class="lbl">Type opwekker</label>
+        <div class="opts col" data-name="tw1_type_opwekker">
+          <button type="button" data-val="compleet">Compleet toestel</button>
+          <button type="button" data-val="direct">Direct verwarmd vat</button>
+          <button type="button" data-val="indirect">Indirect verwarmd vat</button>
+        </div>
+
+        <div class="opw">
+          <h4>Opwekker 1</h4>
+          <label>Merk<input name="tw1_merk"></label>
+          <label>Type<input name="tw1_typenr"></label>
+          <label>Installatiejaar<input name="tw1_jaar" inputmode="numeric"></label>
+
+          <label data-show="tw1_type_opwekker=compleet" hidden>Type toestel
+            <select name="tw1_toestel">
+              <option value="">— kies —</option>
+              <option value="keukengeiser">Keukengeiser</option>
+              <option value="badgeiser">Gasgestookt warmwatertoestel (badgeiser)</option>
+              <option value="combitoestel">Gasgestookt combitoestel</option>
+              <option value="wkk">(micro) WKK</option>
+              <option value="ewp">Elektrische warmtepomp</option>
+              <option value="booster">Boosterwarmtepomp</option>
+              <option value="doorstromer">Elektrische doorstromer</option>
+              <option value="eboiler">Elektrische boiler</option>
+              <option value="kokend">Heet of kokend waterkraan</option>
+            </select>
+          </label>
+
+          <div data-show="tw1_type_opwekker=direct" hidden>
+            <label>Type toestel
+              <select name="tw1_toestel_direct">
+                <option value="">— kies —</option>
+                <option value="gasboiler">Gasboiler</option>
+                <option value="eboiler">Elektrische boiler</option>
+              </select>
+            </label>
+            <label data-show="tw1_toestel_direct=gasboiler" hidden>Vermogen gasboiler (kW)<input name="tw1_vermogen_gasboiler" inputmode="decimal"></label>
+          </div>
+
+          <div data-show="tw1_type_opwekker=indirect" hidden>
+            <label>Type opwekker (indirect verwarmd vat)
+              <select name="tw1_opwekker_indirect">
+                <option value="">— kies —</option>
+                <option value="cr_olie">CR oliegestookt</option>
+                <option value="cr">CR</option>
+                <option value="vr">VR</option>
+                <option value="hr100">HR100/HR104</option>
+                <option value="hr107">HR107</option>
+                <option value="biomassa">Vaste biomassa</option>
+                <option value="ewp">Elektrische warmtepomp</option>
+                <option value="gaswp">Gasgestookte warmtepomp</option>
+                <option value="wkk">WKK</option>
+                <option value="warmtelevering">Warmtelevering derden</option>
+                <option value="onbekend">Onbekende gasketel</option>
+              </select>
+            </label>
+            <label class="chk"><input type="checkbox" name="tw1_indirect_ook_rv"> Ook voor ruimteverwarming</label>
+          </div>
+
+          <label class="chk"><input type="checkbox" name="tw1_kwaliteitsverklaring"> Kwaliteitsverklaring aanwezig</label>
+        </div>
+
+        <div class="vaten" data-show="tw1_type_opwekker=direct,indirect" hidden>
+          <h4>Voorraadvaten</h4>
+          <label>Aantal voorraadvaten
+            <select name="tw1_aantal_vaten">
+              <option value="geen">Geen</option>
+              <option value="een">Eén</option>
+              <option value="twee">Twee</option>
+              <option value="drie">Drie</option>
+              <option value="vier">Vier</option>
+            </select>
+          </label>
+          <div data-show="tw1_aantal_vaten=een,twee,drie,vier" hidden>
+            <label>Volume vat 1 (liter)<input name="tw1_vat_volume" inputmode="numeric"></label>
+            <label>Aansluitwijze vat 1
+              <select name="tw1_vat_aansluitwijze">
+                <option value="">— kies —</option>
+                <option value="geen_isolatie">Geen isolatie</option>
+                <option value="leiding">Leidingisolatie</option>
+                <option value="leiding_tstuk">Leidingisolatie, T-stukken en kleppen geïsoleerd</option>
+              </select>
+            </label>
+            <label class="chk"><input type="checkbox" name="tw1_vat_kwaliteit"> Kwaliteitsverklaring vat</label>
+          </div>
+        </div>
+
+        <label class="chk"><input type="checkbox" name="tw1_dwtw"> DWTW aanwezig</label>
+
+        <h4>Afgifte</h4>
+        <label>Gem. lengte uittapleiding keuken (boven aanrecht)
+          <select name="tw1_uittap_keuken">
+            <option value="">— kies —</option>
+            <option value="lt2">&lt; 2 m</option><option value="2-4">2–4 m</option><option value="4-6">4–6 m</option>
+            <option value="6-8">6–8 m</option><option value="8-10">8–10 m</option><option value="10-12">10–12 m</option>
+            <option value="12-14">12–14 m</option><option value="gt14">&gt; 14 m</option>
+          </select>
+        </label>
+        <label>Gem. lengte uittapleiding badkamer (douche/bad)
+          <select name="tw1_uittap_badkamer">
+            <option value="">— kies —</option>
+            <option value="lt2">&lt; 2 m</option><option value="2-4">2–4 m</option><option value="4-6">4–6 m</option>
+            <option value="6-8">6–8 m</option><option value="8-10">8–10 m</option><option value="10-12">10–12 m</option>
+            <option value="12-14">12–14 m</option><option value="gt14">&gt; 14 m</option>
+          </select>
+        </label>
+
+        <label class="chk"><input type="checkbox" name="tw1_circulatie"> Circulatieleiding aanwezig</label>
+      </div>
+
+      <!-- ===== Systeem 2 ===== -->
+      <div class="sys" data-show="tw_aantal=twee" hidden>
+        <h3>Systeem 2</h3>
+        <label class="lbl">Type installatie</label>
+        <div class="opts" data-name="tw2_type_installatie">
+          <button type="button" data-val="individueel">Individueel</button>
+          <button type="button" data-val="collectief">Collectief</button>
+        </div>
+
+        <label class="lbl">Tapwatersysteem aangesloten op</label>
+        <div class="opts" data-name="tw2_aangesloten">
+          <button type="button" data-val="hele">Hele woning</button>
+          <button type="button" data-val="badkamer">Badkamer</button>
+          <button type="button" data-val="keuken">Keuken</button>
+        </div>
+        <div class="row" data-show="tw2_aangesloten=hele" hidden>
+          <label>Aantal badkamers<input name="tw2_badkamers" inputmode="numeric" placeholder="0"></label>
+          <label>Aantal keukens<input name="tw2_keukens" inputmode="numeric" placeholder="0"></label>
+        </div>
+
+        <label class="lbl">Type opwekker</label>
+        <div class="opts col" data-name="tw2_type_opwekker">
+          <button type="button" data-val="compleet">Compleet toestel</button>
+          <button type="button" data-val="direct">Direct verwarmd vat</button>
+          <button type="button" data-val="indirect">Indirect verwarmd vat</button>
+        </div>
+
+        <div class="opw">
+          <h4>Opwekker 1</h4>
+          <label>Merk<input name="tw2_merk"></label>
+          <label>Type<input name="tw2_typenr"></label>
+          <label>Installatiejaar<input name="tw2_jaar" inputmode="numeric"></label>
+
+          <label data-show="tw2_type_opwekker=compleet" hidden>Type toestel
+            <select name="tw2_toestel">
+              <option value="">— kies —</option>
+              <option value="keukengeiser">Keukengeiser</option>
+              <option value="badgeiser">Gasgestookt warmwatertoestel (badgeiser)</option>
+              <option value="combitoestel">Gasgestookt combitoestel</option>
+              <option value="wkk">(micro) WKK</option>
+              <option value="ewp">Elektrische warmtepomp</option>
+              <option value="booster">Boosterwarmtepomp</option>
+              <option value="doorstromer">Elektrische doorstromer</option>
+              <option value="eboiler">Elektrische boiler</option>
+              <option value="kokend">Heet of kokend waterkraan</option>
+            </select>
+          </label>
+
+          <div data-show="tw2_type_opwekker=direct" hidden>
+            <label>Type toestel
+              <select name="tw2_toestel_direct">
+                <option value="">— kies —</option>
+                <option value="gasboiler">Gasboiler</option>
+                <option value="eboiler">Elektrische boiler</option>
+              </select>
+            </label>
+            <label data-show="tw2_toestel_direct=gasboiler" hidden>Vermogen gasboiler (kW)<input name="tw2_vermogen_gasboiler" inputmode="decimal"></label>
+          </div>
+
+          <div data-show="tw2_type_opwekker=indirect" hidden>
+            <label>Type opwekker (indirect verwarmd vat)
+              <select name="tw2_opwekker_indirect">
+                <option value="">— kies —</option>
+                <option value="cr_olie">CR oliegestookt</option>
+                <option value="cr">CR</option>
+                <option value="vr">VR</option>
+                <option value="hr100">HR100/HR104</option>
+                <option value="hr107">HR107</option>
+                <option value="biomassa">Vaste biomassa</option>
+                <option value="ewp">Elektrische warmtepomp</option>
+                <option value="gaswp">Gasgestookte warmtepomp</option>
+                <option value="wkk">WKK</option>
+                <option value="warmtelevering">Warmtelevering derden</option>
+                <option value="onbekend">Onbekende gasketel</option>
+              </select>
+            </label>
+            <label class="chk"><input type="checkbox" name="tw2_indirect_ook_rv"> Ook voor ruimteverwarming</label>
+          </div>
+
+          <label class="chk"><input type="checkbox" name="tw2_kwaliteitsverklaring"> Kwaliteitsverklaring aanwezig</label>
+        </div>
+
+        <div class="vaten" data-show="tw2_type_opwekker=direct,indirect" hidden>
+          <h4>Voorraadvaten</h4>
+          <label>Aantal voorraadvaten
+            <select name="tw2_aantal_vaten">
+              <option value="geen">Geen</option>
+              <option value="een">Eén</option>
+              <option value="twee">Twee</option>
+              <option value="drie">Drie</option>
+              <option value="vier">Vier</option>
+            </select>
+          </label>
+          <div data-show="tw2_aantal_vaten=een,twee,drie,vier" hidden>
+            <label>Volume vat 1 (liter)<input name="tw2_vat_volume" inputmode="numeric"></label>
+            <label>Aansluitwijze vat 1
+              <select name="tw2_vat_aansluitwijze">
+                <option value="">— kies —</option>
+                <option value="geen_isolatie">Geen isolatie</option>
+                <option value="leiding">Leidingisolatie</option>
+                <option value="leiding_tstuk">Leidingisolatie, T-stukken en kleppen geïsoleerd</option>
+              </select>
+            </label>
+            <label class="chk"><input type="checkbox" name="tw2_vat_kwaliteit"> Kwaliteitsverklaring vat</label>
+          </div>
+        </div>
+
+        <label class="chk"><input type="checkbox" name="tw2_dwtw"> DWTW aanwezig</label>
+
+        <h4>Afgifte</h4>
+        <label>Gem. lengte uittapleiding keuken (boven aanrecht)
+          <select name="tw2_uittap_keuken">
+            <option value="">— kies —</option>
+            <option value="lt2">&lt; 2 m</option><option value="2-4">2–4 m</option><option value="4-6">4–6 m</option>
+            <option value="6-8">6–8 m</option><option value="8-10">8–10 m</option><option value="10-12">10–12 m</option>
+            <option value="12-14">12–14 m</option><option value="gt14">&gt; 14 m</option>
+          </select>
+        </label>
+        <label>Gem. lengte uittapleiding badkamer (douche/bad)
+          <select name="tw2_uittap_badkamer">
+            <option value="">— kies —</option>
+            <option value="lt2">&lt; 2 m</option><option value="2-4">2–4 m</option><option value="4-6">4–6 m</option>
+            <option value="6-8">6–8 m</option><option value="8-10">8–10 m</option><option value="10-12">10–12 m</option>
+            <option value="12-14">12–14 m</option><option value="gt14">&gt; 14 m</option>
+          </select>
+        </label>
+
+        <label class="chk"><input type="checkbox" name="tw2_circulatie"> Circulatieleiding aanwezig</label>
+      </div>
+
+      <label class="lbl">Bron en opmerkingen tapwater</label>
+      <textarea name="tw_opmerkingen" rows="2" placeholder="Vrije notitie (komt in Opmerkingen van de installatie)"></textarea>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" id="save" class="primary">Opslaan</button>
+      <button type="button" id="gen">Genereer XML</button>
+      <button type="button" id="reset" class="ghost">Nieuw</button>
+    </div>
+  </form>
+
+  <section>
+    <h2>Opgeslagen opnames <span class="badge" id="count">0</span></h2>
+    <ul id="list" class="list"></ul>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
