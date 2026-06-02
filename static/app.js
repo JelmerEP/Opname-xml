@@ -10,8 +10,29 @@ function load(k,d){ try{return JSON.parse(localStorage.getItem(k))??d}catch{retu
 function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
 function naamVan(o){ const hnr=[o.huisnummer,o.huisletter].filter(Boolean).join(' '); const r=[o.straat,hnr].filter(Boolean).join(' '); const pc=[o.postcode,o.woonplaats].filter(Boolean).join(' '); return [r,pc].filter(Boolean).join(', ') || 'Nieuwe opname'; }
 
+// ---------- systeem-sjabloon instantiëren (1 bron -> systeem 1 én 2) ----------
+function buildSystems(){
+  const tpl = document.getElementById('sysTemplate');
+  if(!tpl) return;
+  const html = tpl.innerHTML;
+  const s1 = document.getElementById('sys1'), s2 = document.getElementById('sys2');
+  if(s1) s1.innerHTML = html.replace(/__N__/g,'1');
+  if(s2) s2.innerHTML = html.replace(/__N__/g,'2');
+}
+
+// ---------- afgeleide vlaggen voor samengestelde conditionals ----------
+function deriveFlags(){
+  ['1','2'].forEach(n=>{
+    const to = state['tw'+n+'_type_opwekker'];
+    const toestel = state['tw'+n+'_toestel'];
+    // Voorraadvaten: bij indirect vat, of compleet + elektrische boiler / kokend waterkraan
+    state['tw'+n+'_show_vaten'] = (to==='indirect' || (to==='compleet' && (toestel==='eboiler' || toestel==='kokend'))) ? 'ja' : '';
+  });
+}
+
 // ---------- form binding ----------
 function applyState(){
+  deriveFlags();
   // tekst-/nummervelden + textareas
   $$('#opname input:not([type=checkbox]), #opname textarea').forEach(i=>{ if(state[i.name]!=null) i.value=state[i.name]; });
   // checkboxes
@@ -80,7 +101,7 @@ function net(){ const e=$('#net'); const on=navigator.onLine; e.textContent=on?'
 window.addEventListener('DOMContentLoaded',()=>{
   state = load(LS_DRAFT, {});
   if(!state.opnamedatum) state.opnamedatum = new Date().toISOString().slice(0,10);
-  bind(); applyState(); renderList(); net();
+  buildSystems(); bind(); applyState(); renderList(); net();
   $('#save').onclick=saveOpname;
   $('#gen').onclick=()=>{ saveOpname(); generate(); };
   $('#reset').onclick=()=>{ state={opnamedatum:new Date().toISOString().slice(0,10)}; applyState(); saveDraft(); toast('Nieuw formulier'); };
