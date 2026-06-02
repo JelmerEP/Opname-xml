@@ -179,10 +179,10 @@ def build_installatie(o, tpl_path):
 
     has_tw = bool(o.get('tw1_type_opwekker') or o.get('tw_aantal'))
     if has_tw:
-        n = 2 if o.get('tw_aantal') == 'twee' else 1
+        num = 2 if o.get('tw_aantal') == 'twee' else 1
         TW = 'Installaties/Installatie/Tapwater/'
-        _set(root, TW + 'AantalWarmtapwatersystemen', n)
-        for idx in range(1, n + 1):
+        _set(root, TW + 'AantalWarmtapwatersystemen', num - 1)   # 0-geindexeerd: Een=0, Twee=1 (uit echte Vabi-exports)
+        for idx in range(1, num + 1):
             S = TW + 'TapwatersysteemList/Tapwatersysteem[%d]/' % idx
             _fill_tapwater(root, S, o, 'tw%d_' % idx)
 
