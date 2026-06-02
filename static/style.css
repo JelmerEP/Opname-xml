@@ -1,5 +1,6 @@
 :root{--blue:#1f6feb;--bg:#f4f6f9;--card:#fff;--line:#d8dee6;--ink:#1b2733;--mut:#6b7785}
 *{box-sizing:border-box}
+[hidden]{display:none!important}  /* auteur-CSS (label{display:block}/.row{display:flex}) overschreef anders het hidden-attribuut */
 body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
 header{position:sticky;top:0;background:var(--blue);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;padding-top:max(14px,env(safe-area-inset-top))}
 header h1{font-size:18px;margin:0}
