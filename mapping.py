@@ -150,6 +150,7 @@ def _fill_tapwater(root, S, o, pre):
     if aang in ('hele', 'keuken'):
         _set(root, S + 'AantalKeukens', (o.get(pre + 'keukens') or '').strip())
     _set(root, S + 'TypeOpwekker', TYPE_OPWEKKER.get(topw, -1))
+    _set(root, S + 'AantalOpwekkers', 0)   # altijd Een (0-geindexeerd); hotfill-op-twee is zeldzaam -> evt. later
 
     O = S + 'TapwaterOpwekkerList/TapwaterOpwekker[1]/'
     _set(root, O + 'Merk', (o.get(pre + 'merk') or '').strip())
