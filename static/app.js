@@ -32,6 +32,9 @@ function deriveFlags(){
 
 // ---------- form binding ----------
 function applyState(){
+  // dropdowns zonder lege eerste optie (bv. Type installatie = Individueel) hun default in de state zetten,
+  // anders faalt een data-show die op die default reageert (Type opwekker bleef verborgen)
+  $$('#opname select').forEach(s=>{ if(state[s.name]==null && s.options.length) state[s.name]=s.options[0].value; });
   deriveFlags();
   // tekst-/nummervelden + textareas
   $$('#opname input:not([type=checkbox]), #opname textarea').forEach(i=>{ if(state[i.name]!=null) i.value=state[i.name]; });
