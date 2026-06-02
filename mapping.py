@@ -205,11 +205,12 @@ def _fill_tapwater(root, S, o, pre):
             V = S + 'TapwaterVoorraadvatList/TapwaterVoorraadvat[1]/'
             _set(root, V + 'Aantal', 1)
             _set(root, V + 'Volume', (o.get(pre + 'vat_volume') or '').strip())
-            _set(root, V + 'Aansluitwijze', VAT_AANSLUIT.get(o.get(pre + 'vat_aansluitwijze'), -1))
             _set(root, V + 'WarmteverliezenVoorraadvatObv', VAT_WARMTEVERLIES.get(o.get(pre + 'vat_warmteverlies'), -1))
             if o.get(pre + 'vat_warmteverlies') == 'energielabel':
                 _set(root, V + 'EnergielabelVoorraadvat', VAT_ENERGIELABEL.get(o.get(pre + 'vat_energielabel'), -1))
-            _set(root, V + 'Opstelplaats', OPSTELPLAATS.get(o.get(pre + 'vat_opstelplaats'), -1))
+            if topw == 'indirect':   # aansluitwijze + opstelplaats alleen bij indirect vat (niet bij compleet toestel)
+                _set(root, V + 'Aansluitwijze', VAT_AANSLUIT.get(o.get(pre + 'vat_aansluitwijze'), -1))
+                _set(root, V + 'Opstelplaats', OPSTELPLAATS.get(o.get(pre + 'vat_opstelplaats'), -1))
 
     if o.get(pre + 'dwtw'):
         _set(root, S + 'DwtwAanwezig', 1)
