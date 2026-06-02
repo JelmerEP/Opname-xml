@@ -156,9 +156,11 @@
 
     <div class="opw">
       <h4>Opwekker 1</h4>
-      <label>Merk<input name="tw__N___merk"></label>
-      <label>Type<input name="tw__N___typenr"></label>
-      <label>Installatiejaar<input name="tw__N___jaar" inputmode="numeric"></label>
+      <div data-show="tw__N___type_installatie=individueel,collectief" hidden>
+        <label>Merk<input name="tw__N___merk"></label>
+        <label>Type<input name="tw__N___typenr"></label>
+        <label>Installatiejaar<input name="tw__N___jaar" inputmode="numeric"></label>
+      </div>
 
       <!-- COMPLEET TOESTEL -->
       <div data-show="tw__N___type_opwekker=compleet" hidden>
@@ -212,16 +214,10 @@
         </label>
       </div>
 
-      <!-- DIRECT VERWARMD VAT -->
+      <!-- DIRECT VERWARMD VAT (altijd gasboiler) -->
       <div data-show="tw__N___type_opwekker=direct" hidden>
-        <label>Type toestel
-          <select name="tw__N___toestel_direct">
-            <option value="">— kies —</option>
-            <option value="gasboiler">Gasboiler</option>
-            <option value="eboiler">Elektrische boiler</option>
-          </select>
-        </label>
-        <label data-show="tw__N___toestel_direct=gasboiler" hidden>Vermogen gasboiler
+        <p class="hint small">Type toestel: <strong>Gasboiler</strong></p>
+        <label>Vermogen gasboiler
           <select name="tw__N___vermogen_gasboiler">
             <option value="">— kies —</option>
             <option value="le70">&le; 70 kW</option>
@@ -268,26 +264,19 @@
         <label data-show="tw__N___opwekker_indirect=ewp,gaswp" hidden>Bron warmtepomp
           <select name="tw__N___bron_wp_indirect">
             <option value="">— kies —</option>
+            <option value="bodem">Bodem</option>
             <option value="buitenlucht">Buitenlucht</option>
-            <option value="ventretour">Ventilatieretourlucht</option>
-            <option value="bodem">Bodem/water</option>
-            <option value="onbekend">Onbekend</option>
+            <option value="grondwater">Grondwater</option>
+            <option value="oppervlaktewater">Oppervlaktewater</option>
+            <option value="retourlucht">Retourlucht</option>
           </select>
         </label>
         <label class="chk"><input type="checkbox" name="tw__N___indirect_ook_rv"> Opwekker ook voor ruimteverwarming</label>
       </div>
 
-      <!-- EXTERNE WARMTELEVERING (opwekker = afleverset, automatisch) -->
+      <!-- EXTERNE WARMTELEVERING: geen opwekker, alleen kwaliteitsverklaring (regio/warmtenet) -->
       <div data-show="tw__N___type_installatie=externe_ind,externe_centraal" hidden>
-        <p class="hint small">Externe warmtelevering — opwekker = afleverset (automatisch).</p>
-        <label>Aflevertemperatuur
-          <select name="tw__N___aflevertemp">
-            <option value="">— kies —</option>
-            <option value="onbekend">Onbekend</option>
-            <option value="lt60">&lt; 60 °C</option>
-            <option value="ge60">&ge; 60 °C</option>
-          </select>
-        </label>
+        <p class="hint small">Externe warmtelevering: geen opwekker invullen — alleen de kwaliteitsverklaring (regio/warmtenet) hieronder.</p>
       </div>
 
       <label class="chk"><input type="checkbox" name="tw__N___kwaliteitsverklaring"> Kwaliteitsverklaring aanwezig</label>

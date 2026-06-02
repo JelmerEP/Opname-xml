@@ -30,7 +30,7 @@ BOOSTER_GEKOPPELD  = {'distr_rv': 0}                               # bevestigd
 VERMOGEN_GASBOILER = {'le70': 0, '71-150': 1, 'gt150': 2}           # le70=0 bevestigd, rest volgorde
 JAAR_DIRECT        = {'lt1985': 0, 'ge1985': 1, 'onbekend': 2}      # ge1985=1 bevestigd
 OPSTELPLAATS       = {'binnen': 0, 'buiten': 1}                     # binnen=0 bevestigd
-BRON_WP_INDIRECT   = {'bodem': 0, 'buitenlucht': 1, 'ventretour': 4, 'onbekend': -1}  # buitenlucht=1 bevestigd; rest aanname
+BRON_WP_INDIRECT   = {'bodem': 0, 'buitenlucht': 1, 'grondwater': 2, 'oppervlaktewater': 3, 'retourlucht': 4}  # buitenlucht=1 bevestigd, rest dropdownvolgorde
 VAT_AANTAL         = {'geen': 0, 'een': 1, 'twee': 2, 'drie': 3, 'vier': 4}
 VAT_AANSLUIT       = {'geen_bruggen': 0, 'leiding': 1, 'leiding_tstuk': 2, 'ongeisoleerd': 3}   # geen_bruggen=0 bevestigd
 VAT_WARMTEVERLIES  = {'forfaitair': 0, 'energielabel': 1}           # energielabel=1 bevestigd
@@ -172,10 +172,8 @@ def _fill_tapwater(root, S, o, pre):
             _set(root, O + 'BoosterwarmtepompGekoppeldAan', BOOSTER_GEKOPPELD.get(o.get(pre + 'booster_gekoppeld'), -1))
 
     elif topw == 'direct':
-        toestel = o.get(pre + 'toestel_direct')
-        _set(root, O + 'TypeToestel', TOESTEL.get(toestel, -1))
-        if toestel == 'gasboiler':
-            _set(root, O + 'VermogenGasboiler', VERMOGEN_GASBOILER.get(o.get(pre + 'vermogen_gasboiler'), -1))
+        _set(root, O + 'TypeToestel', 7)        # direct verwarmd vat = altijd gasboiler
+        _set(root, O + 'VermogenGasboiler', VERMOGEN_GASBOILER.get(o.get(pre + 'vermogen_gasboiler'), -1))
         _set(root, O + 'Opstelplaats', OPSTELPLAATS.get(o.get(pre + 'opstelplaats'), -1))
         vol = (o.get(pre + 'volume_boilervat') or '').strip()
         if vol:
@@ -192,7 +190,7 @@ def _fill_tapwater(root, S, o, pre):
             _set(root, O + 'OpwekkerIndirecteVerwarmdVatOokVoorRuimteverwarming', 1)
 
     elif topw == 'externe':
-        _set(root, O + 'Aflevertemperatuur', AFLEVERTEMP.get(o.get(pre + 'aflevertemp'), -1))
+        pass   # externe warmtelevering: geen opwekkergegevens; alleen kwaliteitsverklaring (regio)
 
     if o.get(pre + 'kwaliteitsverklaring'):
         _set(root, O + 'Kwaliteitsverklaring', 1)
