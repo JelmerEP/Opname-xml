@@ -47,3 +47,14 @@ textarea{resize:vertical}
 .sys h3{font-size:14px;margin:0 0 4px;color:var(--blue)}
 .opw,.vaten{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:10px 0}
 .opw h4,.vaten h4,.sys h4{font-size:13px;margin:10px 0 2px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+/* inklapbare secties (accordion) */
+#opname > fieldset > legend:first-of-type{cursor:pointer;user-select:none}
+#opname > fieldset > legend:first-of-type::after{content:' ▾';font-size:.85em;color:var(--mut)}
+#opname > fieldset.collapsed > legend:first-of-type::after{content:' ▸'}
+#opname > fieldset.collapsed > :not(legend:first-of-type){display:none}
+/* BAG-knop */
+.bagrow{display:flex;gap:8px;align-items:flex-end;margin:8px 0}
+.bagrow button{white-space:nowrap;font-size:14px;padding:11px 12px;border:1px solid var(--blue);border-radius:9px;background:#fff;color:var(--blue);cursor:pointer}
+.bagrow button:disabled{opacity:.5}
+.bagmsg{font-size:12px;color:var(--mut);margin:-2px 0 6px}
+.bagmsg.err{color:#d9480f}
