@@ -25,6 +25,11 @@
 
     <fieldset>
       <legend>Adres</legend>
+      <div class="bagsearch">
+        <input id="bagzoek" placeholder="🔍 Zoek adres (bv. Langstraat 4 Gendt)" autocomplete="off">
+        <ul id="bagsug" class="bagsug" hidden></ul>
+      </div>
+      <p class="bagmsg" id="bagmsg" hidden></p>
       <label>Straat<input name="straat" autocomplete="off"></label>
       <div class="row">
         <label>Huisnummer<input name="huisnummer" inputmode="numeric"></label>
@@ -34,10 +39,6 @@
         <label>Postcode<input name="postcode" placeholder="1234AB"></label>
         <label>Woonplaats<input name="woonplaats"></label>
       </div>
-      <div class="bagrow">
-        <button type="button" id="bagbtn">📍 Ophalen uit BAG</button>
-      </div>
-      <p class="bagmsg" id="bagmsg" hidden></p>
       <div class="row">
         <label>Bouwjaar<input name="bouwjaar" inputmode="numeric"></label>
         <label>Gebouwhoogte (m)<input name="gebouwhoogte" inputmode="decimal" placeholder="bv. 7.6"></label>

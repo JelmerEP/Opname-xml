@@ -52,9 +52,13 @@ textarea{resize:vertical}
 #opname > fieldset > legend:first-of-type::after{content:' ▾';font-size:.85em;color:var(--mut)}
 #opname > fieldset.collapsed > legend:first-of-type::after{content:' ▸'}
 #opname > fieldset.collapsed > :not(legend:first-of-type){display:none}
-/* BAG-knop */
-.bagrow{display:flex;gap:8px;align-items:flex-end;margin:8px 0}
-.bagrow button{white-space:nowrap;font-size:14px;padding:11px 12px;border:1px solid var(--blue);border-radius:9px;background:#fff;color:var(--blue);cursor:pointer}
-.bagrow button:disabled{opacity:.5}
+/* BAG adres-zoeken (typeahead) */
+.bagsearch{position:relative;margin:4px 0 2px}
+#bagzoek{width:100%;font-size:16px;padding:12px;border:1px solid var(--blue);border-radius:9px;background:#fff;color:var(--ink)}
+#bagzoek:focus{outline:2px solid var(--blue)}
+.bagsug{list-style:none;margin:2px 0 0;padding:0;position:absolute;z-index:20;width:100%;background:#fff;border:1px solid var(--line);border-radius:9px;max-height:260px;overflow:auto;box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.bagsug li{padding:10px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid #eef2f7}
+.bagsug li:last-child{border-bottom:0}
+.bagsug li:hover{background:#eaf1fe}
 .bagmsg{font-size:12px;color:var(--mut);margin:-2px 0 6px}
 .bagmsg.err{color:#d9480f}

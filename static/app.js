@@ -94,26 +94,37 @@ async function generate(o){
   }catch(e){ toast('Genereren mislukt: '+e.message); }
 }
 
-// ---------- BAG-lookup ----------
+// ---------- BAG adres-zoeken (typeahead) ----------
 function showBag(t,cls){ const m=$('#bagmsg'); if(!m)return; m.hidden=false; m.textContent=t; m.className='bagmsg'+(cls?' '+cls:''); }
-async function bagLookup(){
-  const btn=$('#bagbtn');
-  const pc=(state.postcode||'').replace(/\s/g,''); const hn=(state.huisnummer||'').trim();
-  if(!pc||!hn){ showBag('Vul eerst postcode en huisnummer in','err'); return; }
-  if(!navigator.onLine){ showBag('BAG ophalen kan alleen online','err'); return; }
-  btn.disabled=true; showBag('Ophalen…','');
+function hideBagSug(){ const ul=$('#bagsug'); if(ul){ ul.hidden=true; ul.innerHTML=''; } }
+let bagTimer;
+function bagInput(){
+  const q=$('#bagzoek').value.trim();
+  clearTimeout(bagTimer);
+  if(q.length<3){ hideBagSug(); return; }
+  bagTimer=setTimeout(async()=>{
+    try{ const r=await fetch('api/bag/suggest?q='+encodeURIComponent(q)); const j=await r.json(); if(Array.isArray(j)) renderBagSug(j); }catch(e){}
+  },250);
+}
+function renderBagSug(list){
+  const ul=$('#bagsug'); ul.innerHTML='';
+  if(!list.length){ hideBagSug(); return; }
+  list.forEach(s=>{ const li=document.createElement('li'); li.textContent=s.label; li.onmousedown=e=>{ e.preventDefault(); pickBag(s.id); }; ul.appendChild(li); });
+  ul.hidden=false;
+}
+async function pickBag(id){
+  hideBagSug(); $('#bagzoek').value=''; showBag('Ophalen…','');
   try{
-    const r=await fetch('api/bag?postcode='+encodeURIComponent(pc)+'&huisnummer='+encodeURIComponent(hn)+'&huisletter='+encodeURIComponent(state.huisletter||''));
-    const j=await r.json();
-    if(!r.ok||j.error){ showBag('Niet gevonden ('+(j.error||r.status)+')','err'); btn.disabled=false; return; }
-    if(j.straat && !state.straat) state.straat=j.straat;
-    if(j.woonplaats && !state.woonplaats) state.woonplaats=j.woonplaats;
+    const r=await fetch('api/bag/lookup?id='+encodeURIComponent(id)); const j=await r.json();
+    if(!r.ok||j.error){ showBag('Fout: '+(j.error||r.status),'err'); return; }
+    state.straat=j.straat||''; state.huisnummer=j.huisnummer||''; state.huisletter=j.huisletter||'';
+    state.postcode=j.postcode||''; state.woonplaats=j.woonplaats||'';
     if(j.bouwjaar) state.bouwjaar=String(j.bouwjaar);
     if(j.hoogte!=null) state.gebouwhoogte=String(j.hoogte);
     applyState(); saveDraft();
-    showBag('✓ Bouwjaar '+(j.bouwjaar||'?')+' · hoogte '+(j.hoogte!=null?j.hoogte+' m':'?'),'');
+    const adr=[j.straat,(''+(j.huisnummer||''))+(j.huisletter||'')].filter(Boolean).join(' ');
+    showBag('✓ '+adr+' — bouwjaar '+(j.bouwjaar||'?')+', hoogte '+(j.hoogte!=null?j.hoogte+' m':'?'),'');
   }catch(e){ showBag('Fout: '+e.message,'err'); }
-  btn.disabled=false;
 }
 
 // ---------- net-status ----------
@@ -126,7 +137,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   buildSystems(); bind(); applyState(); renderList(); net();
   // inklapbare secties: klik op de eerste legend van een fieldset
   $$('#opname > fieldset > legend:first-of-type').forEach(lg=>lg.addEventListener('click',()=>lg.parentElement.classList.toggle('collapsed')));
-  const bb=$('#bagbtn'); if(bb) bb.onclick=bagLookup;
+  const bz=$('#bagzoek'); if(bz){ bz.addEventListener('input',bagInput); bz.addEventListener('blur',()=>setTimeout(hideBagSug,150)); }
   $('#save').onclick=saveOpname;
   $('#gen').onclick=()=>{ saveOpname(); generate(); };
   $('#reset').onclick=()=>{ state={opnamedatum:new Date().toISOString().slice(0,10)}; applyState(); saveDraft(); toast('Nieuw formulier'); };
