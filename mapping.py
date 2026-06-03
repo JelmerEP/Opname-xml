@@ -58,6 +58,11 @@ VW_AANVOERTEMP   = {'45_40': 3, '55_47': 5, '70_60': 8, '90_70': 11}
 VW_DISTRTYPE     = {'tweepijps': 0}                               # tweepijps=0 bevestigd
 VW_WARMTEMETERS  = {'een_of_meer': 0, 'geen': 1}
 VW_AFLEVERTEMP   = {'onbekend': 3, 'lt60': 0, 'ge60': 1}          # onbekend=3 bevestigd
+# leidingen door onverwarmde ruimte (VerwarmingDistributie/LeidingenOnverwarmdeRuimte/) - uit W1/W2
+VW_LEID_KLEPPEN  = {'geisoleerd': 0, 'ongeisoleerd': 1, 'onbekend': 2}   # W1=1, W2=0; onbekend=2 (dropdownvolgorde)
+VW_LEID_LENGTE   = {'werkelijke': 0, 'onbekend': 1}                      # onbekend=1 bevestigd (W1/2/3)
+VW_LEID_GEISOL   = {'nee': 0, 'ja': 1, 'onbekend': 6}                    # onbekend=6 bevestigd; ja/nee aanname
+VW_LEID_ISOLJAAR = {'vanaf1995': 0, 't1980_1995': 1, 'voor1980': 2, 'onbekend': 3}  # dropdownvolgorde, aanname
 
 # ---------- ventilatie-mapping (uit echte exports + dropdowns, 2026-06-03; A/B/C/D/E bevestigd) ----------
 VEN_SYSTEEM      = {'individueel': 0, 'collectief': 1}
@@ -210,9 +215,8 @@ def _fill_tapwater(root, S, o, pre):
     if inst in ('collectief', 'externe_centraal'):
         _set(root, S + 'TotaalGebruiksoppervlakteSysteem', (o.get(pre + 'gebruiksopp') or '').strip())
     _set(root, S + 'AangeslotenOp', AANGESLOTEN.get(aang, -1))
-    if aang in ('hele', 'badkamer'):
+    if aang == 'hele':   # bij alleen badkamer/keuken is het aantal niet van toepassing
         _set(root, S + 'AantalBadkamers', (o.get(pre + 'badkamers') or '').strip())
-    if aang in ('hele', 'keuken'):
         _set(root, S + 'AantalKeukens', (o.get(pre + 'keukens') or '').strip())
     _set(root, S + 'TypeOpwekker', TYPE_OPWEKKER.get(topw, -1))
     _set(root, S + 'AantalOpwekkers', 0)   # altijd Een (0-geindexeerd); hotfill-op-twee is zeldzaam -> evt. later
@@ -306,7 +310,7 @@ def _fill_verwarming_opwekker(root, O, o, pre, systeem):
     elif typ in ('wp_elektrisch', 'wp_gasabsorptie', 'wp_gasmotor'):
         _set(root, O + 'TypeWarmtepomp', VW_TYPE_WP.get(o.get(pre + 'type_wp'), -1))
         _set(root, O + 'BronWarmtepomp', VW_BRON_WP.get(o.get(pre + 'bron_wp'), -1))
-        _set(root, O + 'OpstelplaatsOpwekker', VW_OPSTELPLAATS.get(o.get(pre + 'opstelplaats'), -1))
+        # opstelplaats is bij een warmtepomp niet van toepassing
         if o.get(pre + 'min_cop'):
             _set(root, O + 'VoldoetAanMinCOP', 1)
         if o.get(pre + 'additioneel'):
@@ -358,6 +362,12 @@ def _fill_verwarming(root, o):
             _set(root, DI + 'AanvullendePompenAanwezig', 1)
         if o.get('vw_onverwarmd_leidingen'):
             _set(root, DI + 'OnverwarmdLeidingenDoorRuimte', 1)
+            LO = DI + 'LeidingenOnverwarmdeRuimte/'
+            _set(root, LO + 'IsolatieKleppenAppendagesBeugels', VW_LEID_KLEPPEN.get(o.get('vw_leid_kleppen'), -1))
+            _set(root, LO + 'LeidinglengteDistributieleidingen', VW_LEID_LENGTE.get(o.get('vw_leid_lengte'), -1))
+            _set(root, LO + 'LeidingenGeisoleerd', VW_LEID_GEISOL.get(o.get('vw_leid_geisoleerd'), -1))
+            if o.get('vw_leid_geisoleerd') == 'ja':
+                _set(root, LO + 'IsolatieJaar', VW_LEID_ISOLJAAR.get(o.get('vw_leid_isolatiejaar'), -1))
         _set(root, DI + 'AantalBouwlagenWaardoorLeidingenLopen', (o.get('vw_aantal_bouwlagen') or '').strip())
     if systeem in ('collectief', 'warmtelev_ind', 'warmtelev_gem'):
         _set(root, DI + 'AantalWarmtemeters', VW_WARMTEMETERS.get(o.get('vw_warmtemeters'), -1))

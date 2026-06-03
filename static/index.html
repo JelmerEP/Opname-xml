@@ -438,6 +438,36 @@
         <label class="chk"><input type="checkbox" name="vw_waterzijdig"> Waterzijdig ingeregeld</label>
         <label class="chk"><input type="checkbox" name="vw_aanvullende_pompen"> Aanvullende pompen aanwezig</label>
         <label class="chk"><input type="checkbox" name="vw_onverwarmd_leidingen"> Leidingen door onverwarmde ruimte</label>
+        <div data-show="vw_onverwarmd_show=ja" hidden>
+          <label>Isolatie van kleppen, appendages en beugels
+            <select name="vw_leid_kleppen">
+              <option value="onbekend">Onbekend</option>
+              <option value="geisoleerd">Geïsoleerd</option>
+              <option value="ongeisoleerd">Ongeïsoleerd</option>
+            </select>
+          </label>
+          <label>Leidinglengte
+            <select name="vw_leid_lengte">
+              <option value="onbekend">Onbekend</option>
+              <option value="werkelijke">Werkelijke lengte</option>
+            </select>
+          </label>
+          <label>Leidingen geïsoleerd
+            <select name="vw_leid_geisoleerd">
+              <option value="onbekend">Onbekend</option>
+              <option value="ja">Ja</option>
+              <option value="nee">Nee</option>
+            </select>
+          </label>
+          <label data-show="vw_leid_geisoleerd=ja" hidden>Isolatiejaar
+            <select name="vw_leid_isolatiejaar">
+              <option value="onbekend">Onbekend</option>
+              <option value="vanaf1995">Vanaf 1995</option>
+              <option value="t1980_1995">1980 tot 1995</option>
+              <option value="voor1980">Voor 1980</option>
+            </select>
+          </label>
+        </div>
         <label>Aantal bouwlagen waardoor leidingen lopen<input name="vw_aantal_bouwlagen" inputmode="numeric"></label>
       </div>
       <label data-show="vw_systeem=collectief,warmtelev_ind,warmtelev_gem" hidden>Aantal warmtemeters
@@ -662,8 +692,8 @@
       <button type="button" data-val="keuken">Keuken</button>
     </div>
     <div class="row">
-      <label data-show="tw__N___aangesloten=hele,badkamer" hidden>Aantal badkamers<input name="tw__N___badkamers" inputmode="numeric" placeholder="0"></label>
-      <label data-show="tw__N___aangesloten=hele,keuken" hidden>Aantal keukens<input name="tw__N___keukens" inputmode="numeric" placeholder="0"></label>
+      <label data-show="tw__N___aangesloten=hele" hidden>Aantal badkamers<input name="tw__N___badkamers" inputmode="numeric" placeholder="0"></label>
+      <label data-show="tw__N___aangesloten=hele" hidden>Aantal keukens<input name="tw__N___keukens" inputmode="numeric" placeholder="0"></label>
     </div>
 
     <div data-show="tw__N___type_installatie=individueel,collectief" hidden>
@@ -943,7 +973,7 @@
         <label class="chk"><input type="checkbox" name="vo__N___heeft_stekker"> Heeft stekker</label>
       </div>
 
-      <label data-show="vo__N___type=gasketel,olieketel,wp_elektrisch,wp_gasabsorptie,wp_gasmotor" hidden>Opstelplaats opwekker
+      <label data-show="vo__N___type=gasketel,olieketel" hidden>Opstelplaats opwekker
         <select name="vo__N___opstelplaats">
           <option value="">— kies —</option>
           <option value="binnen">Binnen thermische zone</option>
@@ -1019,7 +1049,6 @@
         </label>
       </div>
     </div>
-    <label>Totaal vermogen opwekker (kW)<input name="ko__N___vermogen" inputmode="decimal"></label>
     <label class="chk"><input type="checkbox" name="ko__N___kwaliteit"> Kwaliteitsverklaring koude opwekker</label>
   </div>
 </template>
