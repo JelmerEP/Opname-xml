@@ -578,6 +578,56 @@
       </div>
     </fieldset>
 
+    <fieldset class="tap">
+      <legend>Zonne-energie</legend>
+
+      <label class="chk"><input type="checkbox" name="pv_aanwezig"> PV-panelen aanwezig</label>
+      <div data-show="pv_show=ja" hidden>
+        <label>Aantal panelen<input name="pv_aantal" inputmode="numeric"></label>
+        <label>Type paneel (merk + type)<input name="pv_type" placeholder="bv. DMEGC-450-XR"></label>
+      </div>
+
+      <label class="chk"><input type="checkbox" name="zb_aanwezig"> Zonneboiler aanwezig</label>
+      <div data-show="zb_show=ja" hidden>
+        <label>Warmte t.b.v.
+          <select name="zb_warmte_tbv">
+            <option value="tapwater">Tapwater</option>
+            <option value="tapwater_verwarming">Tapwater en verwarming</option>
+            <option value="verwarming">Verwarming</option>
+          </select>
+        </label>
+        <label>Naverwarming
+          <select name="zb_naverwarming">
+            <option value="separaat">Voorverwarmer met separaat naverwarmingstoestel</option>
+            <option value="geintegreerd_gas">Geïntegreerde met gasgestookte naverwarming</option>
+            <option value="geintegreerd_elektrisch">Geïntegreerde met elektrische naverwarming</option>
+            <option value="onbekend">Onbekend</option>
+          </select>
+        </label>
+        <label>Volume voorraadvat (l)<input name="zb_volume" inputmode="decimal"></label>
+        <label>Voorraadvat aangesloten op tapwatersysteem
+          <select name="zb_vat_systeem">
+            <option value="systeem1">Systeem 1</option>
+            <option value="systeem2">Systeem 2</option>
+          </select>
+        </label>
+        <label>Warmteverliezen voorraadvat o.b.v.
+          <select name="zb_warmteverlies">
+            <option value="kwaliteitsverklaring">Kwaliteitsverklaring</option>
+            <option value="energielabel">Energielabel (≤500L en vanaf 2016)</option>
+            <option value="fabricagejaar">Fabricagejaar (≤2000L)</option>
+          </select>
+        </label>
+        <label data-show="zb_warmteverlies=energielabel" hidden>Energielabel opslagvat
+          <select name="zb_energielabel">
+            <option value="aplus">A+</option>
+            <option value="a">A</option><option value="b">B</option><option value="c">C</option>
+            <option value="d">D</option><option value="e">E</option><option value="f">F</option><option value="g">G</option>
+          </select>
+        </label>
+      </div>
+    </fieldset>
+
     <div class="actions">
       <button type="button" id="save" class="primary">Opslaan</button>
       <button type="button" id="gen">Genereer XML</button>

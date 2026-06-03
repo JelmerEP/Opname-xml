@@ -3,7 +3,7 @@
 mapping.py - opname (schone dict uit de app) -> Vabi EPA 12.0 XML.
 Stap 1: object. Installatie volgt in latere stappen (hergebruik codes uit transform.py).
 """
-import io, re, uuid, zipfile
+import io, os, re, uuid, zipfile
 import xml.etree.ElementTree as ET
 
 # ---------- code-mapping (bevestigd) ----------
@@ -96,6 +96,14 @@ KOEL_WATERTEMP   = {'6_12': 0, '12_16': 1, '12_18': 2, '17_21': 3, 'onbekend': 4
 KOEL_POMP        = {'werkelijk_eei': 1, 'werkelijk': 2, 'onbekend': 3}   # werkelijk_eei=1 bevestigd; 2/3 aanname
 KOEL_LEIDLENGTE  = {'werkelijke': 0, 'onbekend': 1}   # onbekend=1 bevestigd
 KOEL_LEIDISOL    = {'nee': 0, 'ja': 1, 'onbekend': 6} # onbekend=6 bevestigd; ja/nee aanname
+
+# ---------- zonne-energie-mapping (uit zonneoiler.xml + Zonnepanelen.xml, 2026-06-03; bevestigd) ----------
+ZON_SYSTEEM       = {'pv': 0, 'pvt': 1, 'zonneboiler': 2}    # PV=0, zonneboiler=2 bevestigd; pvt=1 aanname
+ZON_WARMTE_TBV    = {'tapwater': 0, 'tapwater_verwarming': 1, 'verwarming': 2}   # tapwater+verwarming=1 bevestigd
+ZON_NAVERWARMING  = {'separaat': 0, 'geintegreerd_gas': 1, 'geintegreerd_elektrisch': 2, 'onbekend': 3}  # separaat=0 bevestigd
+ZON_VAT_SYSTEEM   = {'systeem1': 0, 'systeem2': 1}           # systeem1=0 bevestigd
+ZON_WARMTEVERLIES = {'kwaliteitsverklaring': 0, 'energielabel': 1, 'fabricagejaar': 2}   # energielabel=1 bevestigd
+ZON_ENERGIELABEL  = {'aplus': 0, 'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7}  # A+=0 bevestigd; rest aanname (zelfde schaal als tapwater-vat A=1/B=2)
 
 def _find(root, path):
     """child-navigatie met ondersteuning voor Tag[n] (1-based), zonder ET-predicaat-afhankelijkheid."""
@@ -490,6 +498,48 @@ def _fill_koeling(root, o):
                 _set(root, DI + 'KleppenBeugelsGeisoleerd', 1)
             _set(root, DI + 'AantalBouwlagenWaardoorLeidingenLopen', (o.get('koel_bouwlagen') or '').strip())
 
+# ---------- INSTALLATIE: zonne-energie (PV + zonneboiler) ----------
+def _node_set(node, tag, val):
+    """Zet de tekst van een direct kind-element (skip None/''/-1, schrijft wel 0)."""
+    if val is None or val == '' or val == -1:
+        return
+    el = node.find(tag)
+    if el is not None:
+        el.text = str(val)
+
+def _zonne_node(tpl_path):
+    """Verse <ZonneEnergie>-node uit het sub-template (template-lijst is leeg)."""
+    p = os.path.join(os.path.dirname(tpl_path), 'zonne_energie.xml')
+    n = ET.parse(p).getroot()
+    _node_set(n, 'Guid', str(uuid.uuid4()))
+    return n
+
+def _fill_zonne(root, o, tpl_path):
+    has_pv = bool(o.get('pv_aanwezig'))
+    has_zb = bool(o.get('zb_aanwezig'))
+    if not (has_pv or has_zb):
+        return
+    lst = _find(root, 'Installaties/Installatie/ZonneEnergieList')
+    if lst is None:
+        return
+    if has_pv:
+        n = _zonne_node(tpl_path)
+        _node_set(n, 'ZonneEnergiesysteem', ZON_SYSTEEM['pv'])
+        _node_set(n, 'AantalPanelen', (o.get('pv_aantal') or '').strip())
+        _node_set(n, 'Opmerkingen', (o.get('pv_type') or '').strip())
+        lst.append(n)
+    if has_zb:
+        n = _zonne_node(tpl_path)
+        _node_set(n, 'ZonneEnergiesysteem', ZON_SYSTEEM['zonneboiler'])
+        _node_set(n, 'WarmteTbv', ZON_WARMTE_TBV.get(o.get('zb_warmte_tbv'), -1))
+        _node_set(n, 'Naverwarming', ZON_NAVERWARMING.get(o.get('zb_naverwarming'), -1))
+        _node_set(n, 'VolumeVoorraadvat', (o.get('zb_volume') or '').strip())
+        _node_set(n, 'VoorraadvatAangeslotenOpTapwatersysteem', ZON_VAT_SYSTEEM.get(o.get('zb_vat_systeem'), -1))
+        _node_set(n, 'WarmteverliezenVoorraadvatObv', ZON_WARMTEVERLIES.get(o.get('zb_warmteverlies'), -1))
+        if o.get('zb_warmteverlies') == 'energielabel':
+            _node_set(n, 'EnergielabelOpslagvat', ZON_ENERGIELABEL.get(o.get('zb_energielabel'), -1))
+        lst.append(n)
+
 def build_installatie(o, tpl_path):
     """o = dict met opnamevelden. Geeft xml_bytes (Installatiebibliotheek)."""
     tree = ET.parse(tpl_path)
@@ -514,6 +564,9 @@ def build_installatie(o, tpl_path):
 
     if o.get('koel_aanwezig'):
         _fill_koeling(root, o)
+
+    if o.get('pv_aanwezig') or o.get('zb_aanwezig'):
+        _fill_zonne(root, o, tpl_path)
 
     # vrije notitie -> Opmerkingen
     opm = (o.get('tw_opmerkingen') or '').strip()

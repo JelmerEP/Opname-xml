@@ -2,7 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
-const BUILD = 'v15';   // versie-stempel (toon in header); bump samen met sw.js
+const BUILD = 'v16';   // versie-stempel (toon in header); bump samen met sw.js
 let state = {};
 
 // ---------- helpers ----------
@@ -32,6 +32,8 @@ function deriveFlags(){
   state.koel_vent_show   = state.koel_ventilatorvermogen  ? 'ja' : '';
   state.koel_pomp2_show  = state.koel_aanvullende_pompen  ? 'ja' : '';
   state.koel_leiding_show= state.koel_leidingen_ongekoeld ? 'ja' : '';
+  state.pv_show          = state.pv_aanwezig              ? 'ja' : '';
+  state.zb_show          = state.zb_aanwezig              ? 'ja' : '';
 }
 
 // ---------- form binding ----------
