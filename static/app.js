@@ -2,6 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
+const BUILD = 'v14';   // versie-stempel (toon in header); bump samen met sw.js
 let state = {};
 
 // ---------- helpers ----------
@@ -140,7 +141,33 @@ window.addEventListener('DOMContentLoaded',()=>{
   const bz=$('#bagzoek'); if(bz){ bz.addEventListener('input',bagInput); bz.addEventListener('blur',()=>setTimeout(hideBagSug,150)); }
   $('#save').onclick=saveOpname;
   $('#gen').onclick=()=>{ saveOpname(); generate(); };
-  $('#reset').onclick=()=>{ state={opnamedatum:new Date().toISOString().slice(0,10)}; applyState(); saveDraft(); toast('Nieuw formulier'); };
+  $('#reset').onclick=()=>{
+    if(!confirm('Formulier legen en met een leeg adres beginnen?\nJe opgeslagen opnames in de lijst blijven bewaard.')) return;
+    state={opnamedatum:new Date().toISOString().slice(0,10)};
+    const bz=$('#bagzoek'); if(bz) bz.value='';
+    const bm=$('#bagmsg'); if(bm){ bm.hidden=true; bm.textContent=''; }
+    hideBagSug(); applyState(); saveDraft(); window.scrollTo(0,0);
+    toast('Leeg — klaar voor het volgende adres');
+  };
   window.addEventListener('online',net); window.addEventListener('offline',net);
-  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+  // versie tonen + automatisch verversen bij een nieuwe deploy (geen incognito meer nodig)
+  const verEl=$('#ver'); if(verEl) verEl.textContent=BUILD;
+  if('serviceWorker' in navigator){
+    let reloaded=false;
+    const hadController=!!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(reloaded || !hadController) return;   // eerste registratie niet herladen, echte update wel
+      reloaded=true; location.reload();
+    });
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.update();                               // check meteen op een nieuwe versie
+      setInterval(()=>reg.update(), 60000);       // en elke minuut zolang de app open staat
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        if(nw) nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed' && navigator.serviceWorker.controller) toast('Nieuwe versie wordt geladen…');
+        });
+      });
+    }).catch(()=>{});
+  }
 });

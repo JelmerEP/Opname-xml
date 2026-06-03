@@ -6,6 +6,8 @@ header{position:sticky;top:0;background:var(--blue);color:#fff;padding:14px 16px
 header h1{font-size:18px;margin:0}
 .net{font-size:12px;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:10px}
 .net.off{background:#d9480f}
+.hd-right{display:flex;align-items:center;gap:8px}
+.ver{font-size:11px;opacity:.8;letter-spacing:.02em}
 main{max-width:640px;margin:0 auto;padding:16px}
 .hint{color:var(--mut);font-size:14px;margin:.2em 0 1em}
 .hint.small{font-size:12px;margin-top:.6em}
