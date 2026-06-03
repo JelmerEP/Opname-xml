@@ -128,6 +128,14 @@
           <option value="a_onb_2003">Type onbekend, zelfregelende klep, geplaatst &gt; 2003</option>
         </select>
       </label>
+      <label data-show="ven_ventilatiesysteem=b" hidden>Subsysteem
+        <select name="ven_sub_b">
+          <option value="">— kies —</option>
+          <option value="b1">B1 Standaard</option>
+          <option value="b2">B2 Tijdsturing op toevoer, zonder zonering</option>
+          <option value="b3">B3 CO2-meting per verblijfsruimte, CO2-sturing op toevoer, met zonering</option>
+        </select>
+      </label>
       <label data-show="ven_ventilatiesysteem=c" hidden>Subsysteem
         <select name="ven_sub_c">
           <option value="">— kies —</option>
@@ -161,14 +169,19 @@
         </select>
       </label>
 
-      <p class="hint small" data-show="ven_ventilatiesysteem=b,e" hidden>Subsysteem voor type B en E is nog niet ingebouwd — kies A/C/D, of stuur een Vabi-export met een B/E-systeem zodat ik de codes kan toevoegen.</p>
+      <div data-show="ven_ventilatiesysteem=e" hidden>
+        <p class="hint small">E = gecombineerd systeem: <strong>deel 1</strong> = decentrale WTW (E1), <strong>deel 2</strong> = de overige ventilatie van de woning. Vul hieronder deel 1 in (luchtdichtheid + WTW), en onderaan deel 2.</p>
+        <label>Verblijfsgebied deel 1 — decentrale WTW (m²)<input name="ven_verblijfsgebied1" inputmode="decimal"></label>
+      </div>
 
-      <div data-show="ven_ventilatiesysteem=b,c,d" hidden>
+      <div data-show="ven_ventilatiesysteem=b,c,d,e" hidden>
         <label>Luchtdichtheidsklasse
           <select name="ven_luchtdichtheid">
             <option value="">— kies —</option>
-            <option value="klasse1">Klasse 1</option><option value="klasse2">Klasse 2</option>
-            <option value="klasse3">Klasse 3</option><option value="onbekend">Onbekend</option>
+            <option value="luka_abc">LUKA A, B of C</option>
+            <option value="luka_d">LUKA D</option>
+            <option value="geen_kanaal">Geen kanaal</option>
+            <option value="onbekend">Onbekend</option>
           </select>
         </label>
         <label>Opgave ventilatoren
@@ -201,28 +214,162 @@
         </div>
       </div>
 
-      <div data-show="ven_ventilatiesysteem=d" hidden>
+      <div data-show="ven_ventilatiesysteem=d,e" hidden>
         <h4>WTW</h4>
         <label>Type WTW
           <select name="ven_type_wtw">
             <option value="">— kies —</option>
             <option value="kwaliteitsverklaring">Kwaliteitsverklaring</option>
-            <option value="rendement">Rendement handmatig</option>
-            <option value="geen">Geen</option>
+            <option value="koude_laden">Koude laden met luchtbehandelingskast</option>
+            <option value="platen">Platen- of buizenwarmtewisselaar</option>
+            <option value="kruisstroom">Kruisstroomwarmtewisselaar</option>
+            <option value="twincoil">Twee-elementensysteem (twincoil)</option>
+            <option value="heatpipe">Warmebuisapparaat (heatpipe)</option>
+            <option value="warmtewiel">Langzaam roterende / intermitterende wisselaar (warmtewiel)</option>
+            <option value="enthalpie">Enthalpiewisselaar</option>
+            <option value="tegenstroom_alu">Tegenstroomwarmtewisselaar Aluminium</option>
+            <option value="tegenstroom_kunststof">Tegenstroomwarmtewisselaar Kunststof</option>
+            <option value="tegenstroom_onbekend">Tegenstroomwarmtewisselaar Onbekend</option>
+            <option value="onbekend">Onbekend</option>
+          </select>
+        </label>
+        <label>Volumeregeling
+          <select name="ven_volumeregeling">
+            <option value="">— kies —</option>
+            <option value="constant">Constant volume</option>
+            <option value="geen_constant">Geen constant volume</option>
+            <option value="onbekend">Onbekend</option>
           </select>
         </label>
         <label>Bypass
           <select name="ven_bypass">
             <option value="">— kies —</option>
-            <option value="geen">Geen bypass</option>
+            <option value="niet_aanwezig">Niet aanwezig</option>
             <option value="volledig">Bypass volledig</option>
-            <option value="gedeeltelijk">Bypass gedeeltelijk</option>
+            <option value="perc_bekend">Bypass aanwezig, percentage bekend</option>
+            <option value="perc_onbekend">Bypass aanwezig, percentage onbekend</option>
+            <option value="onbekend">Bypass onbekend</option>
+          </select>
+        </label>
+        <label>Isolatie kanaal buitenaansluiting
+          <select name="ven_isolatie_kanaal">
+            <option value="">— kies —</option>
+            <option value="ongeisoleerd">Ongeïsoleerd</option>
+            <option value="geisoleerd_bekend">Geïsoleerd (eigenschappen bekend)</option>
+            <option value="geisoleerd_onbekend">Geïsoleerd (eigenschappen onbekend)</option>
+            <option value="onbekend">Onbekend</option>
           </select>
         </label>
         <label class="chk"><input type="checkbox" name="ven_koudeterugwinning"> Koudeterugwinning WTW</label>
       </div>
 
-      <label class="chk" data-show="ven_ventilatiesysteem=c,d" hidden><input type="checkbox" name="ven_passieve_koeling"> Ventilatiesysteem voorzien van passieve koeling</label>
+      <label class="chk" data-show="ven_ventilatiesysteem=c,d,e" hidden><input type="checkbox" name="ven_passieve_koeling"> Ventilatiesysteem voorzien van passieve koeling</label>
+
+      <div data-show="ven_ventilatiesysteem=e" hidden>
+        <h4>Systeemdeel 2 — overige ventilatie</h4>
+        <label>Ventilatiesysteem deel 2
+          <select name="ven2_ventilatiesysteem">
+            <option value="">— kies —</option>
+            <option value="a">A — Natuurlijke ventilatie</option>
+            <option value="b">B — Mechanische toevoer</option>
+            <option value="c">C — Mechanische afvoer</option>
+            <option value="d">D — Balansventilatie (WTW)</option>
+          </select>
+        </label>
+        <label>Verblijfsgebied deel 2 (m²)<input name="ven2_verblijfsgebied" inputmode="decimal"></label>
+
+        <label data-show="ven2_ventilatiesysteem=a" hidden>Subsysteem deel 2
+          <select name="ven2_sub_a">
+            <option value="">— kies —</option>
+            <option value="a1">A1 Standaard (toevoer niet luchtdruk gestuurd)</option>
+            <option value="a2a">A2a Luchtdrukgestuurde toevoer Δp ≤ 1 Pa</option>
+            <option value="a2b">A2b Luchtdrukgestuurde toevoer 1 &lt; Δp ≤ 5 Pa</option>
+            <option value="a2c">A2c Luchtdrukgestuurde toevoer 5 &lt; Δp ≤ 10 Pa</option>
+            <option value="a_onb_bouwjaar">Type onbekend, zelfregelende klep, bouwjaar rekenzone</option>
+            <option value="a_onb_2003">Type onbekend, zelfregelende klep, geplaatst &gt; 2003</option>
+          </select>
+        </label>
+        <label data-show="ven2_ventilatiesysteem=b" hidden>Subsysteem deel 2
+          <select name="ven2_sub_b">
+            <option value="">— kies —</option>
+            <option value="b1">B1 Standaard</option>
+            <option value="b2">B2 Tijdsturing op toevoer, zonder zonering</option>
+            <option value="b3">B3 CO2-meting per verblijfsruimte, CO2-sturing op toevoer, met zonering</option>
+          </select>
+        </label>
+        <label data-show="ven2_ventilatiesysteem=c" hidden>Subsysteem deel 2
+          <select name="ven2_sub_c">
+            <option value="">— kies —</option>
+            <option value="c1">C1 Standaard</option>
+            <option value="c2a">C2a Luchtdrukgestuurde toevoer Δp ≤ 1 Pa</option>
+            <option value="c2b">C2b Luchtdrukgestuurde toevoer 1 &lt; Δp ≤ 5 Pa</option>
+            <option value="c2c">C2c Luchtdrukgestuurde toevoer 5 &lt; Δp ≤ 10 Pa</option>
+            <option value="c_onb_bouwjaar">Type onbekend, zelfregelende klep, bouwjaar rekenzone</option>
+            <option value="c_onb_2003">Type onbekend, zelfregelende klep, geplaatst &gt; 2003</option>
+            <option value="c3a">C3a Tijdsturing afvoer, zonder zonering</option>
+            <option value="c3b">C3b Luchtdrukgest. toevoer Δp ≤ 1, tijdsturing afvoer, zonder zonering</option>
+            <option value="c3c">C3c Tijdsturing toevoer, afvoer zonder zonering</option>
+            <option value="c4a">C4a Luchtdrukgest. toevoer Δp ≤ 1, CO2-sturing op afvoer</option>
+            <option value="c4b">C4b CO2-sturing toevoer woonk. + hoofdslaapk.</option>
+            <option value="c4c">C4c Luchtdrukgest. toevoer Δp ≤ 1, CO2-sturing op afvoer</option>
+            <option value="c5a">C5a CO2-sturing op afvoer (variant a)</option>
+            <option value="c5b">C5b CO2-sturing op afvoer (variant b)</option>
+          </select>
+        </label>
+        <label data-show="ven2_ventilatiesysteem=d" hidden>Subsysteem deel 2
+          <select name="ven2_sub_d">
+            <option value="">— kies —</option>
+            <option value="d1">D1 Standaard</option>
+            <option value="d2">D2 Centrale WTW zonder zonering, zonder sturing</option>
+            <option value="d3">D3 Centrale WTW, CO2-sturing toe-/afvoer woonkamer, geen zonering</option>
+            <option value="d4a">D4a Tijdsturing zonder zonering</option>
+            <option value="d4b">D4b Tijdsturing met zonering</option>
+            <option value="d5a">D5a Centrale WTW, CO2-metingen woonk. + hoofdslaapk.</option>
+            <option value="d5b">D5b Decentrale WTW, CO2-metingen woonk. + hoofdslaapk.</option>
+            <option value="d5c">D5c Centrale WTW, CO2-metingen woonk. + hoofdslaapk.</option>
+          </select>
+        </label>
+
+        <div data-show="ven2_ventilatiesysteem=b,c,d" hidden>
+          <label>Luchtdichtheidsklasse deel 2
+            <select name="ven2_luchtdichtheid">
+              <option value="">— kies —</option>
+              <option value="luka_abc">LUKA A, B of C</option>
+              <option value="luka_d">LUKA D</option>
+              <option value="geen_kanaal">Geen kanaal</option>
+              <option value="onbekend">Onbekend</option>
+            </select>
+          </label>
+          <label>Opgave ventilatoren deel 2
+            <select name="ven2_opgave">
+              <option value="">— kies —</option>
+              <option value="nominaal">Nominaal vermogen</option>
+              <option value="kwaliteitsverklaring">Kwaliteitsverklaring</option>
+              <option value="onbekend">Onbekend</option>
+            </select>
+          </label>
+          <label data-show="ven2_opgave=nominaal" hidden>Nominaal vermogen deel 2 (W)<input name="ven2_nominaal_vermogen" inputmode="numeric"></label>
+          <div data-show="ven2_opgave=onbekend" hidden>
+            <label>Type elektromotor deel 2
+              <select name="ven2_type_elektromotor">
+                <option value="">— kies —</option>
+                <option value="gelijkstroom">Gelijkstroom</option>
+                <option value="wisselstroom">Wisselstroom</option>
+                <option value="onbekend">Onbekend</option>
+              </select>
+            </label>
+            <label>Fabricagejaar ventilator deel 2
+              <select name="ven2_fabricagejaar">
+                <option value="">— kies —</option>
+                <option value="tot1980">tot 1980</option><option value="t1980_1985">1980 t/m 1985</option>
+                <option value="t1986_1990">1986 t/m 1990</option><option value="t1991_1998">1991 t/m 1998</option>
+                <option value="t1999_2006">1999 t/m 2006</option><option value="na2006">&gt; 2006</option>
+                <option value="onbekend">Onbekend</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
     </fieldset>
 
     <fieldset class="tap">

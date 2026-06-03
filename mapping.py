@@ -59,20 +59,27 @@ VW_DISTRTYPE     = {'tweepijps': 0}                               # tweepijps=0 
 VW_WARMTEMETERS  = {'een_of_meer': 0, 'geen': 1}
 VW_AFLEVERTEMP   = {'onbekend': 3, 'lt60': 0, 'ge60': 1}          # onbekend=3 bevestigd
 
-# ---------- ventilatie-mapping (uit echte exports + dropdowns, 2026-06-02; bevestigd) ----------
+# ---------- ventilatie-mapping (uit echte exports + dropdowns, 2026-06-03; A/B/C/D/E bevestigd) ----------
 VEN_SYSTEEM      = {'individueel': 0, 'collectief': 1}
-VEN_SYSTEEMTYPE  = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4}        # A=0 C=2 D=3 bevestigd; B/E afgeleid
-VEN_SUBSYSTEEM   = {  # GLOBALE codes (sequentieel binnen elk type); a1=0/a_onb_bouwjaar=4/c1=10/c3b=17/c_onb2003=15/d2=27 bevestigd
+VEN_SYSTEEMTYPE  = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4}        # A=0 B=1 C=2 D=3 E=4 bevestigd
+VEN_SUBSYSTEEM   = {  # GLOBALE codes (sequentieel binnen elk type); a1=0/a_onb_bouwjaar=4/b1=6/b3=8/c1=10/c3b=17/c_onb2003=15/d2=27/e1=38 bevestigd
     'a1': 0, 'a2a': 1, 'a2b': 2, 'a2c': 3, 'a_onb_bouwjaar': 4, 'a_onb_2003': 5,
+    'b1': 6, 'b2': 7, 'b3': 8,
     'c1': 10, 'c2a': 11, 'c2b': 12, 'c2c': 13, 'c_onb_bouwjaar': 14, 'c_onb_2003': 15,
     'c3a': 16, 'c3b': 17, 'c3c': 18, 'c4a': 19, 'c4b': 20, 'c4c': 21, 'c5a': 22, 'c5b': 23,
-    'd1': 26, 'd2': 27, 'd3': 28, 'd4a': 29, 'd4b': 30, 'd5a': 31, 'd5b': 32, 'd5c': 33}
-VEN_LUCHTDICHT   = {'klasse1': 0, 'klasse2': 1, 'klasse3': 2, 'onbekend': 3}   # onbekend=3 bevestigd, rest aanname
+    'd1': 26, 'd2': 27, 'd3': 28, 'd4a': 29, 'd4b': 30, 'd5a': 31, 'd5b': 32, 'd5c': 33,
+    'e1': 38}   # E = gecombineerd systeem, één subsysteem (decentrale WTW); deel 2 is een eigen systeem
+VEN_LUCHTDICHT   = {'luka_abc': 0, 'luka_d': 1, 'geen_kanaal': 2, 'onbekend': 3}   # onbekend=3 bevestigd
 VEN_OPGAVE       = {'nominaal': 2, 'kwaliteitsverklaring': 3, 'onbekend': 4}   # kwaliteitsverkl=3, onbekend=4 bevestigd; nominaal=2 aanname
-VEN_ELEKTROMOTOR = {'gelijkstroom': 0, 'wisselstroom': 1, 'onbekend': 2}
-VEN_FABRICAGEJAAR= {'tot1980': 0, 't1980_1985': 1, 't1986_1990': 2, 't1991_1998': 3, 't1999_2006': 4, 'na2006': 5, 'onbekend': 6}  # 1999-2006=4 bevestigd
-VEN_TYPE_WTW     = {'kwaliteitsverklaring': 1, 'rendement': 0, 'geen': -1}     # kwaliteitsverkl=1 bevestigd, rest aanname
-VEN_BYPASS       = {'geen': 0, 'volledig': 1, 'gedeeltelijk': 2}              # volledig=1 bevestigd, rest aanname
+VEN_ELEKTROMOTOR = {'gelijkstroom': 0, 'wisselstroom': 1, 'onbekend': 2}       # wisselstroom=1, onbekend=2 bevestigd
+VEN_FABRICAGEJAAR= {'tot1980': 0, 't1980_1985': 1, 't1986_1990': 2, 't1991_1998': 3, 't1999_2006': 4, 'na2006': 5, 'onbekend': 6}  # 1980-85=1, 1999-2006=4, onbekend=6 bevestigd
+VEN_TYPE_WTW     = {  # 1-geïndexeerde dropdownpositie; kwaliteitsverklaring=1 + tegenstroom_kunststof=10 bevestigd
+    'kwaliteitsverklaring': 1, 'koude_laden': 2, 'platen': 3, 'kruisstroom': 4, 'twincoil': 5,
+    'heatpipe': 6, 'warmtewiel': 7, 'enthalpie': 8, 'tegenstroom_alu': 9, 'tegenstroom_kunststof': 10,
+    'tegenstroom_onbekend': 11, 'onbekend': 12}
+VEN_VOLUMEREGELING = {'constant': 0, 'geen_constant': 1, 'onbekend': 2}        # onbekend=2 bevestigd
+VEN_BYPASS       = {'niet_aanwezig': 0, 'volledig': 1, 'perc_bekend': 2, 'perc_onbekend': 3, 'onbekend': 4}  # volledig=1 bevestigd
+VEN_ISOLATIE_KANAAL = {'ongeisoleerd': 0, 'geisoleerd_bekend': 1, 'geisoleerd_onbekend': 2, 'onbekend': 3}   # geïsoleerd-onbekend=2 bevestigd
 
 def _find(root, path):
     """child-navigatie met ondersteuning voor Tag[n] (1-based), zonder ET-predicaat-afhankelijkheid."""
@@ -332,6 +339,33 @@ def _fill_verwarming(root, o):
         _set(root, DI + 'AantalWarmtemeters', VW_WARMTEMETERS.get(o.get('vw_warmtemeters'), -1))
 
 # ---------- INSTALLATIE: ventilatie ----------
+def _fill_ven_deel(root, base, syst, sub_code, f):
+    """Vult één Ventilatiesysteem-node (base = '.../Ventilatiesysteem[n]/'). syst = a/b/c/d/e."""
+    _set(root, base + 'Subsysteem', sub_code)
+    _set(root, base + 'OpstelplaatsLbk', 1)            # staat zo in de echte ventilatie-exports
+    _set(root, base + 'Verblijfsgebied', (f.get('verblijfsgebied') or '').strip())
+
+    if syst in ('b', 'c', 'd', 'e'):                   # luchtdichtheid bij alles behalve A
+        _set(root, base + 'Luchtdichtheidsklasse', VEN_LUCHTDICHT.get(f.get('luchtdichtheid'), -1))
+        opg = f.get('opgave')
+        _set(root, base + 'OpgaveVentilatoren', VEN_OPGAVE.get(opg, -1))
+        if opg == 'nominaal':
+            _set(root, base + 'VentilatorList/Ventilator[1]/NominaalVermogen', (f.get('nominaal_vermogen') or '').strip())
+        elif opg == 'onbekend':
+            _set(root, base + 'TypeElektromotor', VEN_ELEKTROMOTOR.get(f.get('type_elektromotor'), -1))
+            _set(root, base + 'FabricagejaarVentilator', VEN_FABRICAGEJAAR.get(f.get('fabricagejaar'), -1))
+
+    if syst in ('d', 'e'):                             # WTW (D = balans, E-deel1 = decentrale WTW)
+        _set(root, base + 'TypeWtw', VEN_TYPE_WTW.get(f.get('type_wtw'), -1))
+        _set(root, base + 'Volumeregeling', VEN_VOLUMEREGELING.get(f.get('volumeregeling'), -1))
+        _set(root, base + 'Bypass', VEN_BYPASS.get(f.get('bypass'), -1))
+        _set(root, base + 'IsolatieKanaalBuitenaansluiting', VEN_ISOLATIE_KANAAL.get(f.get('isolatie_kanaal'), -1))
+        if f.get('koudeterugwinning'):
+            _set(root, base + 'KoudeterugwinningWtw', 1)
+
+    if f.get('passieve_koeling'):
+        _set(root, base + 'IsSysteemVoorzienVanPassieveKoeling', 1)
+
 def _fill_ventilatie(root, o):
     systeem = o.get('ven_systeem') or 'individueel'
     syst = o.get('ven_ventilatiesysteem')   # a/b/c/d/e
@@ -340,31 +374,37 @@ def _fill_ventilatie(root, o):
     if systeem == 'collectief':
         _set(root, V + 'AgAangeslotenOpInstallatie', (o.get('ven_gebruiksopp') or '').strip())
     _set(root, V + 'Ventilatiesysteem', VEN_SYSTEEMTYPE.get(syst, -1))
+    VL = V + 'VentilatiesysteemList/Ventilatiesysteem'
 
-    VS = V + 'VentilatiesysteemList/Ventilatiesysteem[1]/'
-    subkey = {'a': 'ven_sub_a', 'c': 'ven_sub_c', 'd': 'ven_sub_d'}.get(syst)
-    if subkey:
-        _set(root, VS + 'Subsysteem', VEN_SUBSYSTEEM.get(o.get(subkey), -1))
-    _set(root, VS + 'OpstelplaatsLbk', 1)   # staat zo in alle echte ventilatie-exports
-
-    if syst in ('b', 'c', 'd'):              # mechanisch
-        _set(root, VS + 'Luchtdichtheidsklasse', VEN_LUCHTDICHT.get(o.get('ven_luchtdichtheid'), -1))
-        opg = o.get('ven_opgave')
-        _set(root, VS + 'OpgaveVentilatoren', VEN_OPGAVE.get(opg, -1))
-        if opg == 'nominaal':
-            _set(root, VS + 'VentilatorList/Ventilator[1]/NominaalVermogen', (o.get('ven_nominaal_vermogen') or '').strip())
-        elif opg == 'onbekend':
-            _set(root, VS + 'TypeElektromotor', VEN_ELEKTROMOTOR.get(o.get('ven_type_elektromotor'), -1))
-            _set(root, VS + 'FabricagejaarVentilator', VEN_FABRICAGEJAAR.get(o.get('ven_fabricagejaar'), -1))
-
-    if syst == 'd':                          # WTW-balansventilatie
-        _set(root, VS + 'TypeWtw', VEN_TYPE_WTW.get(o.get('ven_type_wtw'), -1))
-        _set(root, VS + 'Bypass', VEN_BYPASS.get(o.get('ven_bypass'), -1))
-        if o.get('ven_koudeterugwinning'):
-            _set(root, VS + 'KoudeterugwinningWtw', 1)
-
-    if o.get('ven_passieve_koeling'):
-        _set(root, VS + 'IsSysteemVoorzienVanPassieveKoeling', 1)
+    if syst == 'e':
+        # deel 1 = decentrale WTW (E1 = 38), gebruikt de ven_*-velden
+        _fill_ven_deel(root, VL + '[1]/', 'e', VEN_SUBSYSTEEM['e1'], {
+            'verblijfsgebied': o.get('ven_verblijfsgebied1'),
+            'luchtdichtheid': o.get('ven_luchtdichtheid'), 'opgave': o.get('ven_opgave'),
+            'nominaal_vermogen': o.get('ven_nominaal_vermogen'), 'type_elektromotor': o.get('ven_type_elektromotor'),
+            'fabricagejaar': o.get('ven_fabricagejaar'), 'type_wtw': o.get('ven_type_wtw'),
+            'volumeregeling': o.get('ven_volumeregeling'), 'bypass': o.get('ven_bypass'),
+            'isolatie_kanaal': o.get('ven_isolatie_kanaal'), 'koudeterugwinning': o.get('ven_koudeterugwinning'),
+            'passieve_koeling': o.get('ven_passieve_koeling')})
+        # deel 2 = overige ventilatie (ven2_*), een gewoon ventilatiesysteem
+        s2 = o.get('ven2_ventilatiesysteem')
+        sub2key = {'a': 'ven2_sub_a', 'b': 'ven2_sub_b', 'c': 'ven2_sub_c', 'd': 'ven2_sub_d'}.get(s2)
+        _fill_ven_deel(root, VL + '[2]/', s2, VEN_SUBSYSTEEM.get(o.get(sub2key), -1) if sub2key else -1, {
+            'verblijfsgebied': o.get('ven2_verblijfsgebied'),
+            'luchtdichtheid': o.get('ven2_luchtdichtheid'), 'opgave': o.get('ven2_opgave'),
+            'nominaal_vermogen': o.get('ven2_nominaal_vermogen'), 'type_elektromotor': o.get('ven2_type_elektromotor'),
+            'fabricagejaar': o.get('ven2_fabricagejaar'), 'type_wtw': o.get('ven2_type_wtw'),
+            'volumeregeling': o.get('ven2_volumeregeling'), 'bypass': o.get('ven2_bypass'),
+            'isolatie_kanaal': o.get('ven2_isolatie_kanaal')})
+    else:
+        subkey = {'a': 'ven_sub_a', 'b': 'ven_sub_b', 'c': 'ven_sub_c', 'd': 'ven_sub_d'}.get(syst)
+        _fill_ven_deel(root, VL + '[1]/', syst, VEN_SUBSYSTEEM.get(o.get(subkey), -1) if subkey else -1, {
+            'luchtdichtheid': o.get('ven_luchtdichtheid'), 'opgave': o.get('ven_opgave'),
+            'nominaal_vermogen': o.get('ven_nominaal_vermogen'), 'type_elektromotor': o.get('ven_type_elektromotor'),
+            'fabricagejaar': o.get('ven_fabricagejaar'), 'type_wtw': o.get('ven_type_wtw'),
+            'volumeregeling': o.get('ven_volumeregeling'), 'bypass': o.get('ven_bypass'),
+            'isolatie_kanaal': o.get('ven_isolatie_kanaal'), 'koudeterugwinning': o.get('ven_koudeterugwinning'),
+            'passieve_koeling': o.get('ven_passieve_koeling')})
 
 def build_installatie(o, tpl_path):
     """o = dict met opnamevelden. Geeft xml_bytes (Installatiebibliotheek)."""
