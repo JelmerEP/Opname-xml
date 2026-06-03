@@ -540,12 +540,18 @@ def _fill_zonne(root, o, tpl_path):
             _node_set(n, 'EnergielabelOpslagvat', ZON_ENERGIELABEL.get(o.get('zb_energielabel'), -1))
         lst.append(n)
 
-def build_installatie(o, tpl_path):
-    """o = dict met opnamevelden. Geeft xml_bytes (Installatiebibliotheek)."""
+def build_installatie(o, tpl_path, koeling_only=False):
+    """o = dict met opnamevelden. Geeft xml_bytes (Installatiebibliotheek).
+    koeling_only=True -> alleen koeling (in Vabi een aparte rekenzone/installatie)."""
     tree = ET.parse(tpl_path)
     root = tree.getroot()
     _fresh_guids(root)
 
+    if koeling_only:
+        _fill_koeling(root, o)
+        return _xml_bytes(tree)
+
+    # hoofd-installatie: ventilatie + verwarming + tapwater + zonne (koeling staat apart)
     if o.get('ven_ventilatiesysteem'):
         _fill_ventilatie(root, o)
 
@@ -562,9 +568,6 @@ def build_installatie(o, tpl_path):
             S = TW + 'TapwatersysteemList/Tapwatersysteem[%d]/' % idx
             _fill_tapwater(root, S, o, 'tw%d_' % idx)
 
-    if o.get('koel_aanwezig'):
-        _fill_koeling(root, o)
-
     if o.get('pv_aanwezig') or o.get('zb_aanwezig'):
         _fill_zonne(root, o, tpl_path)
 
@@ -578,12 +581,16 @@ def build_installatie(o, tpl_path):
     return _xml_bytes(tree)
 
 def generate_zip(o, tpl_dir):
-    """Geeft (zip_bytes, naam). Stap 2: object + installatie (tapwater)."""
-    import os
+    """Geeft (zip_bytes, naam). Object + installatiebibliotheek(en).
+    Bij koeling -> aparte installatie-export (koeling hoort in Vabi in een eigen rekenzone)."""
     obj_bytes, naam = build_object(o, os.path.join(tpl_dir, 'object_template.xml'))
-    ins_bytes = build_installatie(o, os.path.join(tpl_dir, 'installatie_template.xml'))
+    ins_tpl = os.path.join(tpl_dir, 'installatie_template.xml')
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as z:
         z.writestr('Objectenbibliotheek.xml', obj_bytes)
-        z.writestr('Installatiebibliotheek.xml', ins_bytes)
+        if o.get('koel_aanwezig'):
+            z.writestr('Installatiebibliotheek (algemeen).xml', build_installatie(o, ins_tpl, koeling_only=False))
+            z.writestr('Installatiebibliotheek (koeling).xml', build_installatie(o, ins_tpl, koeling_only=True))
+        else:
+            z.writestr('Installatiebibliotheek.xml', build_installatie(o, ins_tpl, koeling_only=False))
     return buf.getvalue(), naam
