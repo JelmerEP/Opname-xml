@@ -63,6 +63,9 @@ VW_LEID_KLEPPEN  = {'geisoleerd': 0, 'ongeisoleerd': 1, 'onbekend': 2}   # W1=1,
 VW_LEID_LENGTE   = {'werkelijke': 0, 'onbekend': 1}                      # onbekend=1 bevestigd (W1/2/3)
 VW_LEID_GEISOL   = {'nee': 0, 'ja': 1, 'onbekend': 6}                    # onbekend=6 bevestigd; ja/nee aanname
 VW_LEID_ISOLJAAR = {'vanaf1995': 0, 't1980_1995': 1, 'voor1980': 2, 'onbekend': 3}  # dropdownvolgorde, aanname
+# hulpenergie (ketels + warmtepompen) - uit kw.xml (hybride)
+VW_HULPENERGIE   = {'kwaliteitsverklaring': 0, 'fabricagejaar': 1}       # fabricagejaar=1 bevestigd (kw.xml)
+VW_HULP_FABRJAAR = {'voor2015': 0, 'vanaf2015': 1, 'onbekend': 2}        # <2015=0, >=2015=1 bevestigd
 
 # ---------- ventilatie-mapping (uit echte exports + dropdowns, 2026-06-03; A/B/C/D/E bevestigd) ----------
 VEN_SYSTEEM      = {'individueel': 0, 'collectief': 1}
@@ -329,6 +332,21 @@ def _fill_verwarming_opwekker(root, O, o, pre, systeem):
 
     if o.get(pre + 'kwaliteitsverklaring'):
         _set(root, O + 'KwaliteitsverklaringWarmteopwekker', 1)
+
+    # nominaal vermogen - alleen bij hybride systeem (2 opwekkers)
+    if o.get('vw_aantal_opwekkers') == 'twee':
+        _set(root, O + 'Opwekkingsvermogen', (o.get(pre + 'vermogen') or '').strip())
+
+    # hulpenergie - ketels + warmtepompen (optioneel; kwaliteitsverklaring/fabricagejaar)
+    if typ in ('gasketel', 'olieketel', 'wp_elektrisch', 'wp_gasabsorptie', 'wp_gasmotor'):
+        code = VW_HULPENERGIE.get(o.get(pre + 'hulpenergie'), -1)
+        if code != -1:
+            _set(root, O + 'Hulpenergie', code)
+            _set(root, O + 'HulpenergieTypeVerklaring', code)   # mirror't Hulpenergie in echte exports
+            if o.get(pre + 'hulpenergie') == 'fabricagejaar':
+                _set(root, O + 'HulpenergieFabricagejaarToestel', VW_HULP_FABRJAAR.get(o.get(pre + 'hulp_fabricagejaar'), -1))
+        if o.get(pre + 'standby_kwaliteit'):
+            _set(root, O + 'StandbyKwaliteitsverklaring', 1)
 
 def _fill_verwarming(root, o):
     systeem = o.get('vw_systeem') or 'individueel'

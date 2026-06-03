@@ -981,7 +981,25 @@
         </select>
       </label>
       <label class="chk" data-show="vo__N___type=gasketel,olieketel,lokaal_gas,lokaal_olie" hidden><input type="checkbox" name="vo__N___open_verbranding"> Open verbrandingstoestel</label>
+      <label data-show="vw_aantal_opwekkers=twee" hidden>Totaal vermogen opwekker (nominaal) [kW]<input name="vo__N___vermogen" inputmode="decimal"></label>
       <label class="chk"><input type="checkbox" name="vo__N___kwaliteitsverklaring"> Kwaliteitsverklaring warmteopwekker</label>
+      <div data-show="vo__N___type=gasketel,olieketel,wp_elektrisch,wp_gasabsorptie,wp_gasmotor" hidden>
+        <label>Hulpenergie
+          <select name="vo__N___hulpenergie">
+            <option value="">— kies (optioneel) —</option>
+            <option value="kwaliteitsverklaring">Kwaliteitsverklaring</option>
+            <option value="fabricagejaar">Fabricagejaar</option>
+          </select>
+        </label>
+        <label data-show="vo__N___hulpenergie=fabricagejaar" hidden>Fabricagejaar toestel
+          <select name="vo__N___hulp_fabricagejaar">
+            <option value="onbekend">Onbekend</option>
+            <option value="voor2015">&lt; 2015</option>
+            <option value="vanaf2015">&gt;= 2015</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" name="vo__N___standby_kwaliteit"> Kwaliteitsverklaring standby</label>
+      </div>
     </div>
 
     <!-- warmtelevering derden (opwekker automatisch) -->
