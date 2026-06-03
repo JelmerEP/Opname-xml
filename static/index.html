@@ -462,6 +462,122 @@
       <textarea name="tw_opmerkingen" rows="2" placeholder="Vrije notitie (komt in Opmerkingen van de installatie)"></textarea>
     </fieldset>
 
+    <fieldset class="tap">
+      <legend>Koeling</legend>
+      <label class="chk"><input type="checkbox" name="koel_aanwezig"> Koeling aanwezig</label>
+
+      <div data-show="koel_show=ja" hidden>
+        <label class="lbl">Koelsysteem</label>
+        <select name="koel_systeem">
+          <option value="individueel">Individueel</option>
+          <option value="collectief">Gemeenschappelijk/collectief</option>
+          <option value="koudelev_ind">Koudelevering derden (individueel)</option>
+          <option value="koudelev_gem">Koudelevering derden (gemeenschappelijk)</option>
+        </select>
+
+        <label class="lbl">Aantal opwekkers</label>
+        <div class="opts" data-name="koel_aantal_opwekkers">
+          <button type="button" data-val="een">Eén</button>
+          <button type="button" data-val="twee">Twee</button>
+          <button type="button" data-val="drie">Drie</button>
+        </div>
+
+        <div id="kopw1"></div>
+        <div id="kopw2" data-show="koel_aantal_opwekkers=twee,drie" hidden></div>
+        <div id="kopw3" data-show="koel_aantal_opwekkers=drie" hidden></div>
+
+        <h4>Afgifte</h4>
+        <label>Type afgiftesysteem
+          <select name="koel_afgifte">
+            <option value="">— kies —</option>
+            <option value="vloer">Vloerkoeling</option>
+            <option value="wand">Wandkoeling</option>
+            <option value="plafond">Plafondkoeling</option>
+            <option value="vc_plafond">Ventilatorconvectoren (aan plafond)</option>
+            <option value="vc_buitenmuur">Ventilatorconvectoren (aan buitenmuur)</option>
+            <option value="overig">Overig of onbekend</option>
+          </select>
+        </label>
+        <div data-show="koel_afgifte=vc_plafond,vc_buitenmuur" hidden>
+          <label>Aantal toestellen<input name="koel_aantal_toestellen" inputmode="numeric"></label>
+          <label class="chk"><input type="checkbox" name="koel_ventilatorvermogen"> Ventilatorvermogen bekend</label>
+          <label data-show="koel_vent_show=ja" hidden>Vermogen per ventilator (W)<input name="koel_vermogen_ventilator" inputmode="numeric"></label>
+        </div>
+        <label>Type regeling afgiftesysteem
+          <select name="koel_regeling">
+            <option value="">— kies —</option>
+            <option value="standalone">Standalone regeling</option>
+            <option value="centrale">Centrale regeling</option>
+            <option value="overig">Overig of onbekend</option>
+          </select>
+        </label>
+
+        <h4>Distributie</h4>
+        <label>Distributiemedium
+          <select name="koel_medium">
+            <option value="water">Water</option>
+            <option value="lokaal">Geen (lokaal)</option>
+          </select>
+        </label>
+        <div data-show="koel_medium=water" hidden>
+          <label>Wateraanvoertemperatuur
+            <select name="koel_watertemp">
+              <option value="">— kies —</option>
+              <option value="6_12">6/12 °C</option>
+              <option value="12_16">12/16 °C</option>
+              <option value="12_18">12/18 °C</option>
+              <option value="17_21">17/21 °C</option>
+              <option value="onbekend">Onbekend</option>
+            </select>
+          </label>
+          <label class="chk"><input type="checkbox" name="koel_waterzijdig"> Waterzijdig inregelen</label>
+          <label>Hoofdcirculatiepomp
+            <select name="koel_hoofdpomp">
+              <option value="">— kies —</option>
+              <option value="werkelijk_eei">Werkelijk vermogen en EEI</option>
+              <option value="werkelijk">Werkelijk vermogen</option>
+              <option value="onbekend">Onbekend</option>
+            </select>
+          </label>
+          <label data-show="koel_hoofdpomp=werkelijk_eei,werkelijk" hidden>Totaal vermogen pomp (W)<input name="koel_pomp_vermogen" inputmode="numeric"></label>
+          <label data-show="koel_hoofdpomp=werkelijk_eei" hidden>Energie-efficiëntie-index pomp<input name="koel_pomp_eei" inputmode="decimal"></label>
+          <label class="chk"><input type="checkbox" name="koel_aanvullende_pompen"> Aanvullende circulatiepompen aanwezig</label>
+          <div data-show="koel_pomp2_show=ja" hidden>
+            <label>Aanvullende circulatiepompen
+              <select name="koel_pomp2">
+                <option value="">— kies —</option>
+                <option value="werkelijk_eei">Werkelijk vermogen en EEI</option>
+                <option value="werkelijk">Werkelijk vermogen</option>
+                <option value="onbekend">Onbekend</option>
+              </select>
+            </label>
+            <label data-show="koel_pomp2=werkelijk_eei,werkelijk" hidden>Vermogen (W)<input name="koel_pomp2_vermogen" inputmode="numeric"></label>
+            <label data-show="koel_pomp2=werkelijk_eei" hidden>Energie-efficiëntie-index pomp<input name="koel_pomp2_eei" inputmode="decimal"></label>
+          </div>
+          <label class="chk"><input type="checkbox" name="koel_leidingen_ongekoeld"> Leidingen door ongekoelde ruimte</label>
+          <div data-show="koel_leiding_show=ja" hidden>
+            <label>Leidingen lengte
+              <select name="koel_leiding_lengte">
+                <option value="">— kies —</option>
+                <option value="werkelijke">Werkelijke lengte</option>
+                <option value="onbekend">Onbekend</option>
+              </select>
+            </label>
+            <label>Leidingen geïsoleerd
+              <select name="koel_leiding_isolatie">
+                <option value="">— kies —</option>
+                <option value="ja">Ja</option>
+                <option value="nee">Nee</option>
+                <option value="onbekend">Onbekend</option>
+              </select>
+            </label>
+            <label class="chk"><input type="checkbox" name="koel_appendages_isolatie"> Appendages en beugels geïsoleerd</label>
+          </div>
+          <label>Aantal bouwlagen waardoor leidingen lopen<input name="koel_bouwlagen" inputmode="numeric"></label>
+        </div>
+      </div>
+    </fieldset>
+
     <div class="actions">
       <button type="button" id="save" class="primary">Opslaan</button>
       <button type="button" id="gen">Genereer XML</button>
@@ -801,6 +917,60 @@
       </label>
       <label class="chk"><input type="checkbox" name="vo__N___kwaliteitsverklaring"> Kwaliteitsverklaring warmteopwekker</label>
     </div>
+  </div>
+</template>
+
+<!-- ===== Koeling-opwekker-sjabloon; app.js instantieert het voor opwekker 1/2/3 (__N__) ===== -->
+<template id="koTemplate">
+  <div class="opw">
+    <h4>Opwekker __N__</h4>
+    <label>Merk<input name="ko__N___merk"></label>
+    <label>Type<input name="ko__N___typenr"></label>
+    <label>Installatiejaar<input name="ko__N___jaar" inputmode="numeric"></label>
+    <label>Type opwekker
+      <select name="ko__N___type">
+        <option value="">— kies —</option>
+        <option value="compressie">Compressiekoeling</option>
+        <option value="absorptie">Absorptiekoeling</option>
+        <option value="passief">Passieve of vrije koeling</option>
+      </select>
+    </label>
+    <div data-show="ko__N___type=compressie" hidden>
+      <label>Expansie
+        <select name="ko__N___expansie">
+          <option value="">— kies —</option>
+          <option value="directe_ruimte">Directe expansie in de ruimte (airconditioning)</option>
+          <option value="directe_lbk">Directe expansie in de LBK (DX-systeem)</option>
+          <option value="indirecte_verdamping">Met indirecte verdamping</option>
+        </select>
+      </label>
+      <label data-show="ko__N___expansie=directe_ruimte" hidden>Splitsysteem
+        <select name="ko__N___split">
+          <option value="">— kies —</option>
+          <option value="single">Single split</option>
+          <option value="multi">Multi split</option>
+        </select>
+      </label>
+      <div data-show="ko__N___expansie=indirecte_verdamping" hidden>
+        <label>Aandrijving
+          <select name="ko__N___aandrijving">
+            <option value="">— kies —</option>
+            <option value="gas">Gas</option>
+            <option value="elektrisch">Elektrisch</option>
+          </select>
+        </label>
+        <label>Distributiesysteem geeft koude af aan
+          <select name="ko__N___koude_afgifte">
+            <option value="">— kies —</option>
+            <option value="ruimtes">In de ruimtes</option>
+            <option value="lbk">Aan de LBK</option>
+            <option value="beide">Beide</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <label>Totaal vermogen opwekker (kW)<input name="ko__N___vermogen" inputmode="decimal"></label>
+    <label class="chk"><input type="checkbox" name="ko__N___kwaliteit"> Kwaliteitsverklaring koude opwekker</label>
   </div>
 </template>
 

@@ -81,6 +81,22 @@ VEN_VOLUMEREGELING = {'constant': 0, 'geen_constant': 1, 'onbekend': 2}        #
 VEN_BYPASS       = {'niet_aanwezig': 0, 'volledig': 1, 'perc_bekend': 2, 'perc_onbekend': 3, 'onbekend': 4}  # volledig=1 bevestigd
 VEN_ISOLATIE_KANAAL = {'ongeisoleerd': 0, 'geisoleerd_bekend': 1, 'geisoleerd_onbekend': 2, 'onbekend': 3}   # geïsoleerd-onbekend=2 bevestigd
 
+# ---------- koeling-mapping (uit echte exports koeling 1/2/3.xml, 2026-06-03; bevestigd) ----------
+KOEL_SYSTEEM     = {'individueel': 0, 'collectief': 1, 'koudelev_ind': 2, 'koudelev_gem': 3}  # individueel=0 bevestigd
+KOEL_AANTAL_OPW  = {'een': 1, 'twee': 2, 'drie': 3}   # -> AantalOpwekkers = n-1 (0-geindexeerd; Twee=1 bevestigd)
+KOEL_TYPE_OPW    = {'compressie': 0, 'absorptie': 1, 'passief': 2}            # compressie=0 bevestigd
+KOEL_EXPANSIE    = {'directe_ruimte': 0, 'directe_lbk': 1, 'indirecte_verdamping': 2}  # ruimte=0, indirect=2 bevestigd
+KOEL_SPLIT       = {'single': 0, 'multi': 1}          # single=0 bevestigd
+KOEL_AANDRIJVING = {'gas': 0, 'elektrisch': 1}        # elektrisch=1 bevestigd
+KOEL_KOUDE_AFG   = {'ruimtes': 0, 'lbk': 1, 'beide': 2}   # in-de-ruimtes=0 bevestigd
+KOEL_AFGIFTE     = {'vloer': 0, 'wand': 1, 'plafond': 2, 'vc_plafond': 3, 'vc_buitenmuur': 4, 'overig': 5}  # vloer=0, vc_buitenmuur=4 bevestigd
+KOEL_REGELING    = {'standalone': 0, 'centrale': 1, 'overig': 2}   # standalone=0, centrale=1 bevestigd
+KOEL_MEDIUM      = {'water': 0, 'lokaal': 1}          # water=0, lokaal=1 bevestigd
+KOEL_WATERTEMP   = {'6_12': 0, '12_16': 1, '12_18': 2, '17_21': 3, 'onbekend': 4}  # 17/21=3 bevestigd
+KOEL_POMP        = {'werkelijk_eei': 1, 'werkelijk': 2, 'onbekend': 3}   # werkelijk_eei=1 bevestigd; 2/3 aanname
+KOEL_LEIDLENGTE  = {'werkelijke': 0, 'onbekend': 1}   # onbekend=1 bevestigd
+KOEL_LEIDISOL    = {'nee': 0, 'ja': 1, 'onbekend': 6} # onbekend=6 bevestigd; ja/nee aanname
+
 def _find(root, path):
     """child-navigatie met ondersteuning voor Tag[n] (1-based), zonder ET-predicaat-afhankelijkheid."""
     el = root
@@ -406,6 +422,74 @@ def _fill_ventilatie(root, o):
             'isolatie_kanaal': o.get('ven_isolatie_kanaal'), 'koudeterugwinning': o.get('ven_koudeterugwinning'),
             'passieve_koeling': o.get('ven_passieve_koeling')})
 
+# ---------- INSTALLATIE: koeling ----------
+def _fill_koeling(root, o):
+    if not o.get('koel_aanwezig'):
+        return
+    KO = 'Installaties/Installatie/KoelingOpwekking/'
+    _set(root, KO + 'KoelingAanwezig', 1)
+    _set(root, KO + 'Koelsysteem', KOEL_SYSTEEM.get(o.get('koel_systeem') or 'individueel', -1))
+    aantal = KOEL_AANTAL_OPW.get(o.get('koel_aantal_opwekkers') or 'een', 1)
+    _set(root, KO + 'AantalOpwekkers', aantal - 1)               # 0-geindexeerd
+    for i in range(1, aantal + 1):
+        OP = KO + 'KoelingOpwekkers/KoelingOpwekker[%d]/' % i
+        pre = 'ko%d_' % i
+        typ = o.get(pre + 'type')
+        _set(root, OP + 'TypeOpwekker', KOEL_TYPE_OPW.get(typ, -1))
+        _set(root, OP + 'Merk', (o.get(pre + 'merk') or '').strip())
+        _set(root, OP + 'Type', (o.get(pre + 'typenr') or '').strip())
+        _set(root, OP + 'Installatiejaar', (o.get(pre + 'jaar') or '').strip())
+        if typ == 'compressie':
+            exp = o.get(pre + 'expansie')
+            _set(root, OP + 'Expansie', KOEL_EXPANSIE.get(exp, -1))
+            if exp == 'directe_ruimte':
+                _set(root, OP + 'Splitsysteem', KOEL_SPLIT.get(o.get(pre + 'split'), -1))
+            elif exp == 'indirecte_verdamping':
+                _set(root, OP + 'Aandrijving', KOEL_AANDRIJVING.get(o.get(pre + 'aandrijving'), -1))
+                _set(root, OP + 'KoudeAfgifte', KOEL_KOUDE_AFG.get(o.get(pre + 'koude_afgifte'), -1))
+        _set(root, OP + 'TotaalVermogen', (o.get(pre + 'vermogen') or '').strip())
+        if o.get(pre + 'kwaliteit'):
+            _set(root, OP + 'KwaliteitsverklaringKoudeOpwekker', 1)
+
+    AF = 'Installaties/Installatie/KoelingAfgifte/'
+    afg = o.get('koel_afgifte')
+    _set(root, AF + 'Afgiftesysteem', KOEL_AFGIFTE.get(afg, -1))
+    if afg in ('vc_plafond', 'vc_buitenmuur'):
+        _set(root, AF + 'AantalToestellen', (o.get('koel_aantal_toestellen') or '').strip())
+        if o.get('koel_ventilatorvermogen'):
+            _set(root, AF + 'VentilatorvermogenBekend', 1)
+            _set(root, AF + 'VermogenPerVentilator', (o.get('koel_vermogen_ventilator') or '').strip())
+    _set(root, AF + 'AfgiftesysteemRegeling', KOEL_REGELING.get(o.get('koel_regeling'), -1))
+
+    DI = 'Installaties/Installatie/KoelingDistributie/'
+    medium = o.get('koel_medium')
+    _set(root, DI + 'Distributiemedium', KOEL_MEDIUM.get(medium, -1))
+    if medium == 'water':
+        _set(root, DI + 'Wateraanvoertemperatuur', KOEL_WATERTEMP.get(o.get('koel_watertemp'), -1))
+        if o.get('koel_waterzijdig'):
+            _set(root, DI + 'WaterzijdigInregelen', 1)
+        pomp = o.get('koel_hoofdpomp')
+        _set(root, DI + 'Circulatiepomp', KOEL_POMP.get(pomp, -1))
+        if pomp in ('werkelijk_eei', 'werkelijk'):
+            _set(root, DI + 'CirculatiepompTotaalVermogen', (o.get('koel_pomp_vermogen') or '').strip())
+        if pomp == 'werkelijk_eei':
+            _set(root, DI + 'CirculatiepompEnergieEfficientieIndex', (o.get('koel_pomp_eei') or '').strip())
+        if o.get('koel_aanvullende_pompen'):
+            _set(root, DI + 'TweedeCirculatiepompAanwezig', 1)
+            p2 = o.get('koel_pomp2')
+            _set(root, DI + 'TweedeCirculatiepomp', KOEL_POMP.get(p2, -1))
+            if p2 in ('werkelijk_eei', 'werkelijk'):
+                _set(root, DI + 'TweedeCirculatiepompVermogen', (o.get('koel_pomp2_vermogen') or '').strip())
+            if p2 == 'werkelijk_eei':
+                _set(root, DI + 'TweedeCirculatiepompEnergieEfficientieIndex', (o.get('koel_pomp2_eei') or '').strip())
+        if o.get('koel_leidingen_ongekoeld'):
+            _set(root, DI + 'LeidingenDoorOngekoeldeRuimte', 1)
+            _set(root, DI + 'OngekoeldeRuimteLeidingenLengte', KOEL_LEIDLENGTE.get(o.get('koel_leiding_lengte'), -1))
+            _set(root, DI + 'OngekoeldeRuimteLeidingenGeisoleerd', KOEL_LEIDISOL.get(o.get('koel_leiding_isolatie'), -1))
+            if o.get('koel_appendages_isolatie'):
+                _set(root, DI + 'KleppenBeugelsGeisoleerd', 1)
+            _set(root, DI + 'AantalBouwlagenWaardoorLeidingenLopen', (o.get('koel_bouwlagen') or '').strip())
+
 def build_installatie(o, tpl_path):
     """o = dict met opnamevelden. Geeft xml_bytes (Installatiebibliotheek)."""
     tree = ET.parse(tpl_path)
@@ -427,6 +511,9 @@ def build_installatie(o, tpl_path):
         for idx in range(1, num + 1):
             S = TW + 'TapwatersysteemList/Tapwatersysteem[%d]/' % idx
             _fill_tapwater(root, S, o, 'tw%d_' % idx)
+
+    if o.get('koel_aanwezig'):
+        _fill_koeling(root, o)
 
     # vrije notitie -> Opmerkingen
     opm = (o.get('tw_opmerkingen') or '').strip()

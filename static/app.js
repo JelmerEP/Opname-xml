@@ -2,7 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
-const BUILD = 'v14';   // versie-stempel (toon in header); bump samen met sw.js
+const BUILD = 'v15';   // versie-stempel (toon in header); bump samen met sw.js
 let state = {};
 
 // ---------- helpers ----------
@@ -16,6 +16,7 @@ function buildSystems(){
   const inst=(tplId,id,n)=>{ const t=document.getElementById(tplId), el=document.getElementById(id); if(t&&el) el.innerHTML=t.innerHTML.replace(/__N__/g,n); };
   inst('sysTemplate','sys1','1');  inst('sysTemplate','sys2','2');    // tapwater
   inst('vopwTemplate','vopw1','1'); inst('vopwTemplate','vopw2','2'); // verwarming-opwekkers
+  inst('koTemplate','kopw1','1'); inst('koTemplate','kopw2','2'); inst('koTemplate','kopw3','3'); // koeling-opwekkers
 }
 
 // ---------- afgeleide vlaggen voor samengestelde conditionals ----------
@@ -26,6 +27,11 @@ function deriveFlags(){
     // Voorraadvaten: bij indirect vat, of compleet + elektrische boiler / kokend waterkraan
     state['tw'+n+'_show_vaten'] = (to==='indirect' || (to==='compleet' && (toestel==='eboiler' || toestel==='kokend'))) ? 'ja' : '';
   });
+  // koeling: checkbox-booleans -> string-vlag zodat data-show erop kan reageren
+  state.koel_show        = state.koel_aanwezig            ? 'ja' : '';
+  state.koel_vent_show   = state.koel_ventilatorvermogen  ? 'ja' : '';
+  state.koel_pomp2_show  = state.koel_aanvullende_pompen  ? 'ja' : '';
+  state.koel_leiding_show= state.koel_leidingen_ongekoeld ? 'ja' : '';
 }
 
 // ---------- form binding ----------
