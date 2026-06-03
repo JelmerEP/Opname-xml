@@ -1,6 +1,6 @@
 // Service worker - network-first: online altijd verse bestanden, offline val terug op cache.
-const CACHE = 'vabi-app-v19';
-const SHELL = ['./','index.html','style.css','app.js','manifest.webmanifest','icon-192.png','icon-512.png'];
+const CACHE = 'vabi-app-v20';
+const SHELL = ['./','index.html','style.css','app.js','manifest.webmanifest','icon-192.png','icon-512.png','logo.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -1,13 +1,15 @@
-:root{--blue:#1f6feb;--bg:#f4f6f9;--card:#fff;--line:#d8dee6;--ink:#1b2733;--mut:#6b7785}
+:root{--blue:#234c5e;--green:#3e9e36;--bg:#f2f6f7;--card:#fff;--line:#d6dee2;--ink:#1c2b33;--mut:#5e7682}
 *{box-sizing:border-box}
 [hidden]{display:none!important}  /* auteur-CSS (label{display:block}/.row{display:flex}) overschreef anders het hidden-attribuut */
 body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
-header{position:sticky;top:0;background:var(--blue);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;padding-top:max(14px,env(safe-area-inset-top))}
-header h1{font-size:18px;margin:0}
-.net{font-size:12px;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:10px}
+header{position:sticky;top:0;background:#fff;color:var(--blue);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;padding-top:max(9px,env(safe-area-inset-top));border-bottom:2px solid var(--green);box-shadow:0 1px 6px rgba(0,0,0,.07);z-index:5}
+.brand{display:flex;align-items:center;gap:9px}
+.brand-logo{height:30px;width:auto;display:block}
+.brand-sub{font-size:13px;font-weight:600;color:var(--mut)}
+.net{font-size:12px;background:var(--green);color:#fff;font-weight:600;padding:3px 9px;border-radius:10px}
 .net.off{background:#d9480f}
 .hd-right{display:flex;align-items:center;gap:8px}
-.ver{font-size:11px;opacity:.8;letter-spacing:.02em}
+.ver{font-size:11px;color:var(--mut);letter-spacing:.02em}
 main{max-width:640px;margin:0 auto;padding:16px}
 .hint{color:var(--mut);font-size:14px;margin:.2em 0 1em}
 .hint.small{font-size:12px;margin-top:.6em}
@@ -24,7 +26,7 @@ input:focus{outline:2px solid var(--blue);border-color:var(--blue)}
 .opts button.sel{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
 .actions{display:flex;gap:10px;position:sticky;bottom:0;padding:12px 0 max(12px,env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 22%)}
 .actions button{flex:1;font-size:16px;padding:14px;border-radius:10px;border:1px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer}
-.actions button.primary{background:var(--blue);color:#fff}
+.actions button.primary{background:var(--green);color:#fff;border-color:var(--green)}
 .actions button.ghost{border-color:var(--line);color:var(--mut)}
 h2{font-size:16px;display:flex;align-items:center;gap:8px}
 .badge{background:var(--blue);color:#fff;font-size:12px;border-radius:10px;padding:1px 8px}
@@ -61,6 +63,6 @@ textarea{resize:vertical}
 .bagsug{list-style:none;margin:2px 0 0;padding:0;position:absolute;z-index:20;width:100%;background:#fff;border:1px solid var(--line);border-radius:9px;max-height:260px;overflow:auto;box-shadow:0 6px 16px rgba(0,0,0,.12)}
 .bagsug li{padding:10px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid #eef2f7}
 .bagsug li:last-child{border-bottom:0}
-.bagsug li:hover{background:#eaf1fe}
+.bagsug li:hover{background:#eef4f5}
 .bagmsg{font-size:12px;color:var(--mut);margin:-2px 0 6px}
 .bagmsg.err{color:#d9480f}
