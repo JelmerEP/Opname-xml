@@ -59,6 +59,21 @@ VW_DISTRTYPE     = {'tweepijps': 0}                               # tweepijps=0 
 VW_WARMTEMETERS  = {'een_of_meer': 0, 'geen': 1}
 VW_AFLEVERTEMP   = {'onbekend': 3, 'lt60': 0, 'ge60': 1}          # onbekend=3 bevestigd
 
+# ---------- ventilatie-mapping (uit echte exports + dropdowns, 2026-06-02; bevestigd) ----------
+VEN_SYSTEEM      = {'individueel': 0, 'collectief': 1}
+VEN_SYSTEEMTYPE  = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4}        # A=0 C=2 D=3 bevestigd; B/E afgeleid
+VEN_SUBSYSTEEM   = {  # GLOBALE codes (sequentieel binnen elk type); a1=0/a_onb_bouwjaar=4/c1=10/c3b=17/c_onb2003=15/d2=27 bevestigd
+    'a1': 0, 'a2a': 1, 'a2b': 2, 'a2c': 3, 'a_onb_bouwjaar': 4, 'a_onb_2003': 5,
+    'c1': 10, 'c2a': 11, 'c2b': 12, 'c2c': 13, 'c_onb_bouwjaar': 14, 'c_onb_2003': 15,
+    'c3a': 16, 'c3b': 17, 'c3c': 18, 'c4a': 19, 'c4b': 20, 'c4c': 21, 'c5a': 22, 'c5b': 23,
+    'd1': 26, 'd2': 27, 'd3': 28, 'd4a': 29, 'd4b': 30, 'd5a': 31, 'd5b': 32, 'd5c': 33}
+VEN_LUCHTDICHT   = {'klasse1': 0, 'klasse2': 1, 'klasse3': 2, 'onbekend': 3}   # onbekend=3 bevestigd, rest aanname
+VEN_OPGAVE       = {'nominaal': 2, 'kwaliteitsverklaring': 3, 'onbekend': 4}   # kwaliteitsverkl=3, onbekend=4 bevestigd; nominaal=2 aanname
+VEN_ELEKTROMOTOR = {'gelijkstroom': 0, 'wisselstroom': 1, 'onbekend': 2}
+VEN_FABRICAGEJAAR= {'tot1980': 0, 't1980_1985': 1, 't1986_1990': 2, 't1991_1998': 3, 't1999_2006': 4, 'na2006': 5, 'onbekend': 6}  # 1999-2006=4 bevestigd
+VEN_TYPE_WTW     = {'kwaliteitsverklaring': 1, 'rendement': 0, 'geen': -1}     # kwaliteitsverkl=1 bevestigd, rest aanname
+VEN_BYPASS       = {'geen': 0, 'volledig': 1, 'gedeeltelijk': 2}              # volledig=1 bevestigd, rest aanname
+
 def _find(root, path):
     """child-navigatie met ondersteuning voor Tag[n] (1-based), zonder ET-predicaat-afhankelijkheid."""
     el = root
@@ -316,11 +331,49 @@ def _fill_verwarming(root, o):
     if systeem in ('collectief', 'warmtelev_ind', 'warmtelev_gem'):
         _set(root, DI + 'AantalWarmtemeters', VW_WARMTEMETERS.get(o.get('vw_warmtemeters'), -1))
 
+# ---------- INSTALLATIE: ventilatie ----------
+def _fill_ventilatie(root, o):
+    systeem = o.get('ven_systeem') or 'individueel'
+    syst = o.get('ven_ventilatiesysteem')   # a/b/c/d/e
+    V = 'Installaties/Installatie/Ventilatie/'
+    _set(root, V + 'Systeem', VEN_SYSTEEM.get(systeem, -1))
+    if systeem == 'collectief':
+        _set(root, V + 'AgAangeslotenOpInstallatie', (o.get('ven_gebruiksopp') or '').strip())
+    _set(root, V + 'Ventilatiesysteem', VEN_SYSTEEMTYPE.get(syst, -1))
+
+    VS = V + 'VentilatiesysteemList/Ventilatiesysteem[1]/'
+    subkey = {'a': 'ven_sub_a', 'c': 'ven_sub_c', 'd': 'ven_sub_d'}.get(syst)
+    if subkey:
+        _set(root, VS + 'Subsysteem', VEN_SUBSYSTEEM.get(o.get(subkey), -1))
+    _set(root, VS + 'OpstelplaatsLbk', 1)   # staat zo in alle echte ventilatie-exports
+
+    if syst in ('b', 'c', 'd'):              # mechanisch
+        _set(root, VS + 'Luchtdichtheidsklasse', VEN_LUCHTDICHT.get(o.get('ven_luchtdichtheid'), -1))
+        opg = o.get('ven_opgave')
+        _set(root, VS + 'OpgaveVentilatoren', VEN_OPGAVE.get(opg, -1))
+        if opg == 'nominaal':
+            _set(root, VS + 'VentilatorList/Ventilator[1]/NominaalVermogen', (o.get('ven_nominaal_vermogen') or '').strip())
+        elif opg == 'onbekend':
+            _set(root, VS + 'TypeElektromotor', VEN_ELEKTROMOTOR.get(o.get('ven_type_elektromotor'), -1))
+            _set(root, VS + 'FabricagejaarVentilator', VEN_FABRICAGEJAAR.get(o.get('ven_fabricagejaar'), -1))
+
+    if syst == 'd':                          # WTW-balansventilatie
+        _set(root, VS + 'TypeWtw', VEN_TYPE_WTW.get(o.get('ven_type_wtw'), -1))
+        _set(root, VS + 'Bypass', VEN_BYPASS.get(o.get('ven_bypass'), -1))
+        if o.get('ven_koudeterugwinning'):
+            _set(root, VS + 'KoudeterugwinningWtw', 1)
+
+    if o.get('ven_passieve_koeling'):
+        _set(root, VS + 'IsSysteemVoorzienVanPassieveKoeling', 1)
+
 def build_installatie(o, tpl_path):
     """o = dict met opnamevelden. Geeft xml_bytes (Installatiebibliotheek)."""
     tree = ET.parse(tpl_path)
     root = tree.getroot()
     _fresh_guids(root)
+
+    if o.get('ven_ventilatiesysteem'):
+        _fill_ventilatie(root, o)
 
     has_vw = bool(o.get('vo1_type') or o.get('vw_afgifte') or ((o.get('vw_systeem') or 'individueel') != 'individueel'))
     if has_vw:
