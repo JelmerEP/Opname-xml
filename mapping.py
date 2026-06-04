@@ -78,7 +78,7 @@ VEN_SUBSYSTEEM   = {  # GLOBALE codes (sequentieel binnen elk type); a1=0/a_onb_
     'd1': 26, 'd2': 27, 'd3': 28, 'd4a': 29, 'd4b': 30, 'd5a': 31, 'd5b': 32, 'd5c': 33,
     'e1': 38}   # E = gecombineerd systeem, één subsysteem (decentrale WTW); deel 2 is een eigen systeem
 VEN_LUCHTDICHT   = {'luka_abc': 0, 'luka_d': 1, 'geen_kanaal': 2, 'onbekend': 3}   # onbekend=3 bevestigd
-VEN_OPGAVE       = {'nominaal': 2, 'kwaliteitsverklaring': 3, 'onbekend': 4}   # kwaliteitsverkl=3, onbekend=4 bevestigd; nominaal=2 aanname
+VEN_OPGAVE       = {'nominaal': 0, 'rendement_elektromotor': 2, 'kwaliteitsverklaring': 3, 'onbekend': 4}   # nominaal=0 (3.xml), rendement-elektromotor=2, kwaliteitsverkl=3, onbekend=4 bevestigd
 VEN_ELEKTROMOTOR = {'gelijkstroom': 0, 'wisselstroom': 1, 'onbekend': 2}       # wisselstroom=1, onbekend=2 bevestigd
 VEN_FABRICAGEJAAR= {'tot1980': 0, 't1980_1985': 1, 't1986_1990': 2, 't1991_1998': 3, 't1999_2006': 4, 'na2006': 5, 'onbekend': 6}  # 1980-85=1, 1999-2006=4, onbekend=6 bevestigd
 VEN_TYPE_WTW     = {  # 1-geïndexeerde dropdownpositie; kwaliteitsverklaring=1 + tegenstroom_kunststof=10 bevestigd
@@ -218,9 +218,7 @@ def _fill_tapwater(root, S, o, pre):
     if inst in ('collectief', 'externe_centraal'):
         _set(root, S + 'TotaalGebruiksoppervlakteSysteem', (o.get(pre + 'gebruiksopp') or '').strip())
     _set(root, S + 'AangeslotenOp', AANGESLOTEN.get(aang, -1))
-    if aang == 'hele':   # bij alleen badkamer/keuken is het aantal niet van toepassing
-        _set(root, S + 'AantalBadkamers', (o.get(pre + 'badkamers') or '').strip())
-        _set(root, S + 'AantalKeukens', (o.get(pre + 'keukens') or '').strip())
+    # aantal badkamers/keukens is in alle gevallen niet van toepassing (gebruikersregel) -> niet schrijven
     _set(root, S + 'TypeOpwekker', TYPE_OPWEKKER.get(topw, -1))
     _set(root, S + 'AantalOpwekkers', 0)   # altijd Een (0-geindexeerd); hotfill-op-twee is zeldzaam -> evt. later
 
@@ -403,7 +401,7 @@ def _fill_ven_deel(root, base, syst, sub_code, f):
         _set(root, base + 'OpgaveVentilatoren', VEN_OPGAVE.get(opg, -1))
         if opg == 'nominaal':
             _set(root, base + 'VentilatorList/Ventilator[1]/NominaalVermogen', (f.get('nominaal_vermogen') or '').strip())
-        elif opg == 'onbekend':
+        elif opg in ('rendement_elektromotor', 'onbekend'):
             _set(root, base + 'TypeElektromotor', VEN_ELEKTROMOTOR.get(f.get('type_elektromotor'), -1))
             _set(root, base + 'FabricagejaarVentilator', VEN_FABRICAGEJAAR.get(f.get('fabricagejaar'), -1))
 

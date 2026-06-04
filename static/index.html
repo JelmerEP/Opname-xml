@@ -191,12 +191,13 @@
           <select name="ven_opgave">
             <option value="">— kies —</option>
             <option value="nominaal">Nominaal vermogen</option>
+            <option value="rendement_elektromotor">Rendement elektromotor + fabricagejaar</option>
             <option value="kwaliteitsverklaring">Kwaliteitsverklaring</option>
             <option value="onbekend">Onbekend</option>
           </select>
         </label>
         <label data-show="ven_opgave=nominaal" hidden>Nominaal vermogen (W)<input name="ven_nominaal_vermogen" inputmode="numeric"></label>
-        <div data-show="ven_opgave=onbekend" hidden>
+        <div data-show="ven_opgave=rendement_elektromotor,onbekend" hidden>
           <label>Type elektromotor
             <select name="ven_type_elektromotor">
               <option value="">— kies —</option>
@@ -347,12 +348,13 @@
             <select name="ven2_opgave">
               <option value="">— kies —</option>
               <option value="nominaal">Nominaal vermogen</option>
+              <option value="rendement_elektromotor">Rendement elektromotor + fabricagejaar</option>
               <option value="kwaliteitsverklaring">Kwaliteitsverklaring</option>
               <option value="onbekend">Onbekend</option>
             </select>
           </label>
           <label data-show="ven2_opgave=nominaal" hidden>Nominaal vermogen deel 2 (W)<input name="ven2_nominaal_vermogen" inputmode="numeric"></label>
-          <div data-show="ven2_opgave=onbekend" hidden>
+          <div data-show="ven2_opgave=rendement_elektromotor,onbekend" hidden>
             <label>Type elektromotor deel 2
               <select name="ven2_type_elektromotor">
                 <option value="">— kies —</option>
@@ -703,8 +705,6 @@
       <button type="button" data-val="keuken">Keuken</button>
     </div>
     <div class="row">
-      <label data-show="tw__N___aangesloten=hele" hidden>Aantal badkamers<input name="tw__N___badkamers" inputmode="numeric" placeholder="0"></label>
-      <label data-show="tw__N___aangesloten=hele" hidden>Aantal keukens<input name="tw__N___keukens" inputmode="numeric" placeholder="0"></label>
     </div>
 
     <div data-show="tw__N___type_installatie=individueel,collectief" hidden>
