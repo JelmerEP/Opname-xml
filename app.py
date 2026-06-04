@@ -146,13 +146,14 @@ def bag_lookup():
         d = docs[0]
         huisnummer = str(d.get('huisnummer', '') or '')
         toev = (d.get('huisletter', '') or '') + (d.get('huisnummertoevoeging', '') or '')
-        bouwjaar = hoogte = None
+        bouwjaar = hoogte = x = y = None
         m = re.search(r'POINT\(([\d.]+) ([\d.]+)\)', d.get('centroide_rd', ''))
         if m:
-            bouwjaar, hoogte = _bouwjaar_hoogte(float(m.group(1)), float(m.group(2)), huisnummer)
+            x, y = float(m.group(1)), float(m.group(2))
+            bouwjaar, hoogte = _bouwjaar_hoogte(x, y, huisnummer)
         return jsonify({'straat': d.get('straatnaam', ''), 'huisnummer': huisnummer, 'huisletter': toev,
                         'postcode': d.get('postcode', ''), 'woonplaats': d.get('woonplaatsnaam', ''),
-                        'bouwjaar': bouwjaar, 'hoogte': hoogte})
+                        'bouwjaar': bouwjaar, 'hoogte': hoogte, 'x': x, 'y': y})
     except Exception as e:
         return jsonify({'error': str(e)}), 502
 

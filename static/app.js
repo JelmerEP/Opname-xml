@@ -2,7 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
-const BUILD = 'v29';   // versie-stempel (toon in header); bump samen met sw.js
+const BUILD = 'v30';   // versie-stempel (toon in header); bump samen met sw.js
 let state = {};
 
 // ---------- helpers ----------
@@ -53,6 +53,7 @@ function applyState(){
   $$('.opts').forEach(g=>{ const n=g.dataset.name; $$('button',g).forEach(b=>b.classList.toggle('sel', state[n]===b.dataset.val)); });
   // conditionele blokken (data-show="key=val" of "key=val1,val2")
   $$('[data-show]').forEach(fs=>{ const [k,v]=fs.dataset.show.split('='); fs.hidden = !v.split(',').includes(state[k]); });
+  showBagFoto(state.bag_x, state.bag_y);
 }
 function bind(){
   $$('#opname input:not([type=checkbox]), #opname textarea').forEach(i=>i.addEventListener('input',()=>{ if(!i.name)return; state[i.name]=i.value; saveDraft(); }));
@@ -172,6 +173,15 @@ function renderBagSug(list){
   list.forEach(s=>{ const li=document.createElement('li'); li.textContent=s.label; li.onmousedown=e=>{ e.preventDefault(); pickBag(s.id); }; ul.appendChild(li); });
   ul.hidden=false;
 }
+function showBagFoto(x,y){
+  const foto=$('#bagfoto'), cap=$('#bagfotocap'); if(!foto) return;
+  if(x && y){
+    const d=20;   // ~40 m beeld rond het pand
+    foto.onerror=()=>{ foto.hidden=true; if(cap) cap.hidden=true; };
+    foto.src='https://service.pdok.nl/hwh/luchtfotorgb/wms/v1_0?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=Actueel_orthoHR&SRS=EPSG:28992&STYLES=&FORMAT=image/jpeg&WIDTH=480&HEIGHT=480&BBOX='+[x-d,y-d,x+d,y+d].join(',');
+    foto.hidden=false; if(cap) cap.hidden=false;
+  } else { foto.hidden=true; foto.removeAttribute('src'); if(cap) cap.hidden=true; }
+}
 async function pickBag(id){
   hideBagSug(); $('#bagzoek').value=''; showBag('Ophalen…','');
   try{
@@ -181,6 +191,7 @@ async function pickBag(id){
     state.postcode=j.postcode||''; state.woonplaats=j.woonplaats||'';
     if(j.bouwjaar) state.bouwjaar=String(j.bouwjaar);
     if(j.hoogte!=null) state.gebouwhoogte=String(j.hoogte);
+    state.bag_x=j.x; state.bag_y=j.y;
     applyState(); saveDraft();
     const adr=[j.straat,(''+(j.huisnummer||''))+(j.huisletter||'')].filter(Boolean).join(' ');
     showBag('✓ '+adr+' — bouwjaar '+(j.bouwjaar||'?')+', hoogte '+(j.hoogte!=null?j.hoogte+' m':'?'),'');

@@ -75,3 +75,5 @@ textarea{resize:vertical}
 .bagsug li:hover{background:#eef4f5}
 .bagmsg{font-size:12px;color:var(--mut);margin:-2px 0 6px}
 .bagmsg.err{color:#d9480f}
+.bagfoto{display:block;width:100%;max-width:340px;height:auto;border-radius:10px;border:1px solid var(--line);margin:8px 0 2px}
+.bagfoto-cap{font-size:11px;color:var(--mut);margin:0 0 6px}
