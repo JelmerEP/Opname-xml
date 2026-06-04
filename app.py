@@ -4,10 +4,10 @@ app.py - Vabi opname-app (PWA). Serveert de frontend en genereert de Vabi-XML on
 Stap 1: object-sectie. Opnames worden (voorlopig) lokaal op het apparaat bewaard;
 de server is stateless en genereert alleen de XML on demand.
 """
-import os, io, re
+import os, io, re, base64
 import requests
 from flask import Flask, request, jsonify, send_from_directory, send_file
-import mapping
+import mapping, report
 
 BASE = os.path.dirname(__file__)
 STATIC = os.path.join(BASE, 'static')
@@ -34,6 +34,51 @@ def generate():
     fname = 'VabiImport_%s.zip' % (naam.replace(' ', '_').replace(',', '') or 'opname')
     return send_file(io.BytesIO(zip_bytes), mimetype='application/zip',
                      as_attachment=True, download_name=fname)
+
+BREVO_SENDER = {'name': 'EP-Wonen Opname', 'email': 'jelmer@ep-wonen.nl'}
+
+def _send_email(to_email, subject, html, attachments):
+    """attachments = [(filename, bytes), ...]. Verstuurt via de Brevo HTTPS-API (Render blokkeert SMTP)."""
+    key = os.environ.get('BREVO_API_KEY', '')
+    if not key:
+        raise RuntimeError('mailservice niet geconfigureerd (BREVO_API_KEY ontbreekt op de server)')
+    payload = {
+        'sender': BREVO_SENDER,
+        'to': [{'email': to_email}],
+        'subject': subject,
+        'htmlContent': html,
+        'attachment': [{'name': n, 'content': base64.b64encode(b).decode('ascii')} for n, b in attachments],
+    }
+    r = requests.post('https://api.brevo.com/v3/smtp/email',
+                      headers={'api-key': key, 'content-type': 'application/json', 'accept': 'application/json'},
+                      json=payload, timeout=30)
+    if r.status_code >= 300:
+        raise RuntimeError('mail mislukt (HTTP %s): %s' % (r.status_code, r.text[:300]))
+
+@app.route('/api/send', methods=['POST'])
+def send():
+    """Genereert ZIP (XML) + PDF-uitdraai en mailt beide naar het opgegeven adres."""
+    data = request.get_json(force=True, silent=True) or {}
+    o = data.get('opname') or {}
+    summary = data.get('summary') or []
+    email = (data.get('email') or '').strip()
+    if not email or '@' not in email or '.' not in email.split('@')[-1]:
+        return jsonify({'error': 'geldig e-mailadres vereist'}), 400
+    try:
+        zip_bytes, naam = mapping.generate_zip(o, TPL)
+        pdf_bytes = report.build_pdf(summary, naam)
+    except Exception as e:
+        return jsonify({'error': 'genereren mislukt: %s' % e}), 500
+    base = (naam.replace(' ', '_').replace(',', '') or 'opname')
+    html = ('<p>In de bijlage de Vabi-import (ZIP met de bibliotheken) en een PDF-uitdraai '
+            'van de opname <b>%s</b>.</p>'
+            '<p style="color:#888;font-size:12px">Automatisch verzonden vanuit de EP-Wonen opname-app.</p>' % naam)
+    try:
+        _send_email(email, 'Vabi-opname: ' + naam, html,
+                    [('VabiImport_%s.zip' % base, zip_bytes), ('Opname_%s.pdf' % base, pdf_bytes)])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 502
+    return jsonify({'ok': True})
 
 def _bouwjaar_hoogte(x, y, huisnummer=None):
     """RD-coordinaat -> (bouwjaar, hoogte). BAG WFS (BBOX ~10 m, EPSG:28992) -> bouwjaar+pandid;

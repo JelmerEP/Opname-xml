@@ -2,7 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
-const BUILD = 'v22';   // versie-stempel (toon in header); bump samen met sw.js
+const BUILD = 'v23';   // versie-stempel (toon in header); bump samen met sw.js
 let state = {};
 
 // ---------- helpers ----------
@@ -44,7 +44,7 @@ function applyState(){
   $$('#opname select').forEach(s=>{ if(state[s.name]==null && s.options.length) state[s.name]=s.options[0].value; });
   deriveFlags();
   // tekst-/nummervelden + textareas
-  $$('#opname input:not([type=checkbox]), #opname textarea').forEach(i=>{ if(state[i.name]!=null) i.value=state[i.name]; });
+  $$('#opname input:not([type=checkbox]), #opname textarea').forEach(i=>{ if(i.name && state[i.name]!=null) i.value=state[i.name]; });
   // checkboxes
   $$('#opname input[type=checkbox]').forEach(c=>{ c.checked = !!state[c.name]; });
   // dropdowns
@@ -55,7 +55,7 @@ function applyState(){
   $$('[data-show]').forEach(fs=>{ const [k,v]=fs.dataset.show.split('='); fs.hidden = !v.split(',').includes(state[k]); });
 }
 function bind(){
-  $$('#opname input:not([type=checkbox]), #opname textarea').forEach(i=>i.addEventListener('input',()=>{ state[i.name]=i.value; saveDraft(); }));
+  $$('#opname input:not([type=checkbox]), #opname textarea').forEach(i=>i.addEventListener('input',()=>{ if(!i.name)return; state[i.name]=i.value; saveDraft(); }));
   $$('#opname input[type=checkbox]').forEach(c=>c.addEventListener('change',()=>{ state[c.name]=c.checked; applyState(); saveDraft(); }));
   $$('#opname select').forEach(s=>s.addEventListener('change',()=>{ state[s.name]=s.value; applyState(); saveDraft(); }));
   $$('.opts button').forEach(b=>b.addEventListener('click',()=>{
@@ -104,6 +104,56 @@ async function generate(o){
   }catch(e){ toast('Genereren mislukt: '+e.message); }
 }
 
+// ---------- verzenden (XML + PDF per e-mail) ----------
+function fieldLabel(el){
+  const lab=el.closest('label');
+  if(lab){ for(const n of lab.childNodes){ if(n.nodeType===3 && n.textContent.trim()) return n.textContent.trim(); } }
+  return el.name||'';
+}
+function collectSummary(){
+  // leesbare samenvatting (label -> gekozen tekst) per zichtbare sectie, voor de PDF
+  const out=[];
+  $$('#opname > fieldset').forEach(fs=>{
+    if(fs.hidden) return;                                   // sectie niet van toepassing
+    const lg=fs.querySelector('legend');
+    const section=lg?lg.textContent.replace(/[▾▸]/g,'').trim():'';
+    const rows=[];
+    fs.querySelectorAll('select, input, textarea, .opts').forEach(el=>{
+      if(el.closest('[hidden]')) return;                    // conditioneel verborgen -> overslaan
+      if(el.classList && el.classList.contains('opts')){    // keuzeknoppen
+        const b=el.querySelector('button.sel'); if(!b) return;
+        let p=el.previousElementSibling;
+        while(p && !(p.classList && p.classList.contains('lbl')) && p.tagName!=='LEGEND') p=p.previousElementSibling;
+        rows.push([p?p.textContent.replace(/[▾▸]/g,'').trim():(el.dataset.name||''), b.textContent.trim()]);
+        return;
+      }
+      if(el.id==='sendmail' || el.id==='bagzoek' || !el.name) return;
+      if(el.type==='checkbox'){ if(el.checked) rows.push([fieldLabel(el),'ja']); return; }
+      let val=(el.value||'').trim(); if(!val) return;
+      if(el.tagName==='SELECT'){ const op=el.options[el.selectedIndex]; if(!op || op.value==='') return; val=op.text.trim(); }
+      rows.push([fieldLabel(el), val]);
+    });
+    if(rows.length) out.push({section, rows});
+  });
+  return out;
+}
+async function send(){
+  const email=($('#sendmail').value||'').trim();
+  if(!/.+@.+\..+/.test(email)){ toast('Vul een geldig e-mailadres in'); return; }
+  if(!state.straat && !state.huisnummer){ toast('Vul minimaal een adres in'); return; }
+  if(!navigator.onLine){ toast('Verzenden kan alleen online'); return; }
+  saveOpname();                                             // ook lokaal bewaren (niet kwijtraken)
+  const btn=$('#send'), old=btn.textContent; btn.disabled=true; btn.textContent='Versturen…';
+  try{
+    const r=await fetch('api/send',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({opname:state, summary:collectSummary(), email})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok && j.ok){ toast('✓ Verzonden naar '+email); $('#sendmail').value=''; }
+    else toast('Verzenden mislukt: '+(j.error||('fout '+r.status)));
+  }catch(e){ toast('Verzenden mislukt: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+}
+
 // ---------- BAG adres-zoeken (typeahead) ----------
 function showBag(t,cls){ const m=$('#bagmsg'); if(!m)return; m.hidden=false; m.textContent=t; m.className='bagmsg'+(cls?' '+cls:''); }
 function hideBagSug(){ const ul=$('#bagsug'); if(ul){ ul.hidden=true; ul.innerHTML=''; } }
@@ -150,6 +200,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const bz=$('#bagzoek'); if(bz){ bz.addEventListener('input',bagInput); bz.addEventListener('blur',()=>setTimeout(hideBagSug,150)); }
   $('#save').onclick=saveOpname;
   $('#gen').onclick=()=>{ saveOpname(); generate(); };
+  $('#send').onclick=send;
   $('#reset').onclick=()=>{
     if(!confirm('Formulier legen en met een leeg adres beginnen?\nJe opgeslagen opnames in de lijst blijven bewaard.')) return;
     state={opnamedatum:new Date().toISOString().slice(0,10)};

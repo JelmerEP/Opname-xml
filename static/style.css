@@ -28,6 +28,11 @@ input:focus{outline:2px solid var(--blue);border-color:var(--blue)}
 .actions button{flex:1;font-size:16px;padding:14px;border-radius:10px;border:1px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer}
 .actions button.primary{background:var(--green);color:#fff;border-color:var(--green)}
 .actions button.ghost{border-color:var(--line);color:var(--mut)}
+.sendbox{margin:2px 0 12px}
+.sendbox .row{gap:8px;align-items:stretch}
+.sendbox input{flex:1}
+.send-btn{flex:0 0 auto;font-size:15px;font-weight:600;padding:0 20px;border-radius:9px;border:1px solid var(--green);background:var(--green);color:#fff;cursor:pointer}
+.send-btn:disabled{opacity:.6}
 h2{font-size:16px;display:flex;align-items:center;gap:8px}
 .badge{background:var(--blue);color:#fff;font-size:12px;border-radius:10px;padding:1px 8px}
 .list{list-style:none;padding:0;margin:0}
