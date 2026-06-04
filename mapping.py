@@ -61,7 +61,7 @@ VW_AFLEVERTEMP   = {'onbekend': 3, 'lt60': 0, 'ge60': 1}          # onbekend=3 b
 # leidingen door onverwarmde ruimte (VerwarmingDistributie/LeidingenOnverwarmdeRuimte/) - uit W1/W2
 VW_LEID_KLEPPEN  = {'geisoleerd': 0, 'ongeisoleerd': 1, 'onbekend': 2}   # W1=1, W2=0; onbekend=2 (dropdownvolgorde)
 VW_LEID_LENGTE   = {'werkelijke': 0, 'onbekend': 1}                      # onbekend=1 bevestigd (W1/2/3)
-VW_LEID_GEISOL   = {'nee': 0, 'ja': 1, 'onbekend': 6}                    # onbekend=6 bevestigd; ja/nee aanname
+VW_LEID_GEISOL   = {'nee': 0, 'ja': 2, 'onbekend': 6}                    # ja=2 (aor.xml) + onbekend=6 bevestigd; nee=0 aanname
 VW_LEID_ISOLJAAR = {'vanaf1995': 0, 't1980_1995': 1, 'voor1980': 2, 'onbekend': 3}  # dropdownvolgorde, aanname
 # hulpenergie (ketels + warmtepompen) - uit kw.xml (hybride)
 VW_HULPENERGIE   = {'kwaliteitsverklaring': 0, 'fabricagejaar': 1}       # fabricagejaar=1 bevestigd (kw.xml)
@@ -103,7 +103,7 @@ KOEL_MEDIUM      = {'water': 0, 'lokaal': 1}          # water=0, lokaal=1 bevest
 KOEL_WATERTEMP   = {'6_12': 0, '12_16': 1, '12_18': 2, '17_21': 3, 'onbekend': 4}  # 17/21=3 bevestigd
 KOEL_POMP        = {'werkelijk_eei': 1, 'werkelijk': 2, 'onbekend': 3}   # werkelijk_eei=1 bevestigd; 2/3 aanname
 KOEL_LEIDLENGTE  = {'werkelijke': 0, 'onbekend': 1}   # onbekend=1 bevestigd
-KOEL_LEIDISOL    = {'nee': 0, 'ja': 1, 'onbekend': 6} # onbekend=6 bevestigd; ja/nee aanname
+KOEL_LEIDISOL    = {'nee': 0, 'ja': 2, 'onbekend': 6} # ja=2 + onbekend=6 bevestigd (zelfde veld als verwarming); nee=0 aanname
 
 # ---------- zonne-energie-mapping (uit zonneoiler.xml + Zonnepanelen.xml, 2026-06-03; bevestigd) ----------
 ZON_SYSTEEM       = {'pv': 0, 'pvt': 1, 'zonneboiler': 2}    # PV=0, zonneboiler=2 bevestigd; pvt=1 aanname
