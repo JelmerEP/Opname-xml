@@ -2,7 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
-const BUILD = 'dev1';   // WERKKOPIE (dev-tak); versie-stempel in header
+const BUILD = 'dev2';   // WERKKOPIE (dev-tak); versie-stempel in header
 let state = {};
 
 // ---------- helpers ----------
@@ -79,7 +79,7 @@ function renderList(){
     ul.appendChild(li);
   });
   $$('#list .dl').forEach(b=>b.onclick=()=>generate(opnames().find(x=>x._id===b.dataset.id)));
-  $$('#list .ed').forEach(b=>b.onclick=()=>{ state={...opnames().find(x=>x._id===b.dataset.id)}; applyState(); saveDraft(); window.scrollTo(0,0); });
+  $$('#list .ed').forEach(b=>b.onclick=()=>{ state={...opnames().find(x=>x._id===b.dataset.id)}; applyState(); if(window.imRender)imRender(); saveDraft(); window.scrollTo(0,0); });
   $$('#list .del').forEach(b=>b.onclick=()=>{ save(LS_LIST, opnames().filter(x=>x._id!==b.dataset.id)); renderList(); });
 }
 function saveOpname(){
@@ -217,7 +217,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     state={opnamedatum:new Date().toISOString().slice(0,10)};
     const bz=$('#bagzoek'); if(bz) bz.value='';
     const bm=$('#bagmsg'); if(bm){ bm.hidden=true; bm.textContent=''; }
-    hideBagSug(); applyState(); saveDraft(); window.scrollTo(0,0);
+    hideBagSug(); applyState(); if(window.imRender)imRender(); saveDraft(); window.scrollTo(0,0);
     toast('Leeg — klaar voor het volgende adres');
   };
   window.addEventListener('online',net); window.addEventListener('offline',net);

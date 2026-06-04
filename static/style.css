@@ -79,6 +79,7 @@ textarea{resize:vertical}
 #opname > fieldset[data-ico="tap"]  > legend:first-of-type::before{content:'🚿'}
 #opname > fieldset[data-ico="koel"] > legend:first-of-type::before{content:'❄️'}
 #opname > fieldset[data-ico="zon"]  > legend:first-of-type::before{content:'☀️'}
+#opname > fieldset[data-ico="meet"] > legend:first-of-type::before{content:'📐'}
 #opname > fieldset.collapsed > :not(legend:first-of-type){display:none}
 /* BAG adres-zoeken (typeahead) */
 .bagsearch{position:relative;margin:4px 0 2px}
@@ -92,3 +93,21 @@ textarea{resize:vertical}
 .bagmsg.err{color:#d9480f}
 .bagfoto{display:block;width:100%;max-width:340px;height:auto;border-radius:10px;border:1px solid var(--line);margin:8px 0 2px}
 .bagfoto-cap{font-size:11px;color:var(--mut);margin:0 0 6px}
+/* inmeet-module */
+#inmeten{margin-top:4px}
+.vd{border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px;background:#fbfcfd}
+.vd-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.vd-naam{flex:1;font-weight:600;color:var(--ink);font-size:14px;margin:0}
+.vd-del{flex:0 0 auto;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#d9480f;font-size:18px;line-height:1;cursor:pointer}
+.plan{display:block;width:100%;max-width:320px;height:auto;margin:2px auto 8px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.plan-rect{fill:rgba(62,158,54,.10);stroke:var(--blue);stroke-width:2}
+.plan-dim{fill:var(--mut);font-size:12px}
+.plan-area{fill:var(--blue);font-size:15px;font-weight:700}
+.plan-hint{fill:var(--mut);font-size:12px}
+.vd-area{font-size:13px;color:var(--mut);margin:2px 0 4px}
+.vd-area strong{color:var(--blue);font-size:15px}
+.vd h4{font-size:12px;margin:12px 0 4px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+.op{border-left:3px solid var(--line);padding:6px 0 6px 12px;margin:8px 0}
+.op-del{font-size:12px;color:#d9480f;background:#fff;border:1px solid #f3c4b0;border-radius:8px;padding:6px 10px;cursor:pointer;margin-top:6px}
+.op-add{font-size:14px;color:var(--blue);background:#fff;border:1px dashed var(--blue);border-radius:9px;padding:9px 12px;cursor:pointer;width:100%;margin-top:6px}
+.vd-add-btn{font-size:15px;font-weight:600;color:#fff;background:var(--green);border:1px solid var(--green);border-radius:9px;padding:11px 14px;cursor:pointer;width:100%}
