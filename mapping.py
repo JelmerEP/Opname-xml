@@ -398,7 +398,10 @@ def _fill_ven_deel(root, base, syst, sub_code, f):
     if syst in ('b', 'c', 'd', 'e'):                   # luchtdichtheid bij alles behalve A
         _set(root, base + 'Luchtdichtheidsklasse', VEN_LUCHTDICHT.get(f.get('luchtdichtheid'), -1))
         opg = f.get('opgave')
-        _set(root, base + 'OpgaveVentilatoren', VEN_OPGAVE.get(opg, -1))
+        opg_code = VEN_OPGAVE.get(opg, -1)
+        _set(root, base + 'OpgaveVentilatoren', opg_code)
+        if opg_code != -1:
+            _set(root, base + 'AantalVentilatoren', 0)    # 'een' (eerste optie); staat zo in de echte exports
         if opg == 'nominaal':
             _set(root, base + 'VentilatorList/Ventilator[1]/NominaalVermogen', (f.get('nominaal_vermogen') or '').strip())
         elif opg in ('rendement_elektromotor', 'onbekend'):
