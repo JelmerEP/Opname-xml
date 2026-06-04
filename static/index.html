@@ -18,10 +18,10 @@
 </header>
 
 <main>
-  <p class="hint">Object + tapwater. Vul in, sla op, en genereer de Vabi-import-ZIP (Objecten- + Installatiebibliotheek).</p>
+  <p class="hint">Zoek een adres, vul de installaties in, en verstuur of download de Vabi-import.</p>
 
   <form id="opname">
-    <fieldset class="group collapsed">
+    <fieldset class="group collapsed" data-ico="bouw">
       <legend>Algemeen en bouwkundig</legend>
     <fieldset>
       <legend>Algemeen</legend>
@@ -106,7 +106,7 @@
     </fieldset>
     </fieldset>
 
-    <fieldset class="tap collapsed">
+    <fieldset class="tap collapsed" data-ico="vent">
       <legend>Ventilatie</legend>
       <label class="lbl">Type systeem</label>
       <select name="ven_systeem">
@@ -382,7 +382,7 @@
       </div>
     </fieldset>
 
-    <fieldset class="tap collapsed">
+    <fieldset class="tap collapsed" data-ico="verw">
       <legend>Verwarming</legend>
       <label class="lbl">Type systeem</label>
       <select name="vw_systeem">
@@ -489,7 +489,7 @@
       </label>
     </fieldset>
 
-    <fieldset class="tap collapsed">
+    <fieldset class="tap collapsed" data-ico="tap">
       <legend>Tapwater</legend>
       <label class="lbl">Aantal warmtapwatersystemen</label>
       <div class="opts" data-name="tw_aantal">
@@ -502,7 +502,7 @@
       <textarea name="tw_opmerkingen" rows="2" placeholder="Vrije notitie (komt in Opmerkingen van de installatie)"></textarea>
     </fieldset>
 
-    <fieldset class="tap collapsed">
+    <fieldset class="tap collapsed" data-ico="koel">
       <legend>Koeling</legend>
       <label class="chk"><input type="checkbox" name="koel_aanwezig"> Koeling aanwezig</label>
 
@@ -618,7 +618,7 @@
       </div>
     </fieldset>
 
-    <fieldset class="tap collapsed">
+    <fieldset class="tap collapsed" data-ico="zon">
       <legend>Zonne-energie</legend>
 
       <label class="chk"><input type="checkbox" name="pv_aanwezig"> PV-panelen aanwezig</label>

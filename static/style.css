@@ -60,10 +60,25 @@ textarea{resize:vertical}
 .sys h3{font-size:14px;margin:0 0 4px;color:var(--blue)}
 .opw,.vaten{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:10px 0}
 .opw h4,.vaten h4,.sys h4{font-size:13px;margin:10px 0 2px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
-/* inklapbare secties (accordion) */
-#opname > fieldset > legend:first-of-type{cursor:pointer;user-select:none}
-#opname > fieldset > legend:first-of-type::after{content:' ▾';font-size:.85em;color:var(--mut)}
-#opname > fieldset.collapsed > legend:first-of-type::after{content:' ▸'}
+/* inklapbare secties: kop = volledige klikbare balk (icoon links, chevron rechts) */
+#opname > fieldset > legend:first-of-type{
+  box-sizing:border-box; width:calc(100% + 28px); margin:-14px -14px 12px;
+  display:flex; align-items:center; gap:9px; padding:13px 14px;
+  background:#e9f1f3; border-radius:11px 11px 0 0;
+  font-size:15px; cursor:pointer; user-select:none;
+}
+#opname > fieldset > legend:first-of-type:hover{background:#e1ebee}
+#opname > fieldset > legend:first-of-type:active{background:#d8e6e9}
+#opname > fieldset.collapsed > legend:first-of-type{margin-bottom:-14px; border-radius:11px}
+#opname > fieldset > legend:first-of-type::after{content:'▾'; margin-left:auto; font-size:.8em; color:var(--mut)}
+#opname > fieldset.collapsed > legend:first-of-type::after{content:'▸'}
+#opname > fieldset > legend:first-of-type::before{font-size:1.15em; line-height:1}
+#opname > fieldset[data-ico="bouw"] > legend:first-of-type::before{content:'🏠'}
+#opname > fieldset[data-ico="vent"] > legend:first-of-type::before{content:'💨'}
+#opname > fieldset[data-ico="verw"] > legend:first-of-type::before{content:'🔥'}
+#opname > fieldset[data-ico="tap"]  > legend:first-of-type::before{content:'🚿'}
+#opname > fieldset[data-ico="koel"] > legend:first-of-type::before{content:'❄️'}
+#opname > fieldset[data-ico="zon"]  > legend:first-of-type::before{content:'☀️'}
 #opname > fieldset.collapsed > :not(legend:first-of-type){display:none}
 /* BAG adres-zoeken (typeahead) */
 .bagsearch{position:relative;margin:4px 0 2px}
