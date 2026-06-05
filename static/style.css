@@ -124,7 +124,9 @@ textarea{resize:vertical}
 /* zone-opdeling (scheidingslijn) */
 .zone-a{fill:rgba(35,76,94,.14);stroke:var(--blue);stroke-width:1}
 .zone-b{fill:rgba(122,74,192,.16);stroke:#7a4ac0;stroke-width:1}
-.zone-cut{stroke:#7a4ac0;stroke-width:2.5;stroke-dasharray:6 4}
+.zone-cut{fill:none;stroke:#7a4ac0;stroke-width:2.5;stroke-dasharray:6 4}
+.zone-line{fill:none;stroke:#7a4ac0;stroke-width:2;stroke-dasharray:5 3}
+.zone-pt{fill:#7a4ac0}
 .zone-lbl{fill:var(--ink);font-size:12px;font-weight:700}
 .zone-lbl-area{fill:var(--mut);font-size:11px}
 .zone-add{font-size:14px;color:#7a4ac0;background:#fff;border:1px dashed #9b6fd4;border-radius:9px;padding:9px 12px;cursor:pointer;width:100%;margin:0 0 10px}

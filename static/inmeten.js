@@ -43,7 +43,7 @@ function imSluit(v){                              // sluit de getekende vorm met
   return Math.hypot(last[0], last[1]) < 0.05;
 }
 
-// --- polygoon-helpers voor zone-opdeling ---
+// --- polygoon-helpers voor zone-opdeling (scheiding tekenen) ---
 function imPolyArea(poly){
   let a = 0; const n = poly.length;
   for(let i = 0; i < n; i++){ const p1 = poly[i], p2 = poly[(i + 1) % n]; a += p1[0] * p2[1] - p2[0] * p1[1]; }
@@ -54,34 +54,53 @@ function imPolyMid(poly){                         // gemiddelde van de hoekpunte
   poly.forEach(c => { x += c[0]; y += c[1]; });
   return [x / n, y / n];
 }
-function imClipHalf(poly, ax, val, keepLess){     // Sutherland-Hodgman: hou het halfvlak ax<=val (of ax>=val)
-  const res = [], n = poly.length, k = ax === 'x' ? 0 : 1;
-  for(let i = 0; i < n; i++){
-    const cur = poly[i], nxt = poly[(i + 1) % n];
-    const ci = keepLess ? cur[k] <= val : cur[k] >= val, ni = keepLess ? nxt[k] <= val : nxt[k] >= val;
-    if(ci) res.push(cur);
-    if(ci !== ni){ const t = (val - cur[k]) / (nxt[k] - cur[k]); res.push([cur[0] + t * (nxt[0] - cur[0]), cur[1] + t * (nxt[1] - cur[1])]); }
+// schaal/verschuiving om de (echte) vorm passend in het tekenvlak te leggen — 1 uniforme affiene transform
+function imFit(v){
+  const rc = imReal(v), n = v.sketch.punten.length;
+  const base = rc ? rc.slice(0, n) : v.sketch.punten;
+  if(!base.length) return null;
+  const xs = base.map(c => c[0]), ys = base.map(c => c[1]);
+  const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+  const w = (maxx - minx) || 1, h = (maxy - miny) || 1;
+  const sc = Math.min((SV_W - 2 * SV_PAD) / w, (SV_H - 2 * SV_PAD) / h);
+  const ox = (SV_W - w * sc) / 2 - minx * sc, oy = (SV_H - h * sc) / 2 - miny * sc;
+  const M = base.map(c => [+(c[0] * sc + ox).toFixed(1), +(c[1] * sc + oy).toFixed(1)]);
+  return { rc, real: base, n, minx, maxx, miny, maxy, w, h, sc, ox, oy, M };
+}
+function imNearestEdge(real, pt){                 // dichtstbijzijnde muur + projectie van pt erop
+  let best = null; const N = real.length;
+  for(let i = 0; i < N; i++){
+    const a = real[i], b = real[(i + 1) % N], abx = b[0] - a[0], aby = b[1] - a[1], L2 = abx * abx + aby * aby || 1;
+    let t = ((pt[0] - a[0]) * abx + (pt[1] - a[1]) * aby) / L2; t = Math.max(0, Math.min(1, t));
+    const px = a[0] + t * abx, py = a[1] + t * aby, d = Math.hypot(pt[0] - px, pt[1] - py);
+    if(!best || d < best.d) best = { d, i, t, p: [px, py] };
   }
-  return res;
-}
-// zone-opdeling: 1 rechte scheidingslijn (verticaal of horizontaal) -> 2 zones met echt oppervlak (m²)
-function imZones(v){
-  if(!v.split || !v.sketch.gesloten) return null;
-  const rc = imReal(v); if(!rc) return null;       // alleen met volledige muurmaten
-  const real = rc.slice(0, rc.length - 1);
-  const ax = v.split.axis === 'h' ? 'y' : 'x', k = ax === 'x' ? 0 : 1;
-  const co = real.map(c => c[k]), lo = Math.min(...co), hi = Math.max(...co);
-  const pos = v.split.pos == null ? 0.5 : v.split.pos, cut = lo + pos * (hi - lo);
-  const a = imClipHalf(real, ax, cut, true), b = imClipHalf(real, ax, cut, false);
-  return { ax, k, cut, lo, hi, areaA: imPolyArea(a), areaB: imPolyArea(b), names: v.split.names || ['Zone 1', 'Zone 2'] };
-}
-function imZonePct(v){ return Math.round(((v.split && v.split.pos != null) ? v.split.pos : 0.5) * 100); }
-function imSnapPos(v, z, pos){                     // snap de scheiding op een binnenhoek (bv. de knik van een L-vorm)
-  const rc = imReal(v); if(!rc) return pos;
-  const real = rc.slice(0, rc.length - 1), span = (z.hi - z.lo) || 1;
-  let best = pos, bestD = 0.06;
-  real.forEach(c => { const f = (c[z.k] - z.lo) / span; if(f > 0.02 && f < 0.98){ const d = Math.abs(f - pos); if(d < bestD){ bestD = d; best = f; } } });
   return best;
+}
+function imSnapOnEdge(real, e){                    // startpunt netjes op de muur (hoek/midden/kwart of 0,1 m)
+  const a = real[e.i], b = real[(e.i + 1) % real.length], fr = [0, .25, .5, .75, 1];
+  let t = e.t, snapped = false;
+  for(const ff of fr){ if(Math.abs(t - ff) < 0.08){ t = ff; snapped = true; break; } }
+  if(!snapped){ const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; t = Math.round(t * len / 0.1) * 0.1 / len; }
+  return [a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])];
+}
+function imSnapEnd(real, e, r){                    // eindpunt loodrecht op de muur projecteren (uitgelijnde as behouden)
+  const a = real[e.i], b = real[(e.i + 1) % real.length];
+  if(Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1])){ const y = Math.max(Math.min(a[1], b[1]), Math.min(Math.max(a[1], b[1]), r[1])); return [a[0], y]; }
+  const x = Math.max(Math.min(a[0], b[0]), Math.min(Math.max(a[0], b[0]), r[0])); return [x, a[1]];
+}
+// splits de vorm langs de getekende scheidingslijn in 2 gebieden (echte m²)
+function imRegionPolys(v){
+  if(!v.zone || !v.zone.div || v.zone.div.length < 2) return null;
+  const f = imFit(v); if(!f || !f.rc) return null;
+  const real = f.real, N = real.length, div = v.zone.div;
+  const es = imNearestEdge(real, div[0]), ee = imNearestEdge(real, div[div.length - 1]);
+  if(!es || !ee || es.i === ee.i) return null;     // eindpunten op verschillende muren nodig
+  const fwd = (from, to) => { const res = []; let i = (from + 1) % N, g = 0; while(g++ <= N){ res.push(real[i]); if(i === to) break; i = (i + 1) % N; } return res; };
+  const S = div[0], E = div[div.length - 1], interior = div.slice(1, -1);
+  const a = [S].concat(fwd(es.i, ee.i), [E], interior.slice().reverse());
+  const b = [E].concat(fwd(ee.i, es.i), [S], interior);
+  return { a, b, areaA: imPolyArea(a), areaB: imPolyArea(b), total: imPolyArea(real), names: v.zone.names || ['Zone 1', 'Zone 2'] };
 }
 
 function imGridBg(){
@@ -107,33 +126,28 @@ function imSketchSvg(v){
   }
   // gesloten: vorm op schaal (op echte maten als die er zijn, anders de getekende schets).
   // Elke muur is een aantikbare lijn; geselecteerde muur licht op; lege muur krijgt een '?'-markering.
-  const rc = imReal(v);
-  const n = v.sketch.punten.length;
-  const base = rc ? rc.slice(0, n) : v.sketch.punten;
-  const xs = base.map(c => c[0]), ys = base.map(c => c[1]);
-  const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
-  const w = (maxx - minx) || 1, h = (maxy - miny) || 1;
-  const sc = Math.min((SV_W - 2 * SV_PAD) / w, (SV_H - 2 * SV_PAD) / h);
-  const ox = (SV_W - w * sc) / 2 - minx * sc, oy = (SV_H - h * sc) / 2 - miny * sc;
-  const M = base.map(c => [+(c[0] * sc + ox).toFixed(1), +(c[1] * sc + oy).toFixed(1)]);
+  const f = imFit(v), M = f.M, n = f.n, sc = f.sc, ox = f.ox, oy = f.oy, rc = f.rc;
   const sel = v.selWall;
   const cx = M.reduce((s, c) => s + c[0], 0) / M.length, cy = M.reduce((s, c) => s + c[1], 0) / M.length;
-  const z = imZones(v);
-  if(z){
-    const axX = z.ax === 'x', cutM = z.cut * sc + (axX ? ox : oy);
-    const pa = imClipHalf(M, z.ax, cutM, true), pb = imClipHalf(M, z.ax, cutM, false);
-    const bx = M.map(c => c[0]), by = M.map(c => c[1]);
+  const toS = r => [r[0] * sc + ox, r[1] * sc + oy];
+  const reg = v.zoneDraw ? null : imRegionPolys(v);
+  if(reg){
+    const pa = reg.a.map(toS), pb = reg.b.map(toS), dl = v.zone.div.map(toS);
     inner += `<polygon points="${pa.map(c => c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ')}" class="zone-a"/>`;
     inner += `<polygon points="${pb.map(c => c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ')}" class="zone-b"/>`;
-    if(axX) inner += `<line x1="${cutM.toFixed(1)}" y1="${Math.min(...by)}" x2="${cutM.toFixed(1)}" y2="${Math.max(...by)}" class="zone-cut"/>`;
-    else inner += `<line x1="${Math.min(...bx)}" y1="${cutM.toFixed(1)}" x2="${Math.max(...bx)}" y2="${cutM.toFixed(1)}" class="zone-cut"/>`;
+    inner += `<polyline points="${dl.map(c => c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ')}" class="zone-cut"/>`;
     const ma = imPolyMid(pa), mb = imPolyMid(pb);
-    inner += `<text x="${ma[0].toFixed(1)}" y="${(ma[1] - 3).toFixed(1)}" text-anchor="middle" class="zone-lbl">${imEsc(z.names[0])}</text><text x="${ma[0].toFixed(1)}" y="${(ma[1] + 12).toFixed(1)}" text-anchor="middle" class="zone-lbl-area">${z.areaA.toFixed(2)} m&#178;</text>`;
-    inner += `<text x="${mb[0].toFixed(1)}" y="${(mb[1] - 3).toFixed(1)}" text-anchor="middle" class="zone-lbl">${imEsc(z.names[1])}</text><text x="${mb[0].toFixed(1)}" y="${(mb[1] + 12).toFixed(1)}" text-anchor="middle" class="zone-lbl-area">${z.areaB.toFixed(2)} m&#178;</text>`;
+    inner += `<text x="${ma[0].toFixed(1)}" y="${(ma[1] - 3).toFixed(1)}" text-anchor="middle" class="zone-lbl">${imEsc(reg.names[0])}</text><text x="${ma[0].toFixed(1)}" y="${(ma[1] + 12).toFixed(1)}" text-anchor="middle" class="zone-lbl-area">${reg.areaA.toFixed(2)} m&#178;</text>`;
+    inner += `<text x="${mb[0].toFixed(1)}" y="${(mb[1] - 3).toFixed(1)}" text-anchor="middle" class="zone-lbl">${imEsc(reg.names[1])}</text><text x="${mb[0].toFixed(1)}" y="${(mb[1] + 12).toFixed(1)}" text-anchor="middle" class="zone-lbl-area">${reg.areaB.toFixed(2)} m&#178;</text>`;
   } else {
     inner += `<polygon points="${M.map(c => c[0] + ',' + c[1]).join(' ')}" class="plan-rect"/>`;
     if(rc) inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-area">${imArea(v).toFixed(2)} m&#178;</text>`;
     else inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-hint">tik een muur &amp; vul de lengte in</text>`;
+    if(v.zoneDraw && rc && v.zone && v.zone.div.length){
+      const dl = v.zone.div.map(toS);
+      if(dl.length > 1) inner += `<polyline points="${dl.map(c => c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ')}" class="zone-line"/>`;
+      dl.forEach(c => { inner += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="4" class="zone-pt"/>`; });
+    }
   }
   for(let i = 0; i < n; i++){
     const a = M[i], b = M[(i + 1) % n], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, isSel = sel === i;
@@ -147,9 +161,9 @@ function imSketchSvg(v){
       inner += `<text x="${tx}" y="${ty}" text-anchor="${anchor}"${bl} class="plan-dim${isSel ? ' plan-dim-sel' : ''}">${imEsc(len)}</text>`;
     } else inner += `<circle cx="${mx}" cy="${my}" r="10" class="plan-wmark${isSel ? ' plan-wmark-sel' : ''}"/><text x="${mx}" y="${my + 4}" text-anchor="middle" class="plan-wmark-tx">?</text>`;
   }
-  for(let i = 0; i < n; i++){ const a = M[i], b = M[(i + 1) % n]; inner += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="plan-wall-hit" data-vid="${v.id}" data-i="${i}"/>`; }
+  if(!v.zoneDraw) for(let i = 0; i < n; i++){ const a = M[i], b = M[(i + 1) % n]; inner += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="plan-wall-hit" data-vid="${v.id}" data-i="${i}"/>`; }
   if(rc && !imSluit(v)) inner += `<text x="${SV_W / 2}" y="${SV_H - 8}" text-anchor="middle" class="plan-warn">sluit niet helemaal — controleer maten</text>`;
-  return `<svg class="plan" data-vid="${v.id}" viewBox="0 0 ${SV_W} ${SV_H}">${inner}</svg>`;
+  return `<svg class="plan${v.zoneDraw ? ' plan-zonedraw' : ''}" data-vid="${v.id}" viewBox="0 0 ${SV_W} ${SV_H}">${inner}</svg>`;
 }
 
 function imWallEditHtml(v){
@@ -166,28 +180,28 @@ function imWallEditHtml(v){
 
 function imZoneControlsHtml(v){
   if(!v.sketch.gesloten) return '';
-  if(!v.split) return `<button type="button" class="zone-add" data-vid="${v.id}">✂ Splits in 2 zones</button>`;
-  const z = imZones(v), horiz = v.split.axis === 'h', nm = v.split.names || ['Zone 1', 'Zone 2'];
+  if(!imReal(v)) return `<p class="wall-hint">Vul eerst alle muurmaten in; daarna kun je een zone-scheiding tekenen.</p>`;
+  if(v.zoneDraw) return `<div class="zone-box">
+    <p class="wall-hint">Tik op een muur om te starten, tik de hoeken (blijft haaks), en eindig op een muur.</p>
+    <div class="sketch-act"><button type="button" class="zone-undo" data-vid="${v.id}">↶ Punt terug</button><button type="button" class="zone-cancel" data-vid="${v.id}">Annuleer</button></div>
+  </div>`;
+  const reg = imRegionPolys(v);
+  if(!reg) return `<button type="button" class="zone-add" data-vid="${v.id}">✏️ Teken zone-scheiding</button>`;
+  const nm = v.zone.names || ['Zone 1', 'Zone 2'];
   return `<div class="zone-box">
-    <div class="zone-or">
-      <button type="button" class="zone-axis${!horiz ? ' on' : ''}" data-vid="${v.id}" data-ax="v">↕ verticale lijn</button>
-      <button type="button" class="zone-axis${horiz ? ' on' : ''}" data-vid="${v.id}" data-ax="h">↔ horizontale lijn</button>
-    </div>
-    <label class="zone-pos">Schuif de scheiding<input type="range" class="zone-slider" min="2" max="98" value="${imZonePct(v)}" data-vid="${v.id}"></label>
     <div class="zone-names">
-      <label>Naam zone 1 <span class="zone-area" data-z="0">${z ? '· ' + z.areaA.toFixed(2) + ' m²' : ''}</span><input class="zone-name" data-vid="${v.id}" data-z="0" value="${imEsc(nm[0])}"></label>
-      <label>Naam zone 2 <span class="zone-area" data-z="1">${z ? '· ' + z.areaB.toFixed(2) + ' m²' : ''}</span><input class="zone-name" data-vid="${v.id}" data-z="1" value="${imEsc(nm[1])}"></label>
+      <label>Naam zone 1 <span class="zone-area" data-z="0">· ${reg.areaA.toFixed(2)} m²</span><input class="zone-name" data-vid="${v.id}" data-z="0" value="${imEsc(nm[0])}"></label>
+      <label>Naam zone 2 <span class="zone-area" data-z="1">· ${reg.areaB.toFixed(2)} m²</span><input class="zone-name" data-vid="${v.id}" data-z="1" value="${imEsc(nm[1])}"></label>
     </div>
-    ${z ? '' : '<p class="wall-hint">Vul eerst alle muurmaten in; dan berekent hij de oppervlaktes per zone.</p>'}
-    <button type="button" class="zone-del" data-vid="${v.id}">Scheiding verwijderen</button>
+    <div class="sketch-act"><button type="button" class="zone-add" data-vid="${v.id}">✏️ Opnieuw tekenen</button><button type="button" class="zone-del" data-vid="${v.id}">Verwijderen</button></div>
   </div>`;
 }
 function imUpdateZoneAreas(vid){
-  const v = imVerd(vid), z = imZones(v); if(!z) return;
+  const v = imVerd(vid), reg = imRegionPolys(v); if(!reg) return;
   const card = $(`#inmeten .vd[data-vid="${vid}"]`); if(!card) return;
   const sa = card.querySelector('.zone-area[data-z="0"]'), sb = card.querySelector('.zone-area[data-z="1"]');
-  if(sa) sa.textContent = '· ' + z.areaA.toFixed(2) + ' m²';
-  if(sb) sb.textContent = '· ' + z.areaB.toFixed(2) + ' m²';
+  if(sa) sa.textContent = '· ' + reg.areaA.toFixed(2) + ' m²';
+  if(sb) sb.textContent = '· ' + reg.areaB.toFixed(2) + ' m²';
 }
 
 function imOpenHtml(vid, o){
@@ -268,13 +282,38 @@ function imTap(vid, sx, sy){
   }
   saveDraft(); imRenderCard(vid);   // volledige kaart -> undo/wissen-knoppen verschijnen
 }
+// zone-scheiding tekenen: tik op een muur (start), tik hoeken (haaks), eindig op een muur
+function imZoneTap(vid, sx, sy){
+  const v = imVerd(vid); if(!v || !v.zoneDraw) return;
+  const f = imFit(v); if(!f || !f.rc) return;
+  const real = f.real;
+  let r = [(sx - f.ox) / f.sc, (sy - f.oy) / f.sc];   // svg -> echte coords (inverse affien)
+  if(!v.zone) v.zone = { div: [], names: ['Zone 1', 'Zone 2'] };
+  const div = v.zone.div;
+  if(div.length === 0){                                // startpunt op een muur
+    div.push(imSnapOnEdge(real, imNearestEdge(real, r))); saveDraft(); imRenderCard(vid); return;
+  }
+  const last = div[div.length - 1];
+  if(Math.abs(r[0] - last[0]) >= Math.abs(r[1] - last[1])) r[1] = last[1]; else r[0] = last[0];   // haaks
+  const e = imNearestEdge(real, r), thr = Math.max(0.4, f.w * 0.04);
+  if(e && e.d < thr){                                  // dichtbij een muur -> eindpunt, klaar
+    const end = imSnapEnd(real, e, r);
+    if(end[0] !== last[0] || end[1] !== last[1]) div.push(end);
+    v.zoneDraw = false; saveDraft(); imRenderCard(vid); return;
+  }
+  r = [Math.round(r[0] / 0.1) * 0.1, Math.round(r[1] / 0.1) * 0.1];   // binnenpunt op 0,1 m
+  if(Math.abs(r[0] - last[0]) >= Math.abs(r[1] - last[1])) r[1] = last[1]; else r[0] = last[0];
+  if(r[0] === last[0] && r[1] === last[1]) return;
+  div.push(r); saveDraft(); imRenderCard(vid);
+}
 
 function imBindSketch(svg){
   if(!svg || svg._b) return; svg._b = true;
   svg.addEventListener('click', e => { const [x, y] = imSvgPoint(svg, e); imTap(svg.dataset.vid, x, y); });
 }
-function imBindPlan(root){   // bindt teken-taps (open) + muur-taps (gesloten) binnen root
+function imBindPlan(root){   // bindt teken-taps (open) + muur-taps (gesloten) + zone-taps binnen root
   $$('.plan-draw', root).forEach(imBindSketch);
+  $$('.plan-zonedraw', root).forEach(svg => { if(svg._bz) return; svg._bz = true; svg.addEventListener('click', e => { const [x, y] = imSvgPoint(svg, e); imZoneTap(svg.dataset.vid, x, y); }); });
   $$('.plan-wall-hit', root).forEach(h => { if(h._b) return; h._b = true; h.addEventListener('click', () => imSelWall(h.dataset.vid, +h.dataset.i)); });
 }
 function imSelWall(vid, i){
@@ -292,11 +331,11 @@ function imBind(){
   $$('#inmeten .op-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.openingen = v.openingen.filter(o => o.id !== b.dataset.oid); saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .vd-f').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v[i.dataset.k] = i.value; saveDraft(); } });
   $$('#inmeten .wall-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v.muren[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
-  $$('#inmeten .zone-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.split = { axis: 'v', pos: 0.5, names: ['Zone 1', 'Zone 2'] }; saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .zone-axis').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v && v.split){ v.split.axis = b.dataset.ax; v.split.pos = 0.5; saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .zone-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.split = null; saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .zone-slider').forEach(s => s.oninput = () => { const v = imVerd(s.dataset.vid); if(!v || !v.split) return; const z = imZones(v); let pos = +s.value / 100; if(z) pos = imSnapPos(v, z, pos); v.split.pos = pos; saveDraft(); imRefreshSketch(s.dataset.vid); });
-  $$('#inmeten .zone-name').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v && v.split){ if(!v.split.names) v.split.names = ['Zone 1', 'Zone 2']; v.split.names[+i.dataset.z] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
+  $$('#inmeten .zone-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ const names = (v.zone && v.zone.names) || ['Zone 1', 'Zone 2']; v.zone = { div: [], names }; v.zoneDraw = true; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .zone-undo').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v && v.zone){ v.zone.div.pop(); saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .zone-cancel').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.zoneDraw = false; v.zone = null; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .zone-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.zone = null; v.zoneDraw = false; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .zone-name').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v && v.zone){ if(!v.zone.names) v.zone.names = ['Zone 1', 'Zone 2']; v.zone.names[+i.dataset.z] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   $$('#inmeten .op-f').forEach(el => { const ev = el.tagName === 'SELECT' ? 'onchange' : 'oninput'; el[ev] = () => { const o = imOpen(el.dataset.vid, el.dataset.oid); if(o){ o[el.dataset.k] = el.value; saveDraft(); } }; });
 }
 
