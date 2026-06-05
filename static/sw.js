@@ -1,5 +1,5 @@
 // Service worker - network-first: online altijd verse bestanden, offline val terug op cache.
-const CACHE = 'vabi-app-dev-v2';
+const CACHE = 'vabi-app-dev-v3';
 const SHELL = ['./','index.html','style.css','app.js','inmeten.js','manifest.webmanifest','icon-192.png','icon-512.png','logo.png'];
 
 self.addEventListener('install', e => {
