@@ -7,7 +7,7 @@
 
 const BEGLAZING = ['Enkel glas', 'Dubbel glas', 'HR', 'HR+', 'HR++', 'HR+++ / triple', 'Onbekend'];
 const GRID = 12;            // snap-raster (px) in de schets
-const SV_W = 300, SV_H = 220, SV_PAD = 26;
+const SV_W = 360, SV_H = 300, SV_PAD = 30;
 
 function imData(){ if(!state.inmeten) state.inmeten = { verdiepingen: [] }; return state.inmeten; }
 function imId(){ return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -64,39 +64,43 @@ function imSketchSvg(v){
     }
     return `<svg class="plan plan-draw" data-vid="${v.id}" viewBox="0 0 ${SV_W} ${SV_H}">${inner}</svg>`;
   }
-  // gesloten: teken op schaal als alle maten er zijn, anders de ruwe schets
+  // gesloten: vorm op schaal (op echte maten als die er zijn, anders de getekende schets).
+  // Elke muur is een aantikbare lijn; geselecteerde muur licht op; lege muur krijgt een '?'-markering.
   const rc = imReal(v);
-  if(rc){
-    const xs = rc.map(c => c[0]), ys = rc.map(c => c[1]);
-    const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
-    const w = (maxx - minx) || 1, h = (maxy - miny) || 1;
-    const sc = Math.min((SV_W - 2 * SV_PAD) / w, (SV_H - 2 * SV_PAD) / h);
-    const ox = (SV_W - w * sc) / 2 - minx * sc, oy = (SV_H - h * sc) / 2 - miny * sc;
-    const X = c => (c[0] * sc + ox).toFixed(1), Y = c => (c[1] * sc + oy).toFixed(1);
-    const n = rc.length - 1;
-    const poly = rc.slice(0, n).map(c => X(c) + ',' + Y(c)).join(' ');
-    inner += `<polygon points="${poly}" class="plan-rect"/>`;
-    for(let i = 0; i < n; i++){ const a = rc[i], b = rc[(i + 1) % n]; inner += `<text x="${(parseFloat(X(a)) + parseFloat(X(b))) / 2}" y="${(parseFloat(Y(a)) + parseFloat(Y(b))) / 2 - 3}" text-anchor="middle" class="plan-dim">${imEsc(v.muren[i])}</text>`; }
-    inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-area">${imArea(v).toFixed(2)} m&#178;</text>`;
-    if(!imSluit(v)) inner += `<text x="${SV_W / 2}" y="${SV_H - 6}" text-anchor="middle" class="plan-warn">sluit niet helemaal — controleer maten</text>`;
-  } else {
-    const pts = p.map(q => q[0] + ',' + q[1]).join(' ');
-    inner += `<polygon points="${pts}" class="plan-rect"/>`;
-    inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-hint">vul de muurlengtes in</text>`;
+  const n = v.sketch.punten.length;
+  const base = rc ? rc.slice(0, n) : v.sketch.punten;
+  const xs = base.map(c => c[0]), ys = base.map(c => c[1]);
+  const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+  const w = (maxx - minx) || 1, h = (maxy - miny) || 1;
+  const sc = Math.min((SV_W - 2 * SV_PAD) / w, (SV_H - 2 * SV_PAD) / h);
+  const ox = (SV_W - w * sc) / 2 - minx * sc, oy = (SV_H - h * sc) / 2 - miny * sc;
+  const M = base.map(c => [+(c[0] * sc + ox).toFixed(1), +(c[1] * sc + oy).toFixed(1)]);
+  const sel = v.selWall;
+  inner += `<polygon points="${M.map(c => c[0] + ',' + c[1]).join(' ')}" class="plan-rect"/>`;
+  if(rc) inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-area">${imArea(v).toFixed(2)} m&#178;</text>`;
+  else inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-hint">tik een muur &amp; vul de lengte in</text>`;
+  for(let i = 0; i < n; i++){
+    const a = M[i], b = M[(i + 1) % n], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, isSel = sel === i;
+    inner += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="plan-wall${isSel ? ' plan-wall-sel' : ''}"/>`;
+    const len = ((v.muren && v.muren[i]) || '').trim();
+    if(len) inner += `<text x="${mx}" y="${my - 5}" text-anchor="middle" class="plan-dim${isSel ? ' plan-dim-sel' : ''}">${imEsc(len)}</text>`;
+    else inner += `<circle cx="${mx}" cy="${my}" r="10" class="plan-wmark${isSel ? ' plan-wmark-sel' : ''}"/><text x="${mx}" y="${my + 4}" text-anchor="middle" class="plan-wmark-tx">?</text>`;
   }
+  for(let i = 0; i < n; i++){ const a = M[i], b = M[(i + 1) % n]; inner += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="plan-wall-hit" data-vid="${v.id}" data-i="${i}"/>`; }
+  if(rc && !imSluit(v)) inner += `<text x="${SV_W / 2}" y="${SV_H - 8}" text-anchor="middle" class="plan-warn">sluit niet helemaal — controleer maten</text>`;
   return `<svg class="plan" data-vid="${v.id}" viewBox="0 0 ${SV_W} ${SV_H}">${inner}</svg>`;
 }
 
-function imWallsHtml(v){
+function imWallEditHtml(v){
   if(!v.sketch.gesloten) return '';
-  const p = v.sketch.punten;
-  let rows = '';
-  for(let i = 0; i < p.length; i++){
-    const a = p[i], b = p[(i + 1) % p.length];
-    const horiz = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]);
-    rows += `<label class="wall">Muur ${i + 1} ${horiz ? '↔' : '↕'}<input class="wall-len" inputmode="decimal" data-vid="${v.id}" data-i="${i}" value="${imEsc((v.muren && v.muren[i]) || '')}" placeholder="m"></label>`;
+  const p = v.sketch.punten, sel = v.selWall;
+  if(sel == null || sel < 0 || sel >= p.length){
+    const allFilled = v.muren && v.muren.length === p.length && v.muren.every(m => (m || '').trim());
+    return `<p class="wall-hint">${allFilled ? 'Alle muren ingevuld — tik een muur om te wijzigen.' : 'Tik op een muur in de schets en vul de lengte in.'}</p>`;
   }
-  return `<div class="walls">${rows}</div>`;
+  const a = p[sel], b = p[(sel + 1) % p.length];
+  const horiz = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]);
+  return `<div class="wall-edit"><label>Muur ${sel + 1} ${horiz ? '↔ breedte' : '↕ hoogte'} (m)<input class="wall-len" inputmode="decimal" data-vid="${v.id}" data-i="${sel}" value="${imEsc((v.muren && v.muren[sel]) || '')}" placeholder="lengte in meter"></label></div>`;
 }
 
 function imOpenHtml(vid, o){
@@ -124,7 +128,7 @@ function imCardHtml(v){
       ${v.sketch.gesloten ? `<button type="button" class="sk-clear" data-vid="${v.id}">↺ Opnieuw tekenen</button>` :
         (v.sketch.punten.length ? `<button type="button" class="sk-undo" data-vid="${v.id}">↶ Laatste punt</button><button type="button" class="sk-clear" data-vid="${v.id}">↺ Wissen</button>` : '')}
     </div>
-    ${imWallsHtml(v)}
+    ${imWallEditHtml(v)}
     <div class="row"><label>Hoogte (m)<input class="vd-f" data-k="hoogte" inputmode="decimal" data-vid="${v.id}" value="${imEsc(v.hoogte)}" placeholder="bv. 2.5"></label>
       <div class="vd-area">Vloeroppervlak<strong>${imArea(v) ? imArea(v).toFixed(2) + ' m²' : '—'}</strong></div></div>
     <h4>Ramen &amp; deuren</h4>
@@ -146,7 +150,7 @@ function imRefreshSketch(vid){   // alleen schets + oppervlak verversen (zonder 
   const v = imVerd(vid), card = $(`#inmeten .vd[data-vid="${vid}"]`); if(!v || !card) return;
   const svg = card.querySelector('.plan'); if(svg) svg.outerHTML = imSketchSvg(v);
   const area = card.querySelector('.vd-area strong'); if(area) area.textContent = imArea(v) ? imArea(v).toFixed(2) + ' m²' : '—';
-  const draw = card.querySelector('.plan-draw'); if(draw) imBindSketch(draw);
+  imBindPlan(card);
 }
 
 function imSvgPoint(svg, e){
@@ -164,7 +168,9 @@ function imTap(vid, sx, sy){
     const last = p[p.length - 1];
     // sluiten? dichtbij eerste punt + minstens 3 hoeken
     if(p.length >= 3 && Math.hypot(sx - p[0][0], sy - p[0][1]) < 16){
-      v.sketch.gesloten = true; v.muren = p.map(() => ''); saveDraft(); imRenderCard(vid); return;
+      v.sketch.gesloten = true; v.muren = p.map(() => ''); v.selWall = 0; saveDraft(); imRenderCard(vid);
+      const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp) inp.focus();
+      return;
     }
     // haaks maken t.o.v. vorige punt
     if(Math.abs(nx - last[0]) >= Math.abs(ny - last[1])) ny = last[1]; else nx = last[0];
@@ -178,11 +184,20 @@ function imBindSketch(svg){
   if(!svg || svg._b) return; svg._b = true;
   svg.addEventListener('click', e => { const [x, y] = imSvgPoint(svg, e); imTap(svg.dataset.vid, x, y); });
 }
+function imBindPlan(root){   // bindt teken-taps (open) + muur-taps (gesloten) binnen root
+  $$('.plan-draw', root).forEach(imBindSketch);
+  $$('.plan-wall-hit', root).forEach(h => { if(h._b) return; h._b = true; h.addEventListener('click', () => imSelWall(h.dataset.vid, +h.dataset.i)); });
+}
+function imSelWall(vid, i){
+  const v = imVerd(vid); if(!v) return;
+  v.selWall = i; saveDraft(); imRenderCard(vid);
+  const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp){ inp.focus(); if(inp.select) inp.select(); }
+}
 function imBind(){
   const add = $('#vd-add'); if(add) add.onclick = () => { const d = imData(), nr = d.verdiepingen.length; d.verdiepingen.push({ id: imId(), naam: nr === 0 ? 'Begane grond' : nr + 'e verdieping', sketch: { punten: [], gesloten: false }, muren: [], hoogte: '', openingen: [] }); saveDraft(); imRender(); };
-  $$('#inmeten .plan-draw').forEach(imBindSketch);
+  imBindPlan(document);
   $$('#inmeten .sk-undo').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch.punten.pop(); saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .sk-clear').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch = { punten: [], gesloten: false }; v.muren = []; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .sk-clear').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch = { punten: [], gesloten: false }; v.muren = []; v.selWall = null; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .vd-del').forEach(b => b.onclick = () => { if(confirm('Verdieping verwijderen?')){ const d = imData(); d.verdiepingen = d.verdiepingen.filter(v => v.id !== b.dataset.vid); saveDraft(); imRender(); } });
   $$('#inmeten .op-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.openingen.push({ id: imId(), type: 'raam', m2: '', beglazing: '', notitie: '' }); saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .op-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.openingen = v.openingen.filter(o => o.id !== b.dataset.oid); saveDraft(); imRenderCard(b.dataset.vid); } });
