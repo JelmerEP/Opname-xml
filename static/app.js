@@ -2,7 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
-const BUILD = 'dev18';   // WERKKOPIE (dev-tak); versie-stempel in header
+const BUILD = 'dev19';   // WERKKOPIE (dev-tak); versie-stempel in header
 let state = {};
 
 // ---------- helpers ----------
