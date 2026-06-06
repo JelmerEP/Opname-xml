@@ -131,7 +131,7 @@ textarea{resize:vertical}
 .zone-pt-close{fill:var(--green);stroke:#fff;stroke-width:1.5}
 .zone-dim{fill:#7a4ac0;font-size:12px;font-weight:700}
 .zone-dim-sel{fill:#d9480f}
-.plan-zwall-hit{stroke:#000;stroke-opacity:0;stroke-width:22;fill:none;pointer-events:stroke;cursor:pointer}
+.plan-zwall-hit,.zone-wall-hit{stroke:#000;stroke-opacity:0;stroke-width:16;fill:none;pointer-events:stroke;cursor:pointer}
 .zone-lbl{fill:var(--ink);font-size:12px;font-weight:700}
 .zone-lbl-area{fill:var(--mut);font-size:11px}
 .zone-add{font-size:14px;color:#7a4ac0;background:#fff;border:1px dashed #9b6fd4;border-radius:9px;padding:9px 12px;cursor:pointer;width:100%;margin:0 0 10px}
