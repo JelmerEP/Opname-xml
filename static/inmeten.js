@@ -22,17 +22,28 @@ function imVerd(vid){ return imData().verdiepingen.find(v => v.id === vid); }
 function imSnap(n){ return Math.round(n / GRID) * GRID; }
 
 // --- geometrie: echte coordinaten uit (getekende richtingen + ingevoerde lengtes) ---
-function imReal(v){
-  const p = v.sketch.punten, m = v.muren || [];
-  if(!v.sketch.gesloten || p.length < 3) return null;
-  let x = 0, y = 0; const rc = [[0, 0]];
+// effectieve muurlengtes: ingevoerd + afgeleid via sluiting (Σ horizontaal = 0, Σ verticaal = 0),
+// zodat je bv. bij een rechthoek maar 2 van de 4 muren hoeft in te vullen
+function imEffLens(v){
+  const p = v.sketch.punten; if(p.length < 3) return null;
+  const dirs = [], lens = [], derived = [];
   for(let i = 0; i < p.length; i++){
-    const a = p[i], b = p[(i + 1) % p.length], len = imNum(m[i]);
-    if(!len) return null;                       // nog niet alle muren ingevuld
-    const dx = b[0] - a[0], dy = b[1] - a[1];
-    if(Math.abs(dx) >= Math.abs(dy)) x += Math.sign(dx) * len; else y += Math.sign(dy) * len;
-    rc.push([x, y]);
+    const a = p[i], b = p[(i + 1) % p.length], dx = b[0] - a[0], dy = b[1] - a[1];
+    dirs.push(Math.abs(dx) >= Math.abs(dy) ? [Math.sign(dx) || 1, 0] : [0, Math.sign(dy) || 1]);
+    lens.push(imNum((v.muren || [])[i])); derived.push(false);
   }
+  for(const ax of [0, 1]){                        // per as: als precies één muur ontbreekt -> afleiden
+    let sum = 0, miss = -1, cnt = 0;
+    for(let i = 0; i < dirs.length; i++){ if(dirs[i][ax]){ if(lens[i] > 0) sum += dirs[i][ax] * lens[i]; else { miss = i; cnt++; } } }
+    if(cnt === 1){ const dv = -sum / dirs[miss][ax]; if(dv > 0){ lens[miss] = dv; derived[miss] = true; } }
+  }
+  return { dirs, lens, derived };
+}
+function imReal(v){
+  if(!v.sketch.gesloten || v.sketch.punten.length < 3) return null;
+  const e = imEffLens(v); if(!e || e.lens.some(l => !(l > 0))) return null;   // nog niet genoeg ingevuld
+  let x = 0, y = 0; const rc = [[0, 0]];
+  for(let i = 0; i < e.dirs.length; i++){ x += e.dirs[i][0] * e.lens[i]; y += e.dirs[i][1] * e.lens[i]; rc.push([x, y]); }
   return rc;                                     // N+1 punten; rc[N] ~ rc[0]
 }
 function imArea(v){
@@ -185,16 +196,18 @@ function imSketchSvg(v){
       dl.forEach(c => { inner += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="4" class="zone-pt"/>`; });
     }
   }
+  const eff = imEffLens(v);
   for(let i = 0; i < n; i++){
     const a = M[i], b = M[(i + 1) % n], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, isSel = sel === i;
     const vert = Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1]);
     inner += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="plan-wall${isSel ? ' plan-wall-sel' : ''}"/>`;
-    const len = ((v.muren && v.muren[i]) || '').trim();
+    const raw = ((v.muren && v.muren[i]) || '').trim(), der = eff && eff.derived[i];
+    const len = raw || (der ? eff.lens[i].toFixed(2).replace('.', ',') : '');
     if(len){
       let tx = mx, ty = my, anchor = 'middle', bl = '';
       if(vert){ const right = mx >= cx; tx = mx + (right ? 9 : -9); anchor = right ? 'start' : 'end'; bl = ' dominant-baseline="middle"'; }
       else { ty = my + (my >= cy ? 15 : -7); }
-      inner += `<text x="${tx}" y="${ty}" text-anchor="${anchor}"${bl} class="plan-dim${isSel ? ' plan-dim-sel' : ''}">${imEsc(len)}</text>`;
+      inner += `<text x="${tx}" y="${ty}" text-anchor="${anchor}"${bl} class="plan-dim${isSel ? ' plan-dim-sel' : der ? ' plan-dim-auto' : ''}">${imEsc(len)}</text>`;
     } else inner += `<circle cx="${mx}" cy="${my}" r="10" class="plan-wmark${isSel ? ' plan-wmark-sel' : ''}"/><text x="${mx}" y="${my + 4}" text-anchor="middle" class="plan-wmark-tx">?</text>`;
   }
   if(!v.zoneDraw) for(let i = 0; i < n; i++){ const a = M[i], b = M[(i + 1) % n]; inner += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="plan-wall-hit" data-vid="${v.id}" data-i="${i}"/>`; }
@@ -206,8 +219,7 @@ function imWallEditHtml(v){
   if(!v.sketch.gesloten) return '';
   const p = v.sketch.punten, sel = v.selWall;
   if(sel != null && sel >= 0 && sel < p.length) return `<p class="wall-hint">Muur ${sel + 1} geselecteerd — vul de maat bovenin in.</p>`;
-  const allFilled = v.muren && v.muren.length === p.length && v.muren.every(m => (m || '').trim());
-  return `<p class="wall-hint">${allFilled ? 'Alle muren ingevuld — tik een muur om te wijzigen.' : 'Tik op een muur in de schets; de maat vul je bovenin in.'}</p>`;
+  return `<p class="wall-hint">${imReal(v) ? 'Maten compleet (rest wordt afgeleid) — tik een muur om te wijzigen.' : 'Tik op een muur; de maat vul je bovenin in. Bij een rechthoek volstaan 2 muren.'}</p>`;
 }
 
 function imZoneControlsHtml(v){

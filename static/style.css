@@ -108,6 +108,7 @@ textarea{resize:vertical}
 .plan-pt-close{fill:var(--green);stroke:#fff;stroke-width:2}
 .plan-rect{fill:rgba(62,158,54,.10);stroke:var(--blue);stroke-width:2}
 .plan-dim{fill:var(--mut);font-size:13px;font-weight:600}
+.plan-dim-auto{fill:#9aa8b0;font-style:italic;font-weight:400}  /* afgeleide (niet ingevoerde) muurmaat */
 .plan-dim-sel{fill:#d9480f;font-weight:700}
 .plan-area{fill:var(--blue);font-size:18px;font-weight:700}
 .plan-hint{fill:var(--mut);font-size:13px}
