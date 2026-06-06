@@ -239,23 +239,40 @@ function imUpdateZoneAreas(vid){
   if(sb) sb.textContent = '· ' + reg.areaB.toFixed(2) + ' m²';
 }
 
-// --- foto-opslag in IndexedDB (localStorage is te klein voor foto's) ---
+// --- foto-opslag: data-URL strings (iOS Safari heeft bugs met Blobs in IndexedDB),
+//     IndexedDB als het kan, anders terugval op localStorage ---
 let _imDB = null;
 function imDB(){
   if(_imDB) return _imDB;
   _imDB = new Promise((res, rej) => {
-    const r = indexedDB.open('vabi_inmeet', 1);
-    r.onupgradeneeded = () => { if(!r.result.objectStoreNames.contains('photos')) r.result.createObjectStore('photos'); };
+    let r; try { r = indexedDB.open('vabi_inmeet', 1); } catch(e){ return rej(e); }
+    r.onupgradeneeded = () => { try { if(!r.result.objectStoreNames.contains('photos')) r.result.createObjectStore('photos'); } catch(e){} };
     r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
+    r.onerror = () => rej(r.error || new Error('idb'));
+    r.onblocked = () => rej(new Error('idb-blocked'));
   });
   return _imDB;
 }
-async function imPhotoPut(id, blob){ const db = await imDB(); return new Promise((res, rej) => { const tx = db.transaction('photos', 'readwrite'); tx.objectStore('photos').put(blob, id); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); }
-async function imPhotoGet(id){ const db = await imDB(); return new Promise((res, rej) => { const rq = db.transaction('photos', 'readonly').objectStore('photos').get(id); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => rej(rq.error); }); }
-async function imPhotoDel(id){ if(!id) return; const db = await imDB(); return new Promise(res => { const tx = db.transaction('photos', 'readwrite'); tx.objectStore('photos').delete(id); tx.oncomplete = res; tx.onerror = res; }); }
-// verklein een camera-/galerijfoto naar max-zijde en lever een kleine JPEG-blob
-function imResizeToBlob(file, max, cb){
+async function imPhotoPut(id, durl){
+  try {
+    const db = await imDB();
+    await new Promise((res, rej) => { const tx = db.transaction('photos', 'readwrite'); tx.objectStore('photos').put(durl, id); tx.oncomplete = res; tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); });
+    return;
+  } catch(e){ /* val terug op localStorage */ }
+  try { localStorage.setItem('vabi_ph_' + id, durl); }
+  catch(e){ throw new Error('foto-opslag niet beschikbaar of vol'); }
+}
+async function imPhotoGet(id){
+  try { const db = await imDB(); const v = await new Promise((res, rej) => { const rq = db.transaction('photos', 'readonly').objectStore('photos').get(id); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); if(v) return v; } catch(e){}
+  try { return localStorage.getItem('vabi_ph_' + id) || null; } catch(e){ return null; }
+}
+async function imPhotoDel(id){
+  if(!id) return;
+  try { const db = await imDB(); await new Promise(res => { const tx = db.transaction('photos', 'readwrite'); tx.objectStore('photos').delete(id); tx.oncomplete = res; tx.onerror = res; }); } catch(e){}
+  try { localStorage.removeItem('vabi_ph_' + id); } catch(e){}
+}
+// verklein een camera-/galerijfoto naar max-zijde en lever een kleine JPEG data-URL
+function imResizeToDataURL(file, max, cb){
   const img = new Image(), url = URL.createObjectURL(file);
   img.onload = () => {
     let w = img.width, h = img.height;
@@ -263,18 +280,19 @@ function imResizeToBlob(file, max, cb){
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
     cv.getContext('2d').drawImage(img, 0, 0, w, h);
     URL.revokeObjectURL(url);
-    cv.toBlob(b => cb(b), 'image/jpeg', 0.72);
+    let durl = null; try { durl = cv.toDataURL('image/jpeg', 0.72); } catch(e){}
+    cb(durl);
   };
   img.onerror = () => { URL.revokeObjectURL(url); cb(null); };
   img.src = url;
 }
-const _imUrl = {};                                // cache van object-URLs per foto-id (geen geflikker bij re-render)
+const _imUrl = {};                                // cache van data-URLs per foto-id (geen geflikker bij re-render)
 function imLoadImages(root){
   $$('.foto-img[data-foto]', root || document).forEach(img => {
     if(img._fl) return; img._fl = true;
     const id = img.dataset.foto;
     if(_imUrl[id]){ img.src = _imUrl[id]; return; }
-    imPhotoGet(id).then(b => { if(b){ const u = URL.createObjectURL(b); _imUrl[id] = u; img.src = u; } });
+    imPhotoGet(id).then(u => { if(u){ _imUrl[id] = u; img.src = u; } });
   });
 }
 function imFoto(vid, fid){ const v = imVerd(vid); return v && v.fotos ? v.fotos.find(f => f.id === fid) : null; }
@@ -425,13 +443,13 @@ function imBind(){
   $$('#inmeten .foto-add').forEach(b => b.onclick = () => { const inp = b.parentElement.querySelector('.foto-cam'); if(inp) inp.click(); });
   $$('#inmeten .foto-cam').forEach(inp => inp.onchange = () => {
     const file = inp.files && inp.files[0]; if(!file) return;
-    imResizeToBlob(file, 1600, blob => {
-      if(!blob){ alert('Foto kon niet verwerkt worden.'); return; }
+    imResizeToDataURL(file, 1400, durl => {
+      if(!durl){ alert('Foto kon niet verwerkt worden.'); return; }
       const v = imVerd(inp.dataset.vid); if(!v) return; if(!v.fotos) v.fotos = [];
       const pid = imId();
-      imPhotoPut(pid, blob)
+      imPhotoPut(pid, durl)
         .then(() => { v.fotos.push({ id: imId(), foto: pid, marks: [], sel: null }); saveDraft(); imRenderCard(inp.dataset.vid); })
-        .catch(() => alert('Foto opslaan mislukt — de foto-opslag (IndexedDB) is op dit apparaat/in deze modus niet beschikbaar.'));
+        .catch(() => alert('Foto opslaan mislukt — opslag is vol of niet beschikbaar in deze modus.'));
     });
     inp.value = '';
   });
