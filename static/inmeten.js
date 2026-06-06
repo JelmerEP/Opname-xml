@@ -379,7 +379,7 @@ function imTap(vid, sx, sy){
     // sluiten? dichtbij eerste punt + minstens 3 hoeken
     if(p.length >= 3 && Math.hypot(sx - p[0][0], sy - p[0][1]) < 16){
       v.sketch.gesloten = true; v.muren = p.map(() => ''); v.selWall = 0; saveDraft(); imRenderCard(vid);
-      const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp) inp.focus();
+      const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp) inp.focus({ preventScroll: true });
       return;
     }
     // haaks maken t.o.v. vorige punt
@@ -427,12 +427,12 @@ function imBindPlan(root){   // bindt teken-taps (open) + muur-taps (gesloten) +
 function imSelZWall(vid, i){
   const v = imVerd(vid); if(!v || !v.zone) return;
   v.zone.sel = i; saveDraft(); imRenderCard(vid);
-  const inp = $(`#inmeten .vd[data-vid="${vid}"] .zone-len`); if(inp){ inp.focus(); if(inp.select) inp.select(); }
+  const inp = $(`#inmeten .vd[data-vid="${vid}"] .zone-len`); if(inp){ inp.focus({ preventScroll: true }); if(inp.select) inp.select(); }
 }
 function imSelWall(vid, i){
   const v = imVerd(vid); if(!v) return;
   v.selWall = i; saveDraft(); imRenderCard(vid);
-  const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp){ inp.focus(); if(inp.select) inp.select(); }
+  const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp){ inp.focus({ preventScroll: true }); if(inp.select) inp.select(); }
 }
 function imBind(){
   const add = $('#vd-add'); if(add) add.onclick = () => { const d = imData(), nr = d.verdiepingen.length; d.verdiepingen.push({ id: imId(), naam: nr === 0 ? 'Begane grond' : nr + 'e verdieping', sketch: { punten: [], gesloten: false }, muren: [], hoogte: '', fotos: [] }); saveDraft(); imRender(); };
