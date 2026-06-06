@@ -604,12 +604,47 @@ function imPdfSummary(c, summary){
     c.yy += 3.5;
   }
 }
+// 3D-massing: footprint(s) geextrudeerd met de verdiepingshoogtes, isometrisch geprojecteerd (plat dak)
+function imPdf3D(c, x, y, w, h){
+  const d = c.doc, A = Math.PI / 6, ca = Math.cos(A), sa = Math.sin(A);
+  const iso = (X, Y, Z) => [(X - Y) * ca, (X + Y) * sa - Z];
+  const floors = []; let zbase = 0;
+  for(const v of imData().verdiepingen){
+    const rc = imReal(v); if(!rc) continue;
+    const hgt = imNum(v.hoogte) || 2.6;
+    floors.push({ real: rc.slice(0, rc.length - 1), z0: zbase, z1: zbase + hgt }); zbase += hgt;
+  }
+  if(!floors.length) return false;
+  const pts = []; floors.forEach(f => f.real.forEach(p => { pts.push(iso(p[0], p[1], f.z0)); pts.push(iso(p[0], p[1], f.z1)); }));
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+  const bw = (maxx - minx) || 1, bh = (maxy - miny) || 1, pad = 4, sc = Math.min((w - 2 * pad) / bw, (h - 2 * pad) / bh);
+  const ox = x + (w - bw * sc) / 2 - minx * sc, oy = y + (h - bh * sc) / 2 - miny * sc;
+  const P = (X, Y, Z) => { const p = iso(X, Y, Z); return [p[0] * sc + ox, p[1] * sc + oy]; };
+  const faces = [];
+  floors.forEach(f => {
+    const n = f.real.length;
+    for(let i = 0; i < n; i++){ const a = f.real[i], b = f.real[(i + 1) % n]; faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2, top: false }); }
+    faces.push({ p: f.real.map(p => P(p[0], p[1], f.z1)), key: f.real.reduce((s, p) => s + p[0] + p[1], 0) / n + f.z1 + 0.01, top: true });
+  });
+  faces.sort((a, b) => a.key - b.key);
+  d.setLineWidth(0.25);
+  faces.forEach(fc => { if(fc.top){ d.setFillColor(206, 223, 230); d.setDrawColor(60); } else { d.setFillColor(231, 238, 241); d.setDrawColor(120); } imPdfPoly(d, fc.p, 'FD'); });
+  return true;
+}
 async function imPdfInmeet(c){
   const d = c.doc, verds = imData().verdiepingen;
   if(!verds.length) return;
   if(c.yy > c.PH - 30){ d.addPage(); c.yy = c.M; }
   d.setFillColor(35, 76, 94); d.rect(c.M, c.yy - 4.5, c.PW - 2 * c.M, 7, 'F');
   d.setTextColor(255); d.setFont('helvetica', 'bold'); d.setFontSize(10.5); d.text(imPdfClean('Inmeten (plattegronden & foto\'s)' + (imData().voorgevel ? '   -   voorgevel: ' + imData().voorgevel : '')), c.M + 2, c.yy); d.setTextColor(0); c.yy += 7;
+  if(verds.some(v => imReal(v))){
+    try {
+      if(c.yy > c.PH - 64){ d.addPage(); c.yy = c.M; }
+      d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('3D-impressie (plat dak)', c.M, c.yy); d.setTextColor(0); c.yy += 2;
+      const h3 = 58; if(imPdf3D(c, c.M, c.yy, c.PW - 2 * c.M, h3)) c.yy += h3 + 4;
+    } catch(e){ d.setTextColor(0); }
+  }
   for(const v of verds){
     if(c.yy > c.PH - 75){ d.addPage(); c.yy = c.M; }
     d.setFont('helvetica', 'bold'); d.setFontSize(11);
