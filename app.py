@@ -64,9 +64,13 @@ def send():
     email = (data.get('email') or '').strip()
     if not email or '@' not in email or '.' not in email.split('@')[-1]:
         return jsonify({'error': 'geldig e-mailadres vereist'}), 400
+    pdf_b64 = data.get('pdf_base64')
     try:
         zip_bytes, naam = mapping.generate_zip(o, TPL)
-        pdf_bytes = report.build_pdf(summary, naam)
+        if pdf_b64:                                  # client levert de gecombineerde PDF aan
+            pdf_bytes = base64.b64decode(pdf_b64)
+        else:                                        # terugval: server-PDF (alleen samenvatting)
+            pdf_bytes = report.build_pdf(summary, naam)
     except Exception as e:
         return jsonify({'error': 'genereren mislukt: %s' % e}), 500
     base = (naam.replace(' ', '_').replace(',', '') or 'opname')

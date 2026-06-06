@@ -2,7 +2,7 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const LS_LIST = 'vabi_opnames', LS_DRAFT = 'vabi_draft';
-const BUILD = 'dev14';   // WERKKOPIE (dev-tak); versie-stempel in header
+const BUILD = 'dev15';   // WERKKOPIE (dev-tak); versie-stempel in header
 let state = {};
 
 // ---------- helpers ----------
@@ -145,9 +145,11 @@ async function send(){
   if(!navigator.onLine){ toast('Verzenden kan alleen online'); return; }
   saveOpname();                                             // ook lokaal bewaren (niet kwijtraken)
   const btn=$('#send'), old=btn.textContent; btn.disabled=true; btn.textContent='Versturen…';
+  let pdf_base64=null;
+  try{ if(window.imPdfBase64) pdf_base64=await window.imPdfBase64(); }catch(e){ /* val terug op server-PDF */ }
   try{
     const r=await fetch('api/send',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({opname:state, summary:collectSummary(), email})});
+      body:JSON.stringify({opname:state, summary:collectSummary(), email, pdf_base64})});
     const j=await r.json().catch(()=>({}));
     if(r.ok && j.ok){ toast('✓ Verzonden naar '+email); $('#sendmail').value=''; }
     else toast('Verzenden mislukt: '+(j.error||('fout '+r.status)));

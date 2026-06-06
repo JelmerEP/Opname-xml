@@ -557,49 +557,89 @@ function imPdfPlan(doc, v, x, y, maxW, maxH){
   }
   doc.setTextColor(0);
 }
-async function imBuildPdf(){
-  const btn = $('#im-pdf'); const orig = btn ? btn.textContent : '';
-  if(btn){ btn.disabled = true; btn.textContent = 'PDF maken…'; }
-  try {
-    const jsPDF = await imLoadJsPDF();
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const PW = 210, PH = 297, M = 12;
-    const adres = [state.straat, state.huisnummer, state.huisletter].filter(Boolean).join(' ') + (state.postcode || state.woonplaats ? ', ' + [state.postcode, state.woonplaats].filter(Boolean).join(' ') : '');
-    let yy = M;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text('Inmeetrapport', M, yy); yy += 6;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-    doc.text(adres || '(adres onbekend)', M, yy); yy += 5;
-    doc.text('Datum: ' + new Date().toLocaleDateString('nl-NL'), M, yy); yy += 4;
-    doc.setDrawColor(180); doc.line(M, yy, PW - M, yy); yy += 6;
-    for(const v of imData().verdiepingen){
-      if(yy > PH - 75){ doc.addPage(); yy = M; }
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-      const area = imArea(v);
-      doc.text(`${v.naam || 'Verdieping'}${v.hoogte ? '  -  h ' + v.hoogte + ' m' : ''}${area ? '  -  ' + area.toFixed(2) + ' m2' : ''}`, M, yy); yy += 5;
-      doc.setFont('helvetica', 'normal');
-      if(v.sketch && v.sketch.gesloten && imReal(v)){
-        const planH = 62; imPdfPlan(doc, v, M, yy, 96, planH); yy += planH + 3;
-      } else { doc.setFontSize(9); doc.setTextColor(120); doc.text('(geen volledige plattegrond)', M, yy + 3); doc.setTextColor(0); yy += 8; }
-      for(const ft of (v.fotos || [])){
-        const imgW = 58, imgH = 43;
-        if(yy > PH - (imgH + 8)){ doc.addPage(); yy = M; }
-        let durl = _imUrl[ft.foto]; if(!durl){ durl = await imPhotoGet(ft.foto); if(durl) _imUrl[ft.foto] = durl; }
-        if(durl){ try { doc.addImage(durl, 'JPEG', M, yy, imgW, imgH); } catch(e){} doc.setDrawColor(150); doc.setLineWidth(0.2); doc.rect(M, yy, imgW, imgH);
-          (ft.marks || []).forEach((m, i) => { const cx = M + m.x * imgW, cy = yy + m.y * imgH; doc.setFillColor(35, 76, 94); doc.circle(cx, cy, 2.2, 'F'); doc.setTextColor(255); doc.setFontSize(7); doc.text(String(i + 1), cx, cy + 1.1, { align: 'center' }); }); doc.setTextColor(0);
-        }
-        let ty = yy + 3.5; doc.setFontSize(8.5);
-        const marks = ft.marks || [];
-        if(!marks.length) doc.text('(geen markeringen)', M + imgW + 4, ty);
-        marks.forEach((m, i) => { doc.text(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`, M + imgW + 4, ty); ty += 4.4; });
-        yy += Math.max(imgH, ty - yy) + 5;
-      }
-      yy += 3;
+function imPdfAdres(){ return [state.straat, state.huisnummer, state.huisletter].filter(Boolean).join(' ') + (state.postcode || state.woonplaats ? ', ' + [state.postcode, state.woonplaats].filter(Boolean).join(' ') : ''); }
+function imPdfSafeName(){ return (imPdfAdres() || 'opname').replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, '') || 'opname'; }
+function imPdfClean(s){   // jsPDF standaardfont = WinAnsi; tekens die daarbuiten vallen netjes vervangen
+  return String(s == null ? '' : s).replace(/≤/g, '<=').replace(/≥/g, '>=').replace(/Δ/g, 'd').replace(/[–—]/g, '-').replace(/…/g, '...').replace(/•/g, '-').replace(/×/g, 'x').replace(/[’‘]/g, "'").replace(/[“”]/g, '"');
+}
+function imPdfHeader(c){
+  const d = c.doc;
+  d.setFillColor(35, 76, 94); d.rect(0, 0, c.PW, 22, 'F');
+  d.setTextColor(255); d.setFont('helvetica', 'bold'); d.setFontSize(16); d.text('Opname-uitdraai', c.M, 13);
+  d.setFont('helvetica', 'normal'); d.setFontSize(10); d.setTextColor(215, 232, 232); d.text(new Date().toLocaleDateString('nl-NL'), c.PW - c.M, 13, { align: 'right' });
+  d.setTextColor(30); d.setFont('helvetica', 'bold'); d.setFontSize(12); d.text(imPdfClean(imPdfAdres() || '(adres onbekend)'), c.M, 20);
+  d.setTextColor(0); c.yy = 30;
+}
+function imPdfSummary(c, summary){
+  const d = c.doc, labelW = 52, valX = c.M + labelW + 3, valW = c.PW - c.M - valX;
+  for(const sec of (summary || [])){
+    const rows = (sec.rows || []).filter(r => r && r.length >= 2 && String(r[1] || '').trim());
+    if(!rows.length) continue;
+    if(c.yy > c.PH - 22){ d.addPage(); c.yy = c.M; }
+    d.setFillColor(62, 158, 54); d.rect(c.M, c.yy - 4.5, c.PW - 2 * c.M, 7, 'F');
+    d.setTextColor(255); d.setFont('helvetica', 'bold'); d.setFontSize(10.5); d.text(imPdfClean(sec.section || ''), c.M + 2, c.yy);
+    c.yy += 5.5; d.setTextColor(40);
+    for(const r of rows){
+      const lines = d.splitTextToSize(imPdfClean(String(r[1])), valW), rowH = Math.max(5, lines.length * 4.5);
+      if(c.yy + rowH > c.PH - 12){ d.addPage(); c.yy = c.M; }
+      d.setFont('helvetica', 'bold'); d.setFontSize(8.5); d.setTextColor(110); d.text(imPdfClean(String(r[0])), c.M, c.yy + 3);
+      d.setFont('helvetica', 'normal'); d.setFontSize(9.5); d.setTextColor(30); d.text(lines, valX, c.yy + 3);
+      c.yy += rowH;
     }
-    const safe = (adres || 'inmeet').replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, '');
-    doc.save('inmeetrapport_' + safe + '.pdf');
-  } catch(e){ alert('PDF maken mislukt: ' + ((e && e.message) || e)); }
+    c.yy += 3.5;
+  }
+}
+async function imPdfInmeet(c){
+  const d = c.doc, verds = imData().verdiepingen;
+  if(!verds.length) return;
+  if(c.yy > c.PH - 30){ d.addPage(); c.yy = c.M; }
+  d.setFillColor(35, 76, 94); d.rect(c.M, c.yy - 4.5, c.PW - 2 * c.M, 7, 'F');
+  d.setTextColor(255); d.setFont('helvetica', 'bold'); d.setFontSize(10.5); d.text('Inmeten (plattegronden & foto\'s)', c.M + 2, c.yy); d.setTextColor(0); c.yy += 7;
+  for(const v of verds){
+    if(c.yy > c.PH - 75){ d.addPage(); c.yy = c.M; }
+    d.setFont('helvetica', 'bold'); d.setFontSize(11);
+    const area = imArea(v);
+    d.text(imPdfClean(`${v.naam || 'Verdieping'}${v.hoogte ? '  -  h ' + v.hoogte + ' m' : ''}${area ? '  -  ' + area.toFixed(2) + ' m2' : ''}`), c.M, c.yy); c.yy += 4;
+    d.setFont('helvetica', 'normal');
+    if(v.sketch && v.sketch.gesloten && imReal(v)){
+      const planH = 60; imPdfPlan(d, v, c.M, c.yy, 96, planH); c.yy += planH + 3;
+    } else { d.setFontSize(9); d.setTextColor(120); d.text('(geen volledige plattegrond)', c.M, c.yy + 3); d.setTextColor(0); c.yy += 8; }
+    for(const ft of (v.fotos || [])){
+      const imgW = 58, imgH = 43;
+      if(c.yy > c.PH - (imgH + 8)){ d.addPage(); c.yy = c.M; }
+      let durl = _imUrl[ft.foto]; if(!durl){ durl = await imPhotoGet(ft.foto); if(durl) _imUrl[ft.foto] = durl; }
+      if(durl){ try { d.addImage(durl, 'JPEG', c.M, c.yy, imgW, imgH); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(c.M, c.yy, imgW, imgH);
+        (ft.marks || []).forEach((m, i) => { const cx = c.M + m.x * imgW, cy = c.yy + m.y * imgH; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.2, 'F'); d.setTextColor(255); d.setFontSize(7); d.text(String(i + 1), cx, cy + 1.1, { align: 'center' }); }); d.setTextColor(0);
+      }
+      let ty = c.yy + 3.5; d.setFontSize(8.5);
+      const marks = ft.marks || [];
+      if(!marks.length) d.text('(geen markeringen)', c.M + imgW + 4, ty);
+      marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), c.M + imgW + 4, ty); ty += 4.4; });
+      c.yy += Math.max(imgH, ty - c.yy) + 5;
+    }
+    c.yy += 3;
+  }
+}
+async function imMakePdfDoc(){
+  const jsPDF = await imLoadJsPDF();
+  const c = { doc: new jsPDF({ unit: 'mm', format: 'a4' }), PW: 210, PH: 297, M: 12, yy: 12 };
+  imPdfHeader(c);
+  if(typeof collectSummary === 'function'){ try { imPdfSummary(c, collectSummary()); } catch(e){} }
+  await imPdfInmeet(c);
+  return c.doc;
+}
+async function imBuildPdf(){
+  const btn = $('#im-pdf'), orig = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'PDF maken…'; }
+  try { const doc = await imMakePdfDoc(); doc.save('opname_' + imPdfSafeName() + '.pdf'); }
+  catch(e){ alert('PDF maken mislukt: ' + ((e && e.message) || e)); }
   finally { if(btn){ btn.disabled = false; btn.textContent = orig || '📄 PDF-uitdraai (download)'; } }
 }
+async function imPdfBase64(){   // PDF als base64 (zonder data-URL prefix) voor de e-mail-bijlage
+  const doc = await imMakePdfDoc(), durl = doc.output('datauristring');
+  return durl.substring(durl.indexOf('base64,') + 7);
+}
+window.imPdfBase64 = imPdfBase64;
 
 window.imRender = imRender;
 window.addEventListener('DOMContentLoaded', imRender);
