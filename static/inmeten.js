@@ -240,8 +240,52 @@ function imUpdateZoneAreas(vid){
   if(sb) sb.textContent = '· ' + reg.areaB.toFixed(2) + ' m²';
 }
 
+// --- foto-opslag in IndexedDB (localStorage is te klein voor foto's) ---
+let _imDB = null;
+function imDB(){
+  if(_imDB) return _imDB;
+  _imDB = new Promise((res, rej) => {
+    const r = indexedDB.open('vabi_inmeet', 1);
+    r.onupgradeneeded = () => { if(!r.result.objectStoreNames.contains('photos')) r.result.createObjectStore('photos'); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+  return _imDB;
+}
+async function imPhotoPut(id, blob){ const db = await imDB(); return new Promise((res, rej) => { const tx = db.transaction('photos', 'readwrite'); tx.objectStore('photos').put(blob, id); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); }
+async function imPhotoGet(id){ const db = await imDB(); return new Promise((res, rej) => { const rq = db.transaction('photos', 'readonly').objectStore('photos').get(id); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => rej(rq.error); }); }
+async function imPhotoDel(id){ if(!id) return; const db = await imDB(); return new Promise(res => { const tx = db.transaction('photos', 'readwrite'); tx.objectStore('photos').delete(id); tx.oncomplete = res; tx.onerror = res; }); }
+// verklein een camera-/galerijfoto naar max-zijde en lever een kleine JPEG-blob
+function imResizeToBlob(file, max, cb){
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => {
+    let w = img.width, h = img.height;
+    if(Math.max(w, h) > max){ const s = max / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    cv.toBlob(b => cb(b), 'image/jpeg', 0.72);
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); cb(null); };
+  img.src = url;
+}
+function imLoadThumbs(root){
+  $$('.op-thumb[data-foto]', root || document).forEach(img => {
+    if(img._fl) return; img._fl = true;
+    imPhotoGet(img.dataset.foto).then(b => { if(b){ const u = URL.createObjectURL(b); img.onload = () => URL.revokeObjectURL(u); img.src = u; } });
+  });
+}
+
 function imOpenHtml(vid, o){
   return `<div class="op" data-vid="${vid}" data-oid="${o.id}">
+    <div class="op-foto">
+      <input type="file" accept="image/*" capture="environment" class="op-cam" data-vid="${vid}" data-oid="${o.id}" hidden>
+      ${o.foto ? `<img class="op-thumb" data-foto="${imEsc(o.foto)}" alt="foto raam/deur">` : '<div class="op-thumb op-thumb-empty">geen foto</div>'}
+      <div class="op-foto-act">
+        <button type="button" class="op-cam-btn" data-vid="${vid}" data-oid="${o.id}">${o.foto ? '🔄 Vervang' : '📷 Foto maken'}</button>
+        ${o.foto ? `<button type="button" class="op-foto-del" data-vid="${vid}" data-oid="${o.id}">Verwijder foto</button>` : ''}
+      </div>
+    </div>
     <div class="row">
       <label>Type<select class="op-f" data-k="type" data-vid="${vid}" data-oid="${o.id}">
         <option value="raam"${o.type === 'raam' ? ' selected' : ''}>Raam</option>
@@ -369,8 +413,20 @@ function imBind(){
   $$('#inmeten .sk-undo').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch.punten.pop(); saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .sk-clear').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch = { punten: [], gesloten: false }; v.muren = []; v.selWall = null; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .vd-del').forEach(b => b.onclick = () => { if(confirm('Verdieping verwijderen?')){ const d = imData(); d.verdiepingen = d.verdiepingen.filter(v => v.id !== b.dataset.vid); saveDraft(); imRender(); } });
-  $$('#inmeten .op-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.openingen.push({ id: imId(), type: 'raam', m2: '', beglazing: '', notitie: '' }); saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .op-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.openingen = v.openingen.filter(o => o.id !== b.dataset.oid); saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .op-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.openingen.push({ id: imId(), type: 'raam', m2: '', beglazing: '', notitie: '', foto: null }); saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .op-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ const o = imOpen(b.dataset.vid, b.dataset.oid); if(o && o.foto) imPhotoDel(o.foto); v.openingen = v.openingen.filter(o => o.id !== b.dataset.oid); saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .op-cam-btn').forEach(b => b.onclick = () => { const inp = b.closest('.op-foto').querySelector('.op-cam'); if(inp) inp.click(); });
+  $$('#inmeten .op-cam').forEach(inp => inp.onchange = () => {
+    const file = inp.files && inp.files[0]; if(!file) return;
+    imResizeToBlob(file, 1280, blob => {
+      if(!blob){ alert('Foto kon niet verwerkt worden.'); return; }
+      const o = imOpen(inp.dataset.vid, inp.dataset.oid); if(!o) return;
+      if(o.foto) imPhotoDel(o.foto);
+      const id = imId();
+      imPhotoPut(id, blob).then(() => { o.foto = id; saveDraft(); imRenderCard(inp.dataset.vid); });
+    });
+  });
+  $$('#inmeten .op-foto-del').forEach(b => b.onclick = () => { const o = imOpen(b.dataset.vid, b.dataset.oid); if(o){ imPhotoDel(o.foto); o.foto = null; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .vd-f').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v[i.dataset.k] = i.value; saveDraft(); } });
   $$('#inmeten .wall-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v.muren[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   $$('#inmeten .zone-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ const names = (v.zone && v.zone.names) || ['Zone 1', 'Zone 2']; v.zone = { div: [], names, lens: [], sel: null }; v.zoneDraw = true; saveDraft(); imRenderCard(b.dataset.vid); } });
@@ -380,6 +436,7 @@ function imBind(){
   $$('#inmeten .zone-name').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v && v.zone){ if(!v.zone.names) v.zone.names = ['Zone 1', 'Zone 2']; v.zone.names[+i.dataset.z] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   $$('#inmeten .zone-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v && v.zone){ if(!v.zone.lens) v.zone.lens = []; v.zone.lens[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   $$('#inmeten .op-f').forEach(el => { const ev = el.tagName === 'SELECT' ? 'onchange' : 'oninput'; el[ev] = () => { const o = imOpen(el.dataset.vid, el.dataset.oid); if(o){ o[el.dataset.k] = el.value; saveDraft(); } }; });
+  imLoadThumbs(document);
 }
 
 window.imRender = imRender;
