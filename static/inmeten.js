@@ -200,13 +200,9 @@ function imSketchSvg(v){
 function imWallEditHtml(v){
   if(!v.sketch.gesloten) return '';
   const p = v.sketch.punten, sel = v.selWall;
-  if(sel == null || sel < 0 || sel >= p.length){
-    const allFilled = v.muren && v.muren.length === p.length && v.muren.every(m => (m || '').trim());
-    return `<p class="wall-hint">${allFilled ? 'Alle muren ingevuld — tik een muur om te wijzigen.' : 'Tik op een muur in de schets en vul de lengte in.'}</p>`;
-  }
-  const a = p[sel], b = p[(sel + 1) % p.length];
-  const horiz = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]);
-  return `<div class="wall-edit"><label>Muur ${sel + 1} ${horiz ? '↔ breedte' : '↕ hoogte'} (m)<input class="wall-len" inputmode="decimal" data-vid="${v.id}" data-i="${sel}" value="${imEsc((v.muren && v.muren[sel]) || '')}" placeholder="lengte in meter"></label></div>`;
+  if(sel != null && sel >= 0 && sel < p.length) return `<p class="wall-hint">Muur ${sel + 1} geselecteerd — vul de maat bovenin in.</p>`;
+  const allFilled = v.muren && v.muren.length === p.length && v.muren.every(m => (m || '').trim());
+  return `<p class="wall-hint">${allFilled ? 'Alle muren ingevuld — tik een muur om te wijzigen.' : 'Tik op een muur in de schets; de maat vul je bovenin in.'}</p>`;
 }
 
 function imZoneControlsHtml(v){
@@ -219,15 +215,15 @@ function imZoneControlsHtml(v){
   const reg = imRegionPolys(v);
   if(!reg) return `<button type="button" class="zone-add" data-vid="${v.id}">✏️ Teken zone-scheiding</button>`;
   const nm = v.zone.names || ['Zone 1', 'Zone 2'], sseg = v.zone.sel, nseg = reg.pts.length - 1;
-  const segEdit = (sseg != null && sseg >= 0 && sseg < nseg)
-    ? `<div class="wall-edit"><label>Scheidingsmuur ${sseg + 1} (m)<input class="zone-len" inputmode="decimal" data-vid="${v.id}" data-i="${sseg}" value="${imEsc((v.zone.lens && v.zone.lens[sseg]) || reg.lens[sseg].toFixed(2))}" placeholder="lengte in meter"></label></div>`
-    : `<p class="wall-hint">Tik op een scheidingsmuur in de schets om de maat in te vullen.</p>`;
+  const segHint = (sseg != null && sseg >= 0 && sseg < nseg)
+    ? `<p class="wall-hint">Scheidingsmuur ${sseg + 1} geselecteerd — vul de maat bovenin in.</p>`
+    : `<p class="wall-hint">Tik op een scheidingsmuur in de schets; de maat vul je bovenin in.</p>`;
   return `<div class="zone-box">
     <div class="zone-names">
       <label>Naam zone 1 <span class="zone-area" data-z="0">· ${reg.areaA.toFixed(2)} m²</span><input class="zone-name" data-vid="${v.id}" data-z="0" value="${imEsc(nm[0])}"></label>
       <label>Naam zone 2 <span class="zone-area" data-z="1">· ${reg.areaB.toFixed(2)} m²</span><input class="zone-name" data-vid="${v.id}" data-z="1" value="${imEsc(nm[1])}"></label>
     </div>
-    ${segEdit}
+    ${segHint}
     <div class="sketch-act"><button type="button" class="zone-add" data-vid="${v.id}">✏️ Opnieuw tekenen</button><button type="button" class="zone-del" data-vid="${v.id}">Verwijderen</button></div>
   </div>`;
 }
@@ -298,30 +294,69 @@ function imLoadImages(root){
 function imFoto(vid, fid){ const v = imVerd(vid); return v && v.fotos ? v.fotos.find(f => f.id === fid) : null; }
 function imMark(vid, fid, mid){ const f = imFoto(vid, fid); return f ? (f.marks || []).find(m => m.id === mid) : null; }
 
-function imMarkEditHtml(vid, ft, m, nr){
-  return `<div class="mark-edit">
-    <div class="mark-edit-h">Markering ${nr}<button type="button" class="mark-del" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}">verwijder</button></div>
-    <div class="row">
-      <label>Type<select class="mk-f" data-k="type" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}">
-        <option value="raam"${m.type === 'raam' ? ' selected' : ''}>Raam</option>
-        <option value="deur"${m.type === 'deur' ? ' selected' : ''}>Deur</option></select></label>
-      <label>Oppervlak (m²)<input class="mk-f" data-k="m2" inputmode="decimal" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}" value="${imEsc(m.m2)}"></label>
-    </div>
-    <label>Beglazing<select class="mk-f" data-k="beglazing" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}">
-      <option value=""${!m.beglazing ? ' selected' : ''}>— kies —</option>
-      ${BEGLAZING.map(b => `<option${m.beglazing === b ? ' selected' : ''}>${imEsc(b)}</option>`).join('')}</select></label>
-  </div>`;
+// --- vaste invul-balk bovenin (boven het toetsenbord); veld verschijnt hier i.p.v. onder de tik ---
+let _imActive = null;   // { vid, type:'wall'|'zone'|'mark', fid? } | null
+function imBar(){ let b = document.getElementById('im-editbar'); if(!b){ b = document.createElement('div'); b.id = 'im-editbar'; b.className = 'im-editbar'; b.hidden = true; document.body.appendChild(b); } return b; }
+function imRenderEditBar(){
+  const bar = imBar(), a = _imActive;
+  const hide = () => { _imActive = null; bar.hidden = true; bar.innerHTML = ''; };
+  if(!a){ bar.hidden = true; bar.innerHTML = ''; return; }
+  const v = imVerd(a.vid); if(!v) return hide();
+  let inner = '';
+  if(a.type === 'wall'){
+    const p = v.sketch.punten, sel = v.selWall; if(sel == null || sel >= p.length) return hide();
+    const A = p[sel], B = p[(sel + 1) % p.length], horiz = Math.abs(B[0] - A[0]) >= Math.abs(B[1] - A[1]);
+    inner = `<span class="im-bar-lbl">Muur ${sel + 1} ${horiz ? '↔' : '↕'} (m)</span><input class="im-bar-in im-wall-len" inputmode="decimal" data-vid="${a.vid}" data-i="${sel}" value="${imEsc((v.muren && v.muren[sel]) || '')}" placeholder="meter">`;
+  } else if(a.type === 'zone'){
+    const reg = imRegionPolys(v), sseg = v.zone && v.zone.sel; if(!reg || sseg == null) return hide();
+    inner = `<span class="im-bar-lbl">Scheidingsmuur ${sseg + 1} (m)</span><input class="im-bar-in im-zone-len" inputmode="decimal" data-vid="${a.vid}" data-i="${sseg}" value="${imEsc((v.zone.lens && v.zone.lens[sseg]) || reg.lens[sseg].toFixed(2))}" placeholder="meter">`;
+  } else if(a.type === 'mark'){
+    const ft = imFoto(a.vid, a.fid), m = ft && (ft.marks || []).find(x => x.id === ft.sel); if(!m) return hide();
+    const nr = ft.marks.indexOf(m) + 1;
+    inner = `<span class="im-bar-lbl">Raam/deur ${nr}</span>
+      <select class="im-bar-sel im-mk" data-k="type" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value="raam"${m.type === 'raam' ? ' selected' : ''}>Raam</option><option value="deur"${m.type === 'deur' ? ' selected' : ''}>Deur</option></select>
+      <input class="im-bar-in im-mk" data-k="m2" inputmode="decimal" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}" value="${imEsc(m.m2)}" placeholder="m²">
+      <select class="im-bar-sel im-mk" data-k="beglazing" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value=""${!m.beglazing ? ' selected' : ''}>beglazing…</option>${BEGLAZING.map(b => `<option${m.beglazing === b ? ' selected' : ''}>${imEsc(b)}</option>`).join('')}</select>`;
+  } else return hide();
+  bar.innerHTML = `<div class="im-bar-row">${inner}<button type="button" class="im-bar-done">Klaar</button></div>`;
+  bar.hidden = false; imBindBar();
 }
+function imFocusBar(){ const inp = imBar().querySelector('.im-bar-in'); if(inp){ inp.focus({ preventScroll: true }); if(inp.select) try { inp.select(); } catch(e){} } }
+function imBindBar(){
+  const bar = imBar();
+  bar.querySelectorAll('.im-wall-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v.muren[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
+  bar.querySelectorAll('.im-zone-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v && v.zone){ if(!v.zone.lens) v.zone.lens = []; v.zone.lens[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
+  bar.querySelectorAll('.im-mk').forEach(el => { const ev = el.tagName === 'SELECT' ? 'onchange' : 'oninput'; el[ev] = () => { const m = imMark(el.dataset.vid, el.dataset.fid, el.dataset.mid); if(m){ m[el.dataset.k] = el.value; saveDraft(); } }; });
+  const done = bar.querySelector('.im-bar-done'); if(done) done.onclick = imCloseBar;
+}
+function imCloseBar(){
+  const a = _imActive; _imActive = null;
+  if(a){ const v = imVerd(a.vid); if(v){ if(a.type === 'wall') v.selWall = null; else if(a.type === 'zone'){ if(v.zone) v.zone.sel = null; } else if(a.type === 'mark'){ const f = imFoto(a.vid, a.fid); if(f) f.sel = null; } } saveDraft(); if(a) imRenderCard(a.vid); }
+  imRenderEditBar();
+}
+function imSelect(active){   // 1 selectie tegelijk; imRenderCard rendert de balk -> focus die
+  const v = imVerd(active.vid); if(!v) return;
+  if(_imActive && _imActive.vid !== active.vid){    // selectie op een andere kaart opruimen
+    const pv = imVerd(_imActive.vid);
+    if(pv){ pv.selWall = null; if(pv.zone) pv.zone.sel = null; (pv.fotos || []).forEach(f => f.sel = null);
+      const pc = $(`#inmeten .vd[data-vid="${_imActive.vid}"]`); if(pc) pc.outerHTML = imCardHtml(pv); }
+  }
+  v.selWall = null; if(v.zone) v.zone.sel = null; (v.fotos || []).forEach(f => f.sel = null);
+  if(active.type === 'wall') v.selWall = active.i;
+  else if(active.type === 'zone'){ if(v.zone) v.zone.sel = active.i; }
+  else if(active.type === 'mark'){ const f = imFoto(active.vid, active.fid); if(f) f.sel = active.mid; }
+  _imActive = active; saveDraft(); imRenderCard(active.vid); imFocusBar();
+}
+
 function imFotoHtml(vid, ft){
-  const marks = ft.marks || [], sel = marks.find(m => m.id === ft.sel);
+  const marks = ft.marks || [];
   const pins = marks.map((m, i) => `<button type="button" class="foto-pin${ft.sel === m.id ? ' sel' : ''}" style="left:${(m.x * 100).toFixed(1)}%;top:${(m.y * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}">${i + 1}</button>`).join('');
   return `<div class="foto" data-vid="${vid}" data-fid="${ft.id}">
     <div class="foto-wrap" data-vid="${vid}" data-fid="${ft.id}">
       <img class="foto-img" data-foto="${imEsc(ft.foto)}" alt="foto ramen/deuren">
       ${pins}
     </div>
-    <p class="foto-hint">${marks.length ? 'Tik op een raam/deur in de foto, of tik een bestaand bolletje aan om te wijzigen.' : 'Tik op elk raam/deur in de foto om te markeren en de maten in te vullen.'}</p>
-    ${sel ? imMarkEditHtml(vid, ft, sel, marks.indexOf(sel) + 1) : ''}
+    <p class="foto-hint">${marks.length ? 'Tik een raam/deur aan in de foto, of een bestaand bolletje — de gegevens vul je bovenin in.' : 'Tik op elk raam/deur in de foto; de gegevens vul je bovenin in.'}${ft.sel ? ' <button type="button" class="mark-del" data-vid="' + vid + '" data-fid="' + ft.id + '" data-mid="' + ft.sel + '">verwijder bolletje</button>' : ''}</p>
     <button type="button" class="foto-del" data-vid="${vid}" data-fid="${ft.id}">Foto verwijderen</button>
   </div>`;
 }
@@ -349,11 +384,11 @@ function imCardHtml(v){
 function imRender(){
   const host = $('#inmeten'); if(!host) return;
   host.innerHTML = imData().verdiepingen.map(imCardHtml).join('') + `<button type="button" id="vd-add" class="vd-add-btn">+ Verdieping toevoegen</button>`;
-  imBind();
+  imBind(); imRenderEditBar();
 }
 function imRenderCard(vid){
   const card = $(`#inmeten .vd[data-vid="${vid}"]`); const v = imVerd(vid); if(!card || !v) return;
-  card.outerHTML = imCardHtml(v); imBind();
+  card.outerHTML = imCardHtml(v); imBind(); imRenderEditBar();
 }
 function imRefreshSketch(vid){   // alleen schets + oppervlak verversen (zonder de muur-inputs te herbouwen -> focus blijft)
   const v = imVerd(vid), card = $(`#inmeten .vd[data-vid="${vid}"]`); if(!v || !card) return;
@@ -378,8 +413,7 @@ function imTap(vid, sx, sy){
     const last = p[p.length - 1];
     // sluiten? dichtbij eerste punt + minstens 3 hoeken
     if(p.length >= 3 && Math.hypot(sx - p[0][0], sy - p[0][1]) < 16){
-      v.sketch.gesloten = true; v.muren = p.map(() => ''); v.selWall = 0; saveDraft(); imRenderCard(vid);
-      const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp) inp.focus({ preventScroll: true });
+      v.sketch.gesloten = true; v.muren = p.map(() => ''); imSelect({ vid, type: 'wall', i: 0 });
       return;
     }
     // haaks maken t.o.v. vorige punt
@@ -426,13 +460,11 @@ function imBindPlan(root){   // bindt teken-taps (open) + muur-taps (gesloten) +
 }
 function imSelZWall(vid, i){
   const v = imVerd(vid); if(!v || !v.zone) return;
-  v.zone.sel = i; saveDraft(); imRenderCard(vid);
-  const inp = $(`#inmeten .vd[data-vid="${vid}"] .zone-len`); if(inp){ inp.focus({ preventScroll: true }); if(inp.select) inp.select(); }
+  imSelect({ vid, type: 'zone', i });
 }
 function imSelWall(vid, i){
   const v = imVerd(vid); if(!v) return;
-  v.selWall = i; saveDraft(); imRenderCard(vid);
-  const inp = $(`#inmeten .vd[data-vid="${vid}"] .wall-len`); if(inp){ inp.focus({ preventScroll: true }); if(inp.select) inp.select(); }
+  imSelect({ vid, type: 'wall', i });
 }
 function imBind(){
   const add = $('#vd-add'); if(add) add.onclick = () => { const d = imData(), nr = d.verdiepingen.length; d.verdiepingen.push({ id: imId(), naam: nr === 0 ? 'Begane grond' : nr + 'e verdieping', sketch: { punten: [], gesloten: false }, muren: [], hoogte: '', fotos: [] }); saveDraft(); imRender(); };
@@ -460,20 +492,17 @@ function imBind(){
     const rect = w.getBoundingClientRect();
     const x = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)), y = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
     if(!f.marks) f.marks = [];
-    const id = imId(); f.marks.push({ id, x, y, type: 'raam', m2: '', beglazing: '' }); f.sel = id;
-    saveDraft(); imRenderCard(w.dataset.vid);
+    const id = imId(); f.marks.push({ id, x, y, type: 'raam', m2: '', beglazing: '' });
+    imSelect({ vid: w.dataset.vid, type: 'mark', fid: w.dataset.fid, mid: id });
   });
-  $$('#inmeten .foto-pin').forEach(p => p.onclick = e => { e.stopPropagation(); const f = imFoto(p.dataset.vid, p.dataset.fid); if(f){ f.sel = p.dataset.mid; saveDraft(); imRenderCard(p.dataset.vid); } });
-  $$('#inmeten .mark-del').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.marks = (f.marks || []).filter(m => m.id !== b.dataset.mid); if(f.sel === b.dataset.mid) f.sel = null; saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .mk-f').forEach(el => { const ev = el.tagName === 'SELECT' ? 'onchange' : 'oninput'; el[ev] = () => { const m = imMark(el.dataset.vid, el.dataset.fid, el.dataset.mid); if(m){ m[el.dataset.k] = el.value; saveDraft(); } }; });
+  $$('#inmeten .foto-pin').forEach(p => p.onclick = e => { e.stopPropagation(); imSelect({ vid: p.dataset.vid, type: 'mark', fid: p.dataset.fid, mid: p.dataset.mid }); });
+  $$('#inmeten .mark-del').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.marks = (f.marks || []).filter(m => m.id !== b.dataset.mid); if(f.sel === b.dataset.mid){ f.sel = null; _imActive = null; } saveDraft(); imRenderCard(b.dataset.vid); imRenderEditBar(); } });
   $$('#inmeten .vd-f').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v[i.dataset.k] = i.value; saveDraft(); } });
-  $$('#inmeten .wall-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v.muren[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   $$('#inmeten .zone-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ const names = (v.zone && v.zone.names) || ['Zone 1', 'Zone 2']; v.zone = { div: [], names, lens: [], sel: null }; v.zoneDraw = true; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .zone-undo').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v && v.zone){ v.zone.div.pop(); saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .zone-cancel').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.zoneDraw = false; v.zone = null; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .zone-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.zone = null; v.zoneDraw = false; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .zone-name').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v && v.zone){ if(!v.zone.names) v.zone.names = ['Zone 1', 'Zone 2']; v.zone.names[+i.dataset.z] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
-  $$('#inmeten .zone-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v && v.zone){ if(!v.zone.lens) v.zone.lens = []; v.zone.lens[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   imLoadImages(document);
 }
 
