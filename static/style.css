@@ -102,6 +102,7 @@ textarea{resize:vertical}
 .vd-del{flex:0 0 auto;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#d9480f;font-size:18px;line-height:1;cursor:pointer}
 .plan{display:block;width:100%;max-width:480px;height:auto;margin:2px auto 8px;background:#fff;border:1px solid var(--line);border-radius:8px;touch-action:manipulation}
 .plan-draw{cursor:crosshair;border-color:var(--blue)}
+.plan-zonedraw{cursor:crosshair;border:2px solid #7a4ac0;box-shadow:0 0 0 2px rgba(122,74,192,.2)}  /* zone-teken-stand duidelijk zichtbaar */
 .plan-grid{stroke:#eef2f4;stroke-width:1}
 .plan-line{fill:none;stroke:var(--blue);stroke-width:2;stroke-dasharray:4 3}
 .plan-pt{fill:var(--blue)}
