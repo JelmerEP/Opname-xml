@@ -107,7 +107,7 @@ function imSnapEnd(real, e, r){                    // eindpunt loodrecht op de m
 // --- zones: meerdere getekende vlakken op de plattegrond (echte coords), elk met naam + oppervlak ---
 // effectieve zone-geometrie: getekende richtingen + (ingevoerde of afgeleide of getekende) lengtes,
 // verankerd aan de eerste hoek (zo blijft een zone die op een plattegrond-hoek begint daar vastzitten)
-function imZoneGeom(z){
+function imZoneGeom(v, z){
   if(!z || !z.gesloten || !z.pts || z.pts.length < 3) return null;
   const pts = z.pts, n = pts.length, dirs = [], lens = [], derived = [];
   for(let i = 0; i < n; i++){ const a = pts[i], b = pts[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1]; dirs.push(Math.abs(dx) >= Math.abs(dy) ? [Math.sign(dx) || 1, 0] : [0, Math.sign(dy) || 1]); const mu = imNum((z.muren || [])[i]); lens.push(mu > 0 ? mu : 0); derived.push(false); }
@@ -119,13 +119,34 @@ function imZoneGeom(z){
   for(let i = 0; i < n; i++){ if(!(lens[i] > 0)){ const a = pts[i], b = pts[(i + 1) % n]; lens[i] = Math.hypot(b[0] - a[0], b[1] - a[1]); } }   // rest: getekende maat
   const rc = [pts[0].slice()]; let x = pts[0][0], y = pts[0][1];
   for(let i = 0; i < n; i++){ x += dirs[i][0] * lens[i]; y += dirs[i][1] * lens[i]; rc.push([x, y]); }
-  return { pts: rc.slice(0, n), dirs, lens, derived };
+  let poly = rc.slice(0, n);
+  const rr = v && imReal(v), real = rr ? rr.slice(0, rr.length - 1) : null;
+  if(real){                                       // nooit buiten de plattegrond: hoeken klemmen op de bbox
+    const xs = real.map(c => c[0]), ys = real.map(c => c[1]), minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+    poly = poly.map(c => [Math.max(minx, Math.min(maxx, c[0])), Math.max(miny, Math.min(maxy, c[1]))]);
+  }
+  const onPlan = poly.map((c, i) => real ? imWallOnPlan(real, c, poly[(i + 1) % n]) : false);
+  const lens2 = poly.map((c, i) => { const b = poly[(i + 1) % n]; return Math.hypot(b[0] - c[0], b[1] - c[1]); });
+  return { pts: poly, dirs, lens: lens2, derived, onPlan };
 }
-function imZoneArea(z){ const g = imZoneGeom(z); return g ? imPolyArea(g.pts) : 0; }
+function imZoneArea(v, z){ const g = imZoneGeom(v, z); return g ? imPolyArea(g.pts) : 0; }
 function imZoneById(v, id){ return (v.zones || []).find(z => z.id === id) || null; }
 function imZoneDrawing(v){ return v.zoneDraw ? imZoneById(v, v.zoneDraw) : null; }
 // snap een echt-coördinaat naar plattegrond-hoekcoördinaten (zo pakt een zone-rand de muurlijn)
 function imSnapToPlan(real, pt, thr){ let x = pt[0], y = pt[1]; real.forEach(c => { if(Math.abs(c[0] - x) < thr) x = c[0]; if(Math.abs(c[1] - y) < thr) y = c[1]; }); return [x, y]; }
+// ligt zone-muur [a,b] op een plattegrond-muur (collineair + overlappend)? dan niet apart dimensioneren
+function imWallOnPlan(real, a, b){
+  const horiz = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]), tol = 0.06, ov = 0.05;
+  for(let i = 0; i < real.length; i++){
+    const c = real[i], d = real[(i + 1) % real.length], eh = Math.abs(d[0] - c[0]) >= Math.abs(d[1] - c[1]);
+    if(eh !== horiz) continue;
+    const k = horiz ? 1 : 0, j = horiz ? 0 : 1;       // k = constante as, j = loop-as
+    if(Math.abs(a[k] - c[k]) > tol) continue;
+    const lo = Math.max(Math.min(a[j], b[j]), Math.min(c[j], d[j])), hi = Math.min(Math.max(a[j], b[j]), Math.max(c[j], d[j]));
+    if(hi - lo > ov) return true;
+  }
+  return false;
+}
 
 function imGridBg(){
   let g = '';
@@ -158,15 +179,15 @@ function imSketchSvg(v){
   if(rc) inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-area">${imArea(v).toFixed(2)} m&#178;</text>`;
   else inner += `<text x="${SV_W / 2}" y="${SV_H / 2 + 5}" text-anchor="middle" class="plan-hint">tik een muur &amp; vul de lengte in</text>`;
   if(rc) (v.zones || []).forEach((z, zi) => {                  // getekende zones als gekleurde vlakken
-    const g = imZoneGeom(z); if(!g) return;
+    const g = imZoneGeom(v, z); if(!g) return;
     const zp = g.pts.map(toS), zm = imPolyMid(zp), nz = zp.length;
     inner += `<polygon points="${zp.map(c => c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ')}" class="zone-a"/>`;
-    inner += `<text x="${zm[0].toFixed(1)}" y="${(zm[1] - 2).toFixed(1)}" text-anchor="middle" class="zone-lbl">${imEsc(z.naam || ('Zone ' + (zi + 1)))}</text><text x="${zm[0].toFixed(1)}" y="${(zm[1] + 10).toFixed(1)}" text-anchor="middle" class="zone-lbl-area">${imZoneArea(z).toFixed(2)} m&#178;</text>`;
-    for(let i = 0; i < nz; i++){                                // maatlabels + aantikbare zone-muren
-      const a = zp[i], b = zp[(i + 1) % nz], mx2 = (a[0] + b[0]) / 2, my2 = (a[1] + b[1]) / 2, isS = z.wsel === i;
+    inner += `<text x="${zm[0].toFixed(1)}" y="${(zm[1] - 2).toFixed(1)}" text-anchor="middle" class="zone-lbl">${imEsc(z.naam || ('Zone ' + (zi + 1)))}</text><text x="${zm[0].toFixed(1)}" y="${(zm[1] + 10).toFixed(1)}" text-anchor="middle" class="zone-lbl-area">${imZoneArea(v, z).toFixed(2)} m&#178;</text>`;
+    for(let i = 0; i < nz; i++){                                // maatlabels + (alleen binnen-)muren aantikbaar
+      const a = zp[i], b = zp[(i + 1) % nz], mx2 = (a[0] + b[0]) / 2, my2 = (a[1] + b[1]) / 2, isS = z.wsel === i, op = g.onPlan[i];
       const zvert = Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1]);
-      inner += `<text x="${(mx2 + (zvert ? 6 : 0)).toFixed(1)}" y="${(my2 + (zvert ? 0 : -3)).toFixed(1)}" text-anchor="${zvert ? 'start' : 'middle'}"${zvert ? ' dominant-baseline="middle"' : ''} class="zone-dim${isS ? ' zone-dim-sel' : ''}">${g.lens[i].toFixed(2).replace('.', ',')}</text>`;
-      if(!v.zoneDraw) inner += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" class="zone-wall-hit" data-vid="${v.id}" data-zid="${z.id}" data-i="${i}"/>`;
+      inner += `<text x="${(mx2 + (zvert ? 6 : 0)).toFixed(1)}" y="${(my2 + (zvert ? 0 : -3)).toFixed(1)}" text-anchor="${zvert ? 'start' : 'middle'}"${zvert ? ' dominant-baseline="middle"' : ''} class="zone-dim${isS ? ' zone-dim-sel' : op ? ' plan-dim-auto' : ''}">${g.lens[i].toFixed(2).replace('.', ',')}</text>`;
+      if(!v.zoneDraw && !op) inner += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" class="zone-wall-hit" data-vid="${v.id}" data-zid="${z.id}" data-i="${i}"/>`;
     }
   });
   if(v.zoneDraw && rc){                                        // zone in aanbouw (teken-modus)
@@ -211,7 +232,7 @@ function imZoneControlsHtml(v){
     </div>`;
   }
   const zones = v.zones || [];
-  const list = zones.map((z, zi) => `<div class="zone-row"><input class="zone-name" data-vid="${v.id}" data-zid="${z.id}" value="${imEsc(z.naam || ('Zone ' + (zi + 1)))}"><span class="zone-area">${imZoneArea(z).toFixed(2)} m²</span><button type="button" class="zone-del" data-vid="${v.id}" data-zid="${z.id}">×</button></div>`).join('');
+  const list = zones.map((z, zi) => `<div class="zone-row"><input class="zone-name" data-vid="${v.id}" data-zid="${z.id}" value="${imEsc(z.naam || ('Zone ' + (zi + 1)))}"><span class="zone-area">${imZoneArea(v, z).toFixed(2)} m²</span><button type="button" class="zone-del" data-vid="${v.id}" data-zid="${z.id}">×</button></div>`).join('');
   return `<div class="zone-box">
     ${zones.length ? `<div class="zone-list">${list}</div><p class="wall-hint">Tik op een zonemuur in de schets om de maat in te vullen.</p>` : '<p class="wall-hint">Nog geen zones. Teken bv. een overloop als los vlak.</p>'}
     <button type="button" class="zone-add" data-vid="${v.id}">✏️ Zone tekenen</button>
@@ -421,7 +442,7 @@ function imZoneTap(vid, sx, sy){
   let r = [(sx - f.ox) / f.sc, (sy - f.oy) / f.sc];   // svg -> echte coords (inverse affien)
   const z = imZoneDrawing(v); if(!z) return; const pts = z.pts;
   const thr = Math.max(0.3, f.w * 0.04);
-  const grid = p => imSnapToPlan(f.real, [Math.round(p[0] / 0.1) * 0.1, Math.round(p[1] / 0.1) * 0.1], thr);   // 0,1 m-raster + plattegrond-hoeken
+  const grid = p => { const q = imSnapToPlan(f.real, [Math.round(p[0] / 0.1) * 0.1, Math.round(p[1] / 0.1) * 0.1], thr); return [Math.max(f.minx, Math.min(f.maxx, q[0])), Math.max(f.miny, Math.min(f.maxy, q[1]))]; };   // raster + plattegrond-hoeken, binnen de bbox
   if(pts.length === 0){ pts.push(grid(r)); saveDraft(); imRenderCard(vid); return; }
   const last = pts[pts.length - 1];
   if(pts.length >= 3 && Math.hypot(r[0] - pts[0][0], r[1] - pts[0][1]) < Math.max(0.35, f.w * 0.04)){   // sluiten
@@ -515,11 +536,11 @@ function imPdfPlan(doc, v, x, y, maxW, maxH){
   doc.setLineWidth(0.3);
   doc.setFillColor(234, 242, 236); doc.setDrawColor(70); imPdfPoly(doc, real.map(P), 'FD');
   (v.zones || []).forEach(z => {                 // getekende zones als gekleurde vlakken
-    const g = imZoneGeom(z); if(!g) return;
+    const g = imZoneGeom(v, z); if(!g) return;
     const zp = g.pts.map(P);
     doc.setFillColor(214, 224, 245); doc.setDrawColor(122, 74, 192); imPdfPoly(doc, zp, 'FD');
     const zm = imPdfMid(zp); doc.setFontSize(6.5); doc.setTextColor(60);
-    doc.text(imPdfClean(z.naam || 'Zone'), zm[0], zm[1], { align: 'center' }); doc.text(imZoneArea(z).toFixed(1) + ' m2', zm[0], zm[1] + 2.8, { align: 'center' });
+    doc.text(imPdfClean(z.naam || 'Zone'), zm[0], zm[1], { align: 'center' }); doc.text(imZoneArea(v, z).toFixed(1) + ' m2', zm[0], zm[1] + 2.8, { align: 'center' });
     doc.setTextColor(0);
   });
   const n = real.length, ccx = real.reduce((s, c) => s + c[0], 0) / n, ccy = real.reduce((s, c) => s + c[1], 0) / n, mc = P([ccx, ccy]);
