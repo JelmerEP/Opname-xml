@@ -723,15 +723,27 @@ function imZoneSegGevel(seg, bb){
   if(horiz) return seg.a[1] > (bb.miny + bb.maxy) / 2 ? 'voor' : 'achter';
   return seg.a[0] < (bb.minx + bb.maxx) / 2 ? 'links' : 'rechts';
 }
+function imDimH(d, xa, xb, yy, txt, col){   // horizontale maatlijn met 45-graden streepjes
+  if(xb - xa < 1.5) return; const c = col || [110, 110, 110];
+  d.setDrawColor(c[0], c[1], c[2]); d.setLineWidth(0.2); d.line(xa, yy, xb, yy);
+  d.line(xa - 0.9, yy + 0.9, xa + 0.9, yy - 0.9); d.line(xb - 0.9, yy + 0.9, xb + 0.9, yy - 0.9);
+  d.setFontSize(7); d.setTextColor(c[0], c[1], c[2]); d.text(txt, (xa + xb) / 2, yy - 1.1, { align: 'center' }); d.setTextColor(0);
+}
+function imDimV(d, ya, yb, xx, txt, col){   // verticale maatlijn (ya onder = grote y, yb boven = kleine y)
+  if(ya - yb < 1.5) return; const c = col || [110, 110, 110];
+  d.setDrawColor(c[0], c[1], c[2]); d.setLineWidth(0.2); d.line(xx, ya, xx, yb);
+  d.line(xx - 0.9, ya - 0.9, xx + 0.9, ya + 0.9); d.line(xx - 0.9, yb - 0.9, xx + 0.9, yb + 0.9);
+  d.setFontSize(7); d.setTextColor(c[0], c[1], c[2]); d.text(txt, xx - 1.3, (ya + yb) / 2, { align: 'center', angle: 90 }); d.setTextColor(0);
+}
 // orthografisch aanzicht: voor/achter (as=x), links/rechts (as=y), boven (footprint x-y)
 function imPdfElevBox(d, floors, x, y, w, h, mode, label){
-  d.setFontSize(7); d.setTextColor(70); d.setFont('helvetica', 'bold'); d.text(label, x + w / 2, y, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
-  const by = y + 2, bh = h - 2, pad = 3;
+  d.setFontSize(8); d.setTextColor(70); d.setFont('helvetica', 'bold'); d.text(label, x + w / 2, y, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
+  const by = y + 2, bh = h - 2;
   d.setDrawColor(215); d.setLineWidth(0.2); d.rect(x, by, w, bh);
   const ax = [], ay = []; floors.forEach(f => f.real.forEach(p => { ax.push(p[0]); ay.push(p[1]); }));
   const bb = { minx: Math.min(...ax), maxx: Math.max(...ax), miny: Math.min(...ay), maxy: Math.max(...ay) };
   if(mode === 'boven'){
-    const fw = (bb.maxx - bb.minx) || 1, fh = (bb.maxy - bb.miny) || 1, s2 = Math.min((w - 2 * pad) / fw, (bh - 2 * pad) / fh);
+    const pad = 3, fw = (bb.maxx - bb.minx) || 1, fh = (bb.maxy - bb.miny) || 1, s2 = Math.min((w - 2 * pad) / fw, (bh - 2 * pad) / fh);
     const ox2 = x + (w - fw * s2) / 2 - bb.minx * s2, oy2 = by + (bh - fh * s2) / 2 - bb.miny * s2;
     d.setLineWidth(0.3);
     floors.forEach(f => { d.setFillColor(234, 242, 236); d.setDrawColor(70); imPdfPoly(d, f.real.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); });
@@ -741,19 +753,17 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
   const as = (mode === 'links' || mode === 'rechts') ? 1 : 0, mirror = (mode === 'achter' || mode === 'rechts');
   let amin = Infinity, amax = -Infinity, zmax = 0;
   floors.forEach(f => { f.real.forEach(c => { amin = Math.min(amin, c[as]); amax = Math.max(amax, c[as]); }); zmax = Math.max(zmax, f.z1); });
-  const aw = (amax - amin) || 1, s = Math.min((w - 2 * pad) / aw, (bh - 2 * pad) / (zmax || 1));
-  const ox = x + (w - aw * s) / 2, baseY = by + bh - pad;
+  const aw = (amax - amin) || 1, nf = floors.length;
+  const padL = 10, padR = 5, padT = 4, padB = 5 + nf * 4.6;        // ruimte voor maatlijnen (links hoogtes, onder breedtes)
+  const availW = w - padL - padR, availH = bh - padT - padB;
+  const s = Math.min(availW / aw, availH / (zmax || 1));
+  const ox = x + padL + (availW - aw * s) / 2, baseY = by + padT + availH;
   const aproj = v => { let p = v - amin; return mirror ? aw - p : p; };
+  const fext = f => { const vals = f.real.map(c => c[as]); let f0 = aproj(Math.min(...vals)), f1 = aproj(Math.max(...vals)); if(f0 > f1){ const t = f0; f0 = f1; f1 = t; } return [f0, f1]; };
   d.setLineWidth(0.3);
-  floors.forEach(f => {                                              // silhouet per verdieping + maten
-    const vals = f.real.map(c => c[as]); let f0 = aproj(Math.min(...vals)), f1 = aproj(Math.max(...vals));
-    if(f0 > f1){ const t = f0; f0 = f1; f1 = t; }
-    const rx = ox + f0 * s, rw = (f1 - f0) * s, ry = baseY - f.z1 * s, rh = (f.z1 - f.z0) * s;
-    d.setFillColor(231, 238, 241); d.setDrawColor(80); d.rect(rx, ry, rw, rh, 'FD');
-    d.setFontSize(6); d.setTextColor(90);
-    d.text((f1 - f0).toFixed(2), rx + rw / 2, ry + rh / 2 + 1, { align: 'center' });   // breedte
-    d.text((f.z1 - f.z0).toFixed(2), rx - 1, ry + rh / 2 + 1, { align: 'right' });      // hoogte
-    d.setTextColor(0);
+  floors.forEach(f => {                                            // silhouet (zonder losse tekst)
+    const [f0, f1] = fext(f);
+    d.setFillColor(231, 238, 241); d.setDrawColor(80); d.rect(ox + f0 * s, baseY - f.z1 * s, (f1 - f0) * s, (f.z1 - f.z0) * s, 'FD');
   });
   floors.forEach(f => f.zones.forEach(z => {                        // zone-strook op deze gevel (verliesoppervlak)
     const R = z.region, n = R.length;
@@ -766,11 +776,14 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
       const ew = (e1 - e0) * s; if(ew < 0.3) continue;
       d.setFillColor(206, 195, 235); d.setDrawColor(122, 74, 192); d.setLineWidth(0.3);
       d.rect(ox + e0 * s, baseY - f.z1 * s, ew, (f.z1 - f.z0) * s, 'FD');
-      d.setFontSize(5.5); d.setTextColor(90, 60, 150);
-      d.text((e1 - e0).toFixed(2), ox + (e0 + e1) / 2 * s, baseY - f.z0 * s - 1, { align: 'center' });
-      d.setTextColor(0);
+      if(ew > 6){ d.setFontSize(6); d.setTextColor(90, 60, 150); d.text((e1 - e0).toFixed(2), ox + (e0 + e1) / 2 * s, baseY - (f.z0 + f.z1) / 2 * s + 1, { align: 'center' }); d.setTextColor(0); }
     }
   }));
+  floors.forEach((f, i) => {                                        // maatlijnen: hoogte (links, gestapeld) + breedte (onder, gestapeld)
+    imDimV(d, baseY - f.z0 * s, baseY - f.z1 * s, x + padL - 4.5, (f.z1 - f.z0).toFixed(2));
+    const [f0, f1] = fext(f);
+    imDimH(d, ox + f0 * s, ox + f1 * s, baseY + 4.5 + i * 4.6, (f1 - f0).toFixed(2));
+  });
 }
 function imPdfElevations(c, x, y, w, h){
   const floors = imBuildFloors(); if(!floors.length) return false;
@@ -793,9 +806,9 @@ async function imPdfInmeet(c){
       if(c.yy > c.PH - 64){ d.addPage(); c.yy = c.M; }
       d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('3D-impressie (plat dak)', c.M, c.yy); d.setTextColor(0); c.yy += 2;
       const h3 = 58; if(imPdf3D(c, c.M, c.yy, c.PW - 2 * c.M, h3)) c.yy += h3 + 4;
-      if(c.yy > c.PH - 74){ d.addPage(); c.yy = c.M; }
+      const he = 150; if(c.yy > c.PH - (he + 8)){ d.addPage(); c.yy = c.M; }
       d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('Aanzichten', c.M, c.yy); d.setTextColor(0); c.yy += 2;
-      const he = 68; if(imPdfElevations(c, c.M, c.yy, c.PW - 2 * c.M, he)) c.yy += he + 4;
+      if(imPdfElevations(c, c.M, c.yy, c.PW - 2 * c.M, he)) c.yy += he + 4;
     } catch(e){ d.setTextColor(0); }
   }
   for(const v of verds){
