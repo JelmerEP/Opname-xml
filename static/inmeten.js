@@ -317,6 +317,7 @@ function imMark(vid, fid, mid){ const f = imFoto(vid, fid); return f ? (f.marks 
 
 // --- vaste invul-balk bovenin (boven het toetsenbord); veld verschijnt hier i.p.v. onder de tik ---
 let _imActive = null;   // { vid, type:'wall'|'zonewall'|'mark', fid?/zid? } | null
+let _imPosDrag = null;  // verdieping-sleep: { vid, sx, sy, dx0, dy0, a, d, sc } | null
 function imBar(){ let b = document.getElementById('im-editbar'); if(!b){ b = document.createElement('div'); b.id = 'im-editbar'; b.className = 'im-editbar'; b.hidden = true; document.body.appendChild(b); } return b; }
 function imRenderEditBar(){
   const bar = imBar(), a = _imActive;
@@ -386,6 +387,8 @@ function imFotoHtml(vid, ft){
 }
 
 function imCardHtml(v){
+  const vs = imData().verdiepingen, idx = vs.indexOf(v), prev = idx > 0 ? vs[idx - 1] : null;
+  const posBlock = (prev && prev.sketch && prev.sketch.gesloten && v.sketch.gesloten) ? imPosHtml(v, prev) : '';
   return `<div class="vd" data-vid="${v.id}">
     <div class="vd-head"><input class="vd-f vd-naam" data-k="naam" data-vid="${v.id}" value="${imEsc(v.naam)}" placeholder="Naam verdieping">
       <button type="button" class="vd-del" data-vid="${v.id}" title="Verwijder verdieping">×</button></div>
@@ -394,6 +397,7 @@ function imCardHtml(v){
       ${v.sketch.gesloten ? `<button type="button" class="sk-clear" data-vid="${v.id}">↺ Opnieuw tekenen</button>` :
         (v.sketch.punten.length ? `<button type="button" class="sk-undo" data-vid="${v.id}">↶ Laatste punt</button><button type="button" class="sk-clear" data-vid="${v.id}">↺ Wissen</button>` : '')}
     </div>
+    ${posBlock}
     ${imWallEditHtml(v)}
     ${imZoneControlsHtml(v)}
     <div class="row"><label>Hoogte (m)<input class="vd-f" data-k="hoogte" inputmode="decimal" data-vid="${v.id}" value="${imEsc(v.hoogte)}" placeholder="bv. 2.5"></label>
@@ -498,8 +502,30 @@ function imBind(){
   const add = $('#vd-add'); if(add) add.onclick = () => { const d = imData(), nr = d.verdiepingen.length; d.verdiepingen.push({ id: imId(), naam: nr === 0 ? 'Begane grond' : nr + 'e verdieping', sketch: { punten: [], gesloten: false }, muren: [], hoogte: '', fotos: [] }); saveDraft(); imRender(); };
   imBindPlan(document);
   $$('#inmeten .sk-undo').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch.punten.pop(); saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .sk-clear').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch = { punten: [], gesloten: false }; v.muren = []; v.selWall = null; v.zoneDraw = null; v.zones = []; _imActive = null; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .sk-clear').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch = { punten: [], gesloten: false }; v.muren = []; v.selWall = null; v.zoneDraw = null; v.zones = []; v.pos = null; _imActive = null; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .vd-del').forEach(b => b.onclick = () => { if(confirm('Verdieping verwijderen?')){ const d = imData(); d.verdiepingen = d.verdiepingen.filter(v => v.id !== b.dataset.vid); saveDraft(); imRender(); } });
+  $$('#inmeten .pos-reset').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.pos = null; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .pos-cur').forEach(el => {
+    if(el._b) return; el._b = true; el.style.touchAction = 'none';
+    el.addEventListener('pointerdown', e => {
+      const v = imVerd(el.dataset.vid); if(!v) return; e.preventDefault();
+      const svg = el.ownerSVGElement, ctm = svg.getScreenCTM(); if(!ctm) return;
+      const off = imFloorOffset(v);
+      _imPosDrag = { vid: el.dataset.vid, sx: e.clientX, sy: e.clientY, dx0: off.dx, dy0: off.dy, a: ctm.a || 1, d: ctm.d || 1, sc: parseFloat(svg.dataset.sc) || 1 };
+      try { el.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    el.addEventListener('pointermove', e => {
+      if(!_imPosDrag || _imPosDrag.vid !== el.dataset.vid) return;
+      el.setAttribute('transform', `translate(${(e.clientX - _imPosDrag.sx) / _imPosDrag.a},${(e.clientY - _imPosDrag.sy) / _imPosDrag.d})`);
+    });
+    const finish = e => {
+      if(!_imPosDrag || _imPosDrag.vid !== el.dataset.vid) return;
+      const v = imVerd(_imPosDrag.vid), p = _imPosDrag; _imPosDrag = null;
+      if(v){ let nd = { dx: p.dx0 + (e.clientX - p.sx) / (p.a * p.sc), dy: p.dy0 + (e.clientY - p.sy) / (p.d * p.sc) }; nd = imPosSnapOffset(v, nd); v.pos = nd; saveDraft(); imRenderCard(v.id); }
+    };
+    el.addEventListener('pointerup', finish);
+    el.addEventListener('pointercancel', () => { _imPosDrag = null; el.removeAttribute('transform'); });
+  });
   $$('#inmeten .foto-add').forEach(b => b.onclick = () => { const inp = b.parentElement.querySelector('.foto-cam'); if(inp) inp.click(); });
   $$('#inmeten .foto-cam').forEach(inp => inp.onchange = () => {
     const file = inp.files && inp.files[0]; if(!file) return;
@@ -612,14 +638,56 @@ function imPdfSummary(c, summary){
     c.yy += 3.5;
   }
 }
-function imBuildFloors(){           // verdiepingen met footprint + cumulatieve z-hoogtes (+ verdieping zelf)
+function imBbox(r){ const xs = r.map(p => p[0]), ys = r.map(p => p[1]); return { minx: Math.min(...xs), maxx: Math.max(...xs), miny: Math.min(...ys), maxy: Math.max(...ys) }; }
+function imFloorOffset(v){          // verschuiving van deze verdieping t.o.v. de 1e (handmatig v.pos, anders voorgevel-links uitlijnen)
+  if(v.pos && typeof v.pos.dx === 'number') return { dx: v.pos.dx, dy: v.pos.dy };
+  const rcv = imReal(v); if(!rcv) return { dx: 0, dy: 0 };
+  const first = imData().verdiepingen.find(x => imReal(x)); const rcf = first && imReal(first);
+  if(!rcf || first === v) return { dx: 0, dy: 0 };
+  const bv = imBbox(rcv), bf = imBbox(rcf);
+  return { dx: bf.minx - bv.minx, dy: bf.maxy - bv.maxy };       // voor = onder = max y -> lijn front + links uit
+}
+function imBuildFloors(){           // verdiepingen: uitgelijnde footprint + cumulatieve z-hoogtes + meegeschoven zones
   const floors = []; let zbase = 0;
   for(const v of imData().verdiepingen){
     const rc = imReal(v); if(!rc) continue;
+    const real0 = rc.slice(0, rc.length - 1);
+    const off = imFloorOffset(v), sh = p => [p[0] + off.dx, p[1] + off.dy];
+    const real = real0.map(sh);
+    const zones = (v.zones || []).map(z => { const g = imZoneGeom(v, z); return g ? { region: g.region.map(sh), area: g.area, naam: z.naam } : null; }).filter(Boolean);
     const hgt = imNum(v.hoogte) || 2.6;
-    floors.push({ real: rc.slice(0, rc.length - 1), z0: zbase, z1: zbase + hgt, v }); zbase += hgt;
+    floors.push({ real, real0, dx: off.dx, dy: off.dy, z0: zbase, z1: zbase + hgt, v, zones }); zbase += hgt;
   }
   return floors;
+}
+function imPosSnapOffset(v, nd){    // klik magnetisch vast op de hoeken van de verdieping eronder
+  const vs = imData().verdiepingen, idx = vs.indexOf(v), prev = idx > 0 ? vs[idx - 1] : null;
+  const rcv = imReal(v), rcp = prev && imReal(prev); if(!prev || !rcv || !rcp) return nd;
+  const po = imFloorOffset(prev), prevAbs = rcp.slice(0, rcp.length - 1).map(p => [p[0] + po.dx, p[1] + po.dy]);
+  const own = rcv.slice(0, rcv.length - 1), thr = 0.3;
+  let bdx = 0, bx = thr, bdy = 0, by = thr;
+  own.forEach(p => { const ax = p[0] + nd.dx, ay = p[1] + nd.dy; prevAbs.forEach(q => {
+    if(Math.abs(q[0] - ax) < bx){ bx = Math.abs(q[0] - ax); bdx = q[0] - ax; }
+    if(Math.abs(q[1] - ay) < by){ by = Math.abs(q[1] - ay); bdy = q[1] - ay; }
+  }); });
+  return { dx: nd.dx + bdx, dy: nd.dy + bdy };
+}
+function imPosHtml(v, prev){        // sleepvlak: verdieping eronder (grijs) + deze verdieping (sleepbaar)
+  const floors = imBuildFloors(), fv = floors.find(f => f.v === v), fp = floors.find(f => f.v === prev);
+  if(!fv || !fp) return '';
+  const all = fp.real.concat(fv.real), b = imBbox(all), span = Math.max(b.maxx - b.minx, b.maxy - b.miny) || 1, m = span * 0.35;
+  const minx = b.minx - m, miny = b.miny - m, rw = (b.maxx - b.minx) + 2 * m, rh = (b.maxy - b.miny) + 2 * m;
+  const SW = 320, sc = SW / rw, SH = Math.round(rh * sc);
+  const toS = p => ((p[0] - minx) * sc).toFixed(1) + ',' + ((p[1] - miny) * sc).toFixed(1);
+  const poly = (r, cls, extra) => `<polygon points="${r.map(toS).join(' ')}" class="${cls}"${extra || ''}/>`;
+  return `<div class="pos-wrap">
+    <p class="pos-hint">Sleep deze verdieping op zijn plek t.o.v. de verdieping eronder (grijs). Hij klikt vast op de hoeken.</p>
+    <svg class="pos-svg" viewBox="0 0 ${SW} ${SH}" data-sw="${SW}" data-sc="${sc.toFixed(4)}" preserveAspectRatio="xMidYMid meet">
+      ${poly(fp.real, 'pos-prev')}
+      ${poly(fv.real, 'pos-cur', ` data-vid="${v.id}"`)}
+    </svg>
+    <div class="pos-act"><button type="button" class="pos-reset" data-vid="${v.id}">⌖ Uitlijnen op voorgevel-links</button></div>
+  </div>`;
 }
 // 3D-massing: footprint(s) geextrudeerd + getekende zones bovenop de vloer (plat dak)
 function imPdf3D(c, x, y, w, h){
@@ -637,7 +705,7 @@ function imPdf3D(c, x, y, w, h){
     const n = f.real.length;
     for(let i = 0; i < n; i++){ const a = f.real[i], b = f.real[(i + 1) % n]; faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2, t: 'wall' }); }
     faces.push({ p: f.real.map(p => P(p[0], p[1], f.z1)), key: f.real.reduce((s, p) => s + p[0] + p[1], 0) / n + f.z1 + 0.01, t: 'top' });
-    (f.v.zones || []).forEach(z => { const g = imZoneGeom(f.v, z); if(!g) return; const m = imPolyMid(g.region); faces.push({ p: g.region.map(p => P(p[0], p[1], f.z1)), key: m[0] + m[1] + f.z1 + 0.03, t: 'zone' }); });
+    f.zones.forEach(z => { const m = imPolyMid(z.region); faces.push({ p: z.region.map(p => P(p[0], p[1], f.z1)), key: m[0] + m[1] + f.z1 + 0.03, t: 'zone' }); });
   });
   faces.sort((a, b) => a.key - b.key);
   d.setLineWidth(0.25);
@@ -667,7 +735,7 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
     const ox2 = x + (w - fw * s2) / 2 - bb.minx * s2, oy2 = by + (bh - fh * s2) / 2 - bb.miny * s2;
     d.setLineWidth(0.3);
     floors.forEach(f => { d.setFillColor(234, 242, 236); d.setDrawColor(70); imPdfPoly(d, f.real.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); });
-    floors.forEach(f => (f.v.zones || []).forEach(z => { const g = imZoneGeom(f.v, z); if(!g) return; d.setFillColor(214, 224, 245); d.setDrawColor(122, 74, 192); imPdfPoly(d, g.region.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); }));
+    floors.forEach(f => f.zones.forEach(z => { d.setFillColor(214, 224, 245); d.setDrawColor(122, 74, 192); imPdfPoly(d, z.region.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); }));
     return;
   }
   const as = (mode === 'links' || mode === 'rechts') ? 1 : 0, mirror = (mode === 'achter' || mode === 'rechts');
@@ -687,9 +755,8 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
     d.text((f.z1 - f.z0).toFixed(2), rx - 1, ry + rh / 2 + 1, { align: 'right' });      // hoogte
     d.setTextColor(0);
   });
-  floors.forEach(f => (f.v.zones || []).forEach(z => {              // zone-strook op deze gevel (verliesoppervlak)
-    const g = imZoneGeom(f.v, z); if(!g) return;
-    const R = g.region, n = R.length;
+  floors.forEach(f => f.zones.forEach(z => {                        // zone-strook op deze gevel (verliesoppervlak)
+    const R = z.region, n = R.length;
     for(let i = 0; i < n; i++){
       const a = R[i], b = R[(i + 1) % n];
       if(!imEdgeOnPlan(f.real, a, b)) continue;                     // alleen randen die op een buitenmuur liggen

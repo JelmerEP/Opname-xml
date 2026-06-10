@@ -151,6 +151,14 @@ textarea{resize:vertical}
 .zone-row .zone-name{flex:1;margin:0;font-size:14px}
 .zone-row .zone-area{flex:0 0 auto;white-space:nowrap}
 .zone-del{flex:0 0 auto;font-size:16px;line-height:1;color:#d9480f;background:#fff;border:1px solid #f3c4b0;border-radius:8px;padding:6px 11px;cursor:pointer}
+.pos-wrap{margin:0 0 10px;padding:8px;border:1px dashed #c9b8e6;border-radius:9px;background:#faf7ff}
+.pos-hint{margin:0 0 6px;font-size:12px;color:#6b4ca0}
+.pos-svg{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:8px;touch-action:none}
+.pos-prev{fill:rgba(120,130,140,.14);stroke:#9aa8b0;stroke-width:1.5;stroke-dasharray:5 3}
+.pos-cur{fill:rgba(122,74,192,.22);stroke:#7a4ac0;stroke-width:2;cursor:grab}
+.pos-cur:active{cursor:grabbing}
+.pos-act{display:flex;justify-content:center;margin:6px 0 0}
+.pos-reset{font-size:12px;color:#7a4ac0;background:#fff;border:1px solid #c9b8e6;border-radius:8px;padding:6px 11px;cursor:pointer}
 .vd-area{font-size:13px;color:var(--mut);margin:2px 0 4px}
 .vd-area strong{color:var(--blue);font-size:15px}
 .vd h4{font-size:12px;margin:12px 0 4px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
