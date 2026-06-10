@@ -66,7 +66,7 @@ def send():
         return jsonify({'error': 'geldig e-mailadres vereist'}), 400
     try:
         zip_bytes, naam = mapping.generate_zip(o, TPL)
-        pdf_bytes = report.build_pdf(summary, naam)
+        pdf_bytes = report.build_pdf(summary, naam, o.get('bag_x'), o.get('bag_y'))
     except Exception as e:
         return jsonify({'error': 'genereren mislukt: %s' % e}), 500
     base = (naam.replace(' ', '_').replace(',', '') or 'opname')

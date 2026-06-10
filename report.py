@@ -2,7 +2,8 @@
 """report.py - simpele PDF-uitdraai van een opname (back-up zodat gegevens niet verloren gaan).
 Krijgt een leesbare 'summary' binnen (door de frontend opgebouwd: label -> gekozen tekst per sectie),
 zodat hier geen code->label-vertaling nodig is."""
-import datetime
+import datetime, io
+import requests
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 
@@ -21,7 +22,26 @@ def _lat(s):
     return s.encode('latin-1', 'replace').decode('latin-1')
 
 
-def build_pdf(summary, titel):
+def _luchtfoto_bytes(x, y):
+    """PDOK ortho-luchtfoto (~40 m) rond het pand als JPEG-bytes; None bij ontbrekende coords of fout."""
+    try:
+        x, y = float(x), float(y)
+    except (TypeError, ValueError):
+        return None
+    d = 20
+    url = ('https://service.pdok.nl/hwh/luchtfotorgb/wms/v1_0?SERVICE=WMS&VERSION=1.1.1'
+           '&REQUEST=GetMap&LAYERS=Actueel_orthoHR&SRS=EPSG:28992&STYLES=&FORMAT=image/jpeg'
+           '&WIDTH=600&HEIGHT=600&BBOX=' + ','.join('%.2f' % v for v in (x - d, y - d, x + d, y + d)))
+    try:
+        r = requests.get(url, timeout=8)
+        if r.status_code == 200 and r.content[:2] == b'\xff\xd8':   # geldige JPEG
+            return r.content
+    except Exception:
+        pass
+    return None
+
+
+def build_pdf(summary, titel, bag_x=None, bag_y=None):
     """summary = [{'section': str, 'rows': [[label, value], ...]}, ...]. Geeft pdf-bytes."""
     pdf = FPDF()
     pdf.set_auto_page_break(True, 15)
@@ -34,6 +54,18 @@ def build_pdf(summary, titel):
     pdf.set_text_color(120)
     pdf.multi_cell(0, 6, _lat('EP-Wonen opname-uitdraai - ' + datetime.date.today().strftime('%d-%m-%Y')), **NL)
     pdf.ln(3)
+
+    img = _luchtfoto_bytes(bag_x, bag_y)      # luchtfoto bovenaan (optioneel)
+    if img:
+        try:
+            pdf.set_font('Helvetica', 'B', 10)
+            pdf.set_text_color(60)
+            pdf.multi_cell(0, 6, _lat('Luchtfoto'), **NL)
+            y0 = pdf.get_y()
+            pdf.image(io.BytesIO(img), x=pdf.l_margin, y=y0, w=56, h=56)
+            pdf.set_y(y0 + 59)
+        except Exception:
+            pass
 
     for sec in (summary or []):
         rows = [r for r in (sec.get('rows') or []) if r and len(r) >= 2]
