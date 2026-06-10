@@ -127,6 +127,7 @@ textarea{resize:vertical}
 /* zones (getekende vlakken op de plattegrond) */
 .zone-a{fill:rgba(122,74,192,.18);stroke:#7a4ac0;stroke-width:1.5}
 .zone-cut{fill:none;stroke:#7a4ac0;stroke-width:2.5;stroke-dasharray:6 4}
+.zone-cut-sel{stroke:#d9480f;stroke-width:3.5}
 .zone-line{fill:none;stroke:#7a4ac0;stroke-width:2;stroke-dasharray:5 3}
 .zone-pt{fill:#7a4ac0}
 .zone-pt-close{fill:var(--green);stroke:#fff;stroke-width:1.5}
