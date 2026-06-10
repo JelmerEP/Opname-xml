@@ -649,30 +649,37 @@ function imPdf3D(c, x, y, w, h){
   });
   return true;
 }
-// orthografisch aanzicht: voor/achter (as=x, z omhoog), zij (as=y), boven (footprint x-y)
+// gevel waar een zone-muurrand (onPlan, di<0) bij hoort. Voorgevel = altijd onder (max y).
+function imZoneSegGevel(seg, bb){
+  const horiz = Math.abs(seg.b[0] - seg.a[0]) >= Math.abs(seg.b[1] - seg.a[1]);
+  if(horiz) return seg.a[1] > (bb.miny + bb.maxy) / 2 ? 'voor' : 'achter';
+  return seg.a[0] < (bb.minx + bb.maxx) / 2 ? 'links' : 'rechts';
+}
+// orthografisch aanzicht: voor/achter (as=x), links/rechts (as=y), boven (footprint x-y)
 function imPdfElevBox(d, floors, x, y, w, h, mode, label){
   d.setFontSize(7); d.setTextColor(70); d.setFont('helvetica', 'bold'); d.text(label, x + w / 2, y, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
   const by = y + 2, bh = h - 2, pad = 3;
   d.setDrawColor(215); d.setLineWidth(0.2); d.rect(x, by, w, bh);
+  const ax = [], ay = []; floors.forEach(f => f.real.forEach(p => { ax.push(p[0]); ay.push(p[1]); }));
+  const bb = { minx: Math.min(...ax), maxx: Math.max(...ax), miny: Math.min(...ay), maxy: Math.max(...ay) };
   if(mode === 'boven'){
-    const ax = [], ay = []; floors.forEach(f => f.real.forEach(p => { ax.push(p[0]); ay.push(p[1]); }));
-    const mnx = Math.min(...ax), mxx = Math.max(...ax), mny = Math.min(...ay), mxy = Math.max(...ay);
-    const fw = (mxx - mnx) || 1, fh = (mxy - mny) || 1, s2 = Math.min((w - 2 * pad) / fw, (bh - 2 * pad) / fh);
-    const ox2 = x + (w - fw * s2) / 2 - mnx * s2, oy2 = by + (bh - fh * s2) / 2 - mny * s2;
+    const fw = (bb.maxx - bb.minx) || 1, fh = (bb.maxy - bb.miny) || 1, s2 = Math.min((w - 2 * pad) / fw, (bh - 2 * pad) / fh);
+    const ox2 = x + (w - fw * s2) / 2 - bb.minx * s2, oy2 = by + (bh - fh * s2) / 2 - bb.miny * s2;
     d.setLineWidth(0.3);
     floors.forEach(f => { d.setFillColor(234, 242, 236); d.setDrawColor(70); imPdfPoly(d, f.real.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); });
     floors.forEach(f => (f.v.zones || []).forEach(z => { const g = imZoneGeom(f.v, z); if(!g) return; d.setFillColor(214, 224, 245); d.setDrawColor(122, 74, 192); imPdfPoly(d, g.region.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); }));
     return;
   }
-  const as = mode === 'zij' ? 1 : 0, mirror = mode === 'achter';
+  const as = (mode === 'links' || mode === 'rechts') ? 1 : 0, mirror = (mode === 'achter' || mode === 'rechts');
   let amin = Infinity, amax = -Infinity, zmax = 0;
   floors.forEach(f => { f.real.forEach(c => { amin = Math.min(amin, c[as]); amax = Math.max(amax, c[as]); }); zmax = Math.max(zmax, f.z1); });
   const aw = (amax - amin) || 1, s = Math.min((w - 2 * pad) / aw, (bh - 2 * pad) / (zmax || 1));
   const ox = x + (w - aw * s) / 2, baseY = by + bh - pad;
+  const aproj = v => { let p = v - amin; return mirror ? aw - p : p; };
   d.setLineWidth(0.3);
-  floors.forEach(f => {
-    const vals = f.real.map(c => c[as]); let f0 = Math.min(...vals) - amin, f1 = Math.max(...vals) - amin;
-    if(mirror){ const t0 = aw - f1, t1 = aw - f0; f0 = t0; f1 = t1; }
+  floors.forEach(f => {                                              // silhouet per verdieping + maten
+    const vals = f.real.map(c => c[as]); let f0 = aproj(Math.min(...vals)), f1 = aproj(Math.max(...vals));
+    if(f0 > f1){ const t = f0; f0 = f1; f1 = t; }
     const rx = ox + f0 * s, rw = (f1 - f0) * s, ry = baseY - f.z1 * s, rh = (f.z1 - f.z0) * s;
     d.setFillColor(231, 238, 241); d.setDrawColor(80); d.rect(rx, ry, rw, rh, 'FD');
     d.setFontSize(6); d.setTextColor(90);
@@ -680,6 +687,23 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
     d.text((f.z1 - f.z0).toFixed(2), rx - 1, ry + rh / 2 + 1, { align: 'right' });      // hoogte
     d.setTextColor(0);
   });
+  floors.forEach(f => (f.v.zones || []).forEach(z => {              // zone-strook op deze gevel (verliesoppervlak)
+    const g = imZoneGeom(f.v, z); if(!g) return;
+    const R = g.region, n = R.length;
+    for(let i = 0; i < n; i++){
+      const a = R[i], b = R[(i + 1) % n];
+      if(!imEdgeOnPlan(f.real, a, b)) continue;                     // alleen randen die op een buitenmuur liggen
+      if(imZoneSegGevel({ a, b }, bb) !== mode) continue;
+      let e0 = aproj(Math.min(a[as], b[as])), e1 = aproj(Math.max(a[as], b[as]));
+      if(e0 > e1){ const t = e0; e0 = e1; e1 = t; }
+      const ew = (e1 - e0) * s; if(ew < 0.3) continue;
+      d.setFillColor(206, 195, 235); d.setDrawColor(122, 74, 192); d.setLineWidth(0.3);
+      d.rect(ox + e0 * s, baseY - f.z1 * s, ew, (f.z1 - f.z0) * s, 'FD');
+      d.setFontSize(5.5); d.setTextColor(90, 60, 150);
+      d.text((e1 - e0).toFixed(2), ox + (e0 + e1) / 2 * s, baseY - f.z0 * s - 1, { align: 'center' });
+      d.setTextColor(0);
+    }
+  }));
 }
 function imPdfElevations(c, x, y, w, h){
   const floors = imBuildFloors(); if(!floors.length) return false;
@@ -687,8 +711,8 @@ function imPdfElevations(c, x, y, w, h){
   const cw = (w - 9) / 2, ch = (h - 6) / 2;
   imPdfElevBox(c.doc, floors, x, y, cw, ch, 'voor', 'Voorgevel' + gv('voor'));
   imPdfElevBox(c.doc, floors, x + cw + 9, y, cw, ch, 'achter', 'Achtergevel' + gv('achter'));
-  imPdfElevBox(c.doc, floors, x, y + ch + 6, cw, ch, 'zij', 'Zijgevel' + gv('links'));
-  imPdfElevBox(c.doc, floors, x + cw + 9, y + ch + 6, cw, ch, 'boven', 'Bovenaanzicht');
+  imPdfElevBox(c.doc, floors, x, y + ch + 6, cw, ch, 'links', 'Linkergevel' + gv('links'));
+  imPdfElevBox(c.doc, floors, x + cw + 9, y + ch + 6, cw, ch, 'rechts', 'Rechtergevel' + gv('rechts'));
   return true;
 }
 async function imPdfInmeet(c){
