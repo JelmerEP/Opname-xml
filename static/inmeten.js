@@ -729,10 +729,26 @@ async function imPdfInmeet(c){
     c.yy += 3;
   }
 }
+function imLuchtfotoDataURL(){            // PDOK luchtfoto rond het pand als data-URL (voor de PDF)
+  return new Promise(res => {
+    const x = state.bag_x, y = state.bag_y; if(!x || !y) return res(null);
+    const d = 20, url = 'https://service.pdok.nl/hwh/luchtfotorgb/wms/v1_0?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=Actueel_orthoHR&SRS=EPSG:28992&STYLES=&FORMAT=image/jpeg&WIDTH=600&HEIGHT=600&BBOX=' + [x - d, y - d, x + d, y + d].join(',');
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => { try { const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; cv.getContext('2d').drawImage(img, 0, 0); res(cv.toDataURL('image/jpeg', 0.8)); } catch(e){ res(null); } };
+    img.onerror = () => res(null);
+    img.src = url;
+  });
+}
 async function imMakePdfDoc(){
   const jsPDF = await imLoadJsPDF();
   const c = { doc: new jsPDF({ unit: 'mm', format: 'a4' }), PW: 210, PH: 297, M: 12, yy: 12 };
   imPdfHeader(c);
+  try {
+    const lf = await imLuchtfotoDataURL();
+    if(lf){ const d = c.doc, w = 56, h = 56; if(c.yy + h > c.PH - 12){ d.addPage(); c.yy = c.M; }
+      d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('Luchtfoto', c.M, c.yy); d.setTextColor(0); c.yy += 2;
+      try { d.addImage(lf, 'JPEG', c.M, c.yy, w, h); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(c.M, c.yy, w, h); c.yy += h + 5; }
+  } catch(e){}
   if(typeof collectSummary === 'function'){ try { imPdfSummary(c, collectSummary()); } catch(e){} }
   await imPdfInmeet(c);
   return c.doc;
