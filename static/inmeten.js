@@ -587,17 +587,20 @@ function imPdfSummary(c, summary){
     c.yy += 3.5;
   }
 }
-// 3D-massing: footprint(s) geextrudeerd met de verdiepingshoogtes, isometrisch geprojecteerd (plat dak)
-function imPdf3D(c, x, y, w, h){
-  const d = c.doc, A = Math.PI / 6, ca = Math.cos(A), sa = Math.sin(A);
-  const iso = (X, Y, Z) => [(X - Y) * ca, (X + Y) * sa - Z];
+function imBuildFloors(){           // verdiepingen met footprint + cumulatieve z-hoogtes (+ verdieping zelf)
   const floors = []; let zbase = 0;
   for(const v of imData().verdiepingen){
     const rc = imReal(v); if(!rc) continue;
     const hgt = imNum(v.hoogte) || 2.6;
-    floors.push({ real: rc.slice(0, rc.length - 1), z0: zbase, z1: zbase + hgt }); zbase += hgt;
+    floors.push({ real: rc.slice(0, rc.length - 1), z0: zbase, z1: zbase + hgt, v }); zbase += hgt;
   }
-  if(!floors.length) return false;
+  return floors;
+}
+// 3D-massing: footprint(s) geextrudeerd + getekende zones bovenop de vloer (plat dak)
+function imPdf3D(c, x, y, w, h){
+  const d = c.doc, A = Math.PI / 6, ca = Math.cos(A), sa = Math.sin(A);
+  const iso = (X, Y, Z) => [(X - Y) * ca, (X + Y) * sa - Z];
+  const floors = imBuildFloors(); if(!floors.length) return false;
   const pts = []; floors.forEach(f => f.real.forEach(p => { pts.push(iso(p[0], p[1], f.z0)); pts.push(iso(p[0], p[1], f.z1)); }));
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
@@ -607,12 +610,55 @@ function imPdf3D(c, x, y, w, h){
   const faces = [];
   floors.forEach(f => {
     const n = f.real.length;
-    for(let i = 0; i < n; i++){ const a = f.real[i], b = f.real[(i + 1) % n]; faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2, top: false }); }
-    faces.push({ p: f.real.map(p => P(p[0], p[1], f.z1)), key: f.real.reduce((s, p) => s + p[0] + p[1], 0) / n + f.z1 + 0.01, top: true });
+    for(let i = 0; i < n; i++){ const a = f.real[i], b = f.real[(i + 1) % n]; faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2, t: 'wall' }); }
+    faces.push({ p: f.real.map(p => P(p[0], p[1], f.z1)), key: f.real.reduce((s, p) => s + p[0] + p[1], 0) / n + f.z1 + 0.01, t: 'top' });
+    (f.v.zones || []).forEach(z => { const g = imZoneGeom(f.v, z); if(!g) return; const m = imPolyMid(g.pts); faces.push({ p: g.pts.map(p => P(p[0], p[1], f.z1)), key: m[0] + m[1] + f.z1 + 0.03, t: 'zone' }); });
   });
   faces.sort((a, b) => a.key - b.key);
   d.setLineWidth(0.25);
-  faces.forEach(fc => { if(fc.top){ d.setFillColor(206, 223, 230); d.setDrawColor(60); } else { d.setFillColor(231, 238, 241); d.setDrawColor(120); } imPdfPoly(d, fc.p, 'FD'); });
+  faces.forEach(fc => {
+    if(fc.t === 'zone'){ d.setFillColor(196, 184, 230); d.setDrawColor(122, 74, 192); }
+    else if(fc.t === 'top'){ d.setFillColor(206, 223, 230); d.setDrawColor(60); }
+    else { d.setFillColor(231, 238, 241); d.setDrawColor(120); }
+    imPdfPoly(d, fc.p, 'FD');
+  });
+  return true;
+}
+// orthografisch aanzicht: voor/achter (as=x, z omhoog), zij (as=y), boven (footprint x-y)
+function imPdfElevBox(d, floors, x, y, w, h, mode, label){
+  d.setFontSize(7); d.setTextColor(70); d.setFont('helvetica', 'bold'); d.text(label, x + w / 2, y, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
+  const by = y + 2, bh = h - 2, pad = 3;
+  d.setDrawColor(215); d.setLineWidth(0.2); d.rect(x, by, w, bh);
+  if(mode === 'boven'){
+    const ax = [], ay = []; floors.forEach(f => f.real.forEach(p => { ax.push(p[0]); ay.push(p[1]); }));
+    const mnx = Math.min(...ax), mxx = Math.max(...ax), mny = Math.min(...ay), mxy = Math.max(...ay);
+    const fw = (mxx - mnx) || 1, fh = (mxy - mny) || 1, s2 = Math.min((w - 2 * pad) / fw, (bh - 2 * pad) / fh);
+    const ox2 = x + (w - fw * s2) / 2 - mnx * s2, oy2 = by + (bh - fh * s2) / 2 - mny * s2;
+    d.setLineWidth(0.3);
+    floors.forEach(f => { d.setFillColor(234, 242, 236); d.setDrawColor(70); imPdfPoly(d, f.real.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); });
+    floors.forEach(f => (f.v.zones || []).forEach(z => { const g = imZoneGeom(f.v, z); if(!g) return; d.setFillColor(214, 224, 245); d.setDrawColor(122, 74, 192); imPdfPoly(d, g.pts.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); }));
+    return;
+  }
+  const as = mode === 'zij' ? 1 : 0, mirror = mode === 'achter';
+  let amin = Infinity, amax = -Infinity, zmax = 0;
+  floors.forEach(f => { f.real.forEach(c => { amin = Math.min(amin, c[as]); amax = Math.max(amax, c[as]); }); zmax = Math.max(zmax, f.z1); });
+  const aw = (amax - amin) || 1, s = Math.min((w - 2 * pad) / aw, (bh - 2 * pad) / (zmax || 1));
+  const ox = x + (w - aw * s) / 2, baseY = by + bh - pad;
+  d.setLineWidth(0.3); d.setFillColor(231, 238, 241); d.setDrawColor(80);
+  floors.forEach(f => {
+    const vals = f.real.map(c => c[as]); let f0 = Math.min(...vals) - amin, f1 = Math.max(...vals) - amin;
+    if(mirror){ const t0 = aw - f1, t1 = aw - f0; f0 = t0; f1 = t1; }
+    d.rect(ox + f0 * s, baseY - f.z1 * s, (f1 - f0) * s, (f.z1 - f.z0) * s, 'FD');
+  });
+}
+function imPdfElevations(c, x, y, w, h){
+  const floors = imBuildFloors(); if(!floors.length) return false;
+  const gv = key => { const o = imGevelOrient(key); return o ? ' (' + o + ')' : ''; };
+  const cw = (w - 9) / 2, ch = (h - 6) / 2;
+  imPdfElevBox(c.doc, floors, x, y, cw, ch, 'voor', 'Voorgevel' + gv('voor'));
+  imPdfElevBox(c.doc, floors, x + cw + 9, y, cw, ch, 'achter', 'Achtergevel' + gv('achter'));
+  imPdfElevBox(c.doc, floors, x, y + ch + 6, cw, ch, 'zij', 'Zijgevel' + gv('links'));
+  imPdfElevBox(c.doc, floors, x + cw + 9, y + ch + 6, cw, ch, 'boven', 'Bovenaanzicht');
   return true;
 }
 async function imPdfInmeet(c){
@@ -626,6 +672,9 @@ async function imPdfInmeet(c){
       if(c.yy > c.PH - 64){ d.addPage(); c.yy = c.M; }
       d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('3D-impressie (plat dak)', c.M, c.yy); d.setTextColor(0); c.yy += 2;
       const h3 = 58; if(imPdf3D(c, c.M, c.yy, c.PW - 2 * c.M, h3)) c.yy += h3 + 4;
+      if(c.yy > c.PH - 74){ d.addPage(); c.yy = c.M; }
+      d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('Aanzichten', c.M, c.yy); d.setTextColor(0); c.yy += 2;
+      const he = 68; if(imPdfElevations(c, c.M, c.yy, c.PW - 2 * c.M, he)) c.yy += he + 4;
     } catch(e){ d.setTextColor(0); }
   }
   for(const v of verds){
