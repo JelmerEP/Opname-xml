@@ -669,11 +669,16 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
   floors.forEach(f => { f.real.forEach(c => { amin = Math.min(amin, c[as]); amax = Math.max(amax, c[as]); }); zmax = Math.max(zmax, f.z1); });
   const aw = (amax - amin) || 1, s = Math.min((w - 2 * pad) / aw, (bh - 2 * pad) / (zmax || 1));
   const ox = x + (w - aw * s) / 2, baseY = by + bh - pad;
-  d.setLineWidth(0.3); d.setFillColor(231, 238, 241); d.setDrawColor(80);
+  d.setLineWidth(0.3);
   floors.forEach(f => {
     const vals = f.real.map(c => c[as]); let f0 = Math.min(...vals) - amin, f1 = Math.max(...vals) - amin;
     if(mirror){ const t0 = aw - f1, t1 = aw - f0; f0 = t0; f1 = t1; }
-    d.rect(ox + f0 * s, baseY - f.z1 * s, (f1 - f0) * s, (f.z1 - f.z0) * s, 'FD');
+    const rx = ox + f0 * s, rw = (f1 - f0) * s, ry = baseY - f.z1 * s, rh = (f.z1 - f.z0) * s;
+    d.setFillColor(231, 238, 241); d.setDrawColor(80); d.rect(rx, ry, rw, rh, 'FD');
+    d.setFontSize(6); d.setTextColor(90);
+    d.text((f1 - f0).toFixed(2), rx + rw / 2, ry + rh / 2 + 1, { align: 'center' });   // breedte
+    d.text((f.z1 - f.z0).toFixed(2), rx - 1, ry + rh / 2 + 1, { align: 'right' });      // hoogte
+    d.setTextColor(0);
   });
 }
 function imPdfElevations(c, x, y, w, h){
