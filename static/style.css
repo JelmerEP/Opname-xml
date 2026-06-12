@@ -167,7 +167,7 @@ textarea{resize:vertical}
 .foto-tophead{display:flex;align-items:center;justify-content:space-between;margin:0 0 6px;font-size:12px;font-weight:600;color:var(--mut)}
 .foto-collapse{font-size:12px;color:var(--blue);background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
 .foto-collapsed{display:flex;align-items:center;gap:10px;padding:6px 8px}
-.foto-thumb{width:54px;height:54px;min-height:0;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:0 0 auto}
+.foto-collapsed .foto-thumb{width:54px;height:54px;min-height:0;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:0 0 auto}
 .foto-csum{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
 .foto-csum strong{font-size:13px;color:var(--ink)}
 .foto-csum span{font-size:12px;color:var(--mut)}
