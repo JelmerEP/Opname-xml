@@ -655,8 +655,10 @@ function imBuildFloors(){           // verdiepingen: uitgelijnde footprint + cum
     const off = imFloorOffset(v), sh = p => [p[0] + off.dx, p[1] + off.dy];
     const real = real0.map(sh);
     const zones = (v.zones || []).map(z => { const g = imZoneGeom(v, z); return g ? { region: g.region.map(sh), area: g.area, naam: z.naam } : null; }).filter(Boolean);
+    const openings = [];                                            // ramen/deuren uit de foto-markers (per gevel)
+    (v.fotos || []).forEach(ft => { if(!ft.gevel) return; (ft.marks || []).forEach(mk => openings.push({ gevel: ft.gevel, x: mk.x, y: mk.y, m2: imNum(mk.m2) || 0, type: mk.type || 'raam' })); });
     const hgt = imNum(v.hoogte) || 2.6;
-    floors.push({ real, real0, dx: off.dx, dy: off.dy, z0: zbase, z1: zbase + hgt, v, zones }); zbase += hgt;
+    floors.push({ real, real0, dx: off.dx, dy: off.dy, z0: zbase, z1: zbase + hgt, v, zones, openings }); zbase += hgt;
   }
   return floors;
 }
@@ -708,12 +710,20 @@ function imPdf3D(c, x, y, w, h){
     f.zones.forEach(z => { const m = imPolyMid(z.region); faces.push({ p: z.region.map(p => P(p[0], p[1], f.z1)), key: m[0] + m[1] + f.z1 + 0.03, t: 'zone' }); });
     f.zones.forEach(z => { const R = z.region, n2 = R.length; for(let i = 0; i < n2; i++){ const a = R[i], b = R[(i + 1) % n2]; if(!imEdgeOnPlan(f.real, a, b)) continue;   // zone-strook op de gevel
       faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2 + 0.05, t: 'zonewall' }); } });
+    f.openings.forEach(o => {                                         // ramen/deuren op de gevelvlakken
+      const e = imGevelMainEdge(f.real, o.gevel); if(!e) return;
+      const len = Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1]) || 1, ux = (e.b[0] - e.a[0]) / len, uy = (e.b[1] - e.a[1]) / len;
+      const cx = e.a[0] + o.x * (e.b[0] - e.a[0]), cy = e.a[1] + o.x * (e.b[1] - e.a[1]), zc = f.z1 - o.y * (f.z1 - f.z0), hw = Math.max(0.4, Math.sqrt(o.m2 || 0.6)) / 2;
+      faces.push({ p: [P(cx - ux * hw, cy - uy * hw, zc - hw), P(cx + ux * hw, cy + uy * hw, zc - hw), P(cx + ux * hw, cy + uy * hw, zc + hw), P(cx - ux * hw, cy - uy * hw, zc + hw)], key: (e.a[0] + e.b[0] + e.a[1] + e.b[1]) / 2 + (f.z0 + f.z1) / 2 + 0.08, t: o.type === 'deur' ? 'deur' : 'raam' });
+    });
   });
   faces.sort((a, b) => a.key - b.key);
   d.setLineWidth(0.25);
   faces.forEach(fc => {
     if(fc.t === 'zone'){ d.setFillColor(196, 184, 230); d.setDrawColor(122, 74, 192); }
     else if(fc.t === 'zonewall'){ d.setFillColor(206, 195, 235); d.setDrawColor(122, 74, 192); }
+    else if(fc.t === 'raam'){ d.setFillColor(188, 212, 232); d.setDrawColor(70, 110, 150); }
+    else if(fc.t === 'deur'){ d.setFillColor(170, 145, 115); d.setDrawColor(110, 85, 60); }
     else if(fc.t === 'top'){ d.setFillColor(206, 223, 230); d.setDrawColor(60); }
     else { d.setFillColor(231, 238, 241); d.setDrawColor(120); }
     imPdfPoly(d, fc.p, 'FD');
@@ -725,6 +735,17 @@ function imZoneSegGevel(seg, bb){
   const horiz = Math.abs(seg.b[0] - seg.a[0]) >= Math.abs(seg.b[1] - seg.a[1]);
   if(horiz) return seg.a[1] > (bb.miny + bb.maxy) / 2 ? 'voor' : 'achter';
   return seg.a[0] < (bb.minx + bb.maxx) / 2 ? 'links' : 'rechts';
+}
+function imOpeningStyle(d, type){ if(type === 'deur'){ d.setFillColor(170, 145, 115); d.setDrawColor(110, 85, 60); } else { d.setFillColor(188, 212, 232); d.setDrawColor(70, 110, 150); } }
+function imGevelMainEdge(real, gevel){   // langste buitenmuur-rand die bij deze gevel hoort (voor plaatsing in 3D)
+  const bb = imBbox(real); let best = null, bestLen = 0;
+  for(let i = 0; i < real.length; i++){
+    const a = real[i], b = real[(i + 1) % real.length], horiz = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]);
+    const g = horiz ? ((a[1] + b[1]) / 2 > (bb.miny + bb.maxy) / 2 ? 'voor' : 'achter') : ((a[0] + b[0]) / 2 < (bb.minx + bb.maxx) / 2 ? 'links' : 'rechts');
+    if(g !== gevel) continue;
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]); if(len > bestLen){ bestLen = len; best = { a, b }; }
+  }
+  return best;
 }
 function imDimH(d, xa, xb, yy, txt, col){   // horizontale maatlijn met 45-graden streepjes
   if(xb - xa < 1.5) return; const c = col || [110, 110, 110];
@@ -781,6 +802,12 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
       d.rect(ox + e0 * s, baseY - f.z1 * s, ew, (f.z1 - f.z0) * s, 'FD');
       if(ew > 6){ d.setFontSize(6); d.setTextColor(90, 60, 150); d.text((e1 - e0).toFixed(2), ox + (e0 + e1) / 2 * s, baseY - (f.z0 + f.z1) / 2 * s + 1, { align: 'center' }); d.setTextColor(0); }
     }
+  }));
+  floors.forEach(f => f.openings.forEach(o => {                      // ramen/deuren op deze gevel
+    if(o.gevel !== mode) return;
+    const [f0, f1] = fext(f), ex = ox + (f0 + o.x * (f1 - f0)) * s, zc = f.z1 - o.y * (f.z1 - f.z0), ey = baseY - zc * s;
+    const side = Math.max(0.4, Math.sqrt(o.m2 || 0.6)) * s;
+    imOpeningStyle(d, o.type); d.setLineWidth(0.3); d.rect(ex - side / 2, ey - side / 2, side, side, 'FD');
   }));
   floors.forEach((f, i) => {                                        // maatlijnen: hoogte (links, gestapeld) + breedte (onder, gestapeld)
     imDimV(d, baseY - f.z0 * s, baseY - f.z1 * s, x + padL - 4.5, (f.z1 - f.z0).toFixed(2));
