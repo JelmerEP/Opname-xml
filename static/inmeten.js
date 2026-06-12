@@ -370,10 +370,28 @@ function imSelect(active){   // 1 selectie tegelijk; imRenderCard rendert de bal
   _imActive = active; saveDraft(); imRenderCard(active.vid); imFocusBar();
 }
 
+function imZonesOnGevel(v, gevelKey){     // zones van v die een buitenmuur-rand op deze gevel hebben
+  const rc = v && imReal(v); if(!rc) return [];
+  const real = rc.slice(0, rc.length - 1), bb = imBbox(real);
+  return (v.zones || []).filter(z => { const g = imZoneGeom(v, z); if(!g) return false; const R = g.region;
+    for(let i = 0; i < R.length; i++){ const a = R[i], b = R[(i + 1) % R.length]; if(imEdgeOnPlan(real, a, b) && imZoneSegGevel({ a, b }, bb) === gevelKey) return true; } return false; });
+}
+function imFotoZLabel(v, ft){ return ft.zone === '_alg' ? 'algemene zone' : (ft.zone ? (((v.zones || []).find(z => z.id === ft.zone) || {}).naam || '') : ''); }
 function imFotoHtml(vid, ft){
-  const marks = ft.marks || [], zones = (imVerd(vid) || {}).zones || [];
+  const v = imVerd(vid) || {}, marks = ft.marks || [], collapsed = ft.collapsed !== false;
+  const gLabel = ft.gevel ? (imGevelNaam(ft.gevel) + (imGevelOrient(ft.gevel) ? ' (' + imGevelOrient(ft.gevel) + ')' : '')) : 'gevel?';
+  const zLabel = imFotoZLabel(v, ft);
+  if(collapsed){                                   // ingeklapt: thumbnail + samenvatting
+    return `<div class="foto foto-collapsed" data-vid="${vid}" data-fid="${ft.id}">
+      <img class="foto-img foto-thumb" data-foto="${imEsc(ft.foto)}" alt="foto">
+      <div class="foto-csum"><strong>${imEsc(gLabel)}</strong><span>${zLabel ? imEsc(zLabel) + ' · ' : ''}${marks.length} raam/deur</span></div>
+      <button type="button" class="foto-expand" data-vid="${vid}" data-fid="${ft.id}">Bewerken</button>
+    </div>`;
+  }
+  const gZones = ft.gevel ? imZonesOnGevel(v, ft.gevel) : [];     // alleen zones die op de gekozen gevel liggen
   const pins = marks.map((m, i) => `<button type="button" class="foto-pin${ft.sel === m.id ? ' sel' : ''}" style="left:${(m.x * 100).toFixed(1)}%;top:${(m.y * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}">${i + 1}</button>`).join('');
   return `<div class="foto" data-vid="${vid}" data-fid="${ft.id}">
+    <div class="foto-tophead"><span>Foto — ${imEsc(gLabel)}</span><button type="button" class="foto-collapse" data-vid="${vid}" data-fid="${ft.id}">▾ Inklappen</button></div>
     <div class="foto-wrap" data-vid="${vid}" data-fid="${ft.id}">
       <img class="foto-img" data-foto="${imEsc(ft.foto)}" alt="foto ramen/deuren">
       ${pins}
@@ -381,7 +399,7 @@ function imFotoHtml(vid, ft){
     <p class="foto-hint">${marks.length ? 'Tik een raam/deur aan in de foto, of een bestaand bolletje — de gegevens vul je bovenin in.' : 'Tik op elk raam/deur in de foto; de gegevens vul je bovenin in.'}${ft.sel ? ' <button type="button" class="mark-del" data-vid="' + vid + '" data-fid="' + ft.id + '" data-mid="' + ft.sel + '">verwijder bolletje</button>' : ''}</p>
     <div class="foto-foot">
       <label class="foto-gevel">Gevel<select class="foto-gevel-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— kies —</option>${GEVELS.map(g => { const o = imGevelOrient(g[0]); return `<option value="${g[0]}"${ft.gevel === g[0] ? ' selected' : ''}>${g[1]}${o ? ' (' + o + ')' : ''}</option>`; }).join('')}</select></label>
-      ${zones.length ? `<label class="foto-gevel">Zone<select class="foto-zone-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— n.v.t. —</option>${zones.map(z => `<option value="${z.id}"${ft.zone === z.id ? ' selected' : ''}>${imEsc(z.naam || 'Zone')}</option>`).join('')}</select></label>` : ''}
+      ${ft.gevel ? `<label class="foto-gevel">Zone<select class="foto-zone-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— n.v.t. —</option><option value="_alg"${ft.zone === '_alg' ? ' selected' : ''}>Algemene (hele gevel)</option>${gZones.map(z => `<option value="${z.id}"${ft.zone === z.id ? ' selected' : ''}>${imEsc(z.naam || 'Zone')}</option>`).join('')}</select></label>` : ''}
       <button type="button" class="foto-del" data-vid="${vid}" data-fid="${ft.id}">Foto verwijderen</button>
     </div>
   </div>`;
@@ -535,14 +553,16 @@ function imBind(){
       const v = imVerd(inp.dataset.vid); if(!v) return; if(!v.fotos) v.fotos = [];
       const pid = imId();
       imPhotoPut(pid, durl)
-        .then(() => { v.fotos.push({ id: imId(), foto: pid, marks: [], sel: null }); saveDraft(); imRenderCard(inp.dataset.vid); })
+        .then(() => { v.fotos.push({ id: imId(), foto: pid, marks: [], sel: null, collapsed: false }); saveDraft(); imRenderCard(inp.dataset.vid); })
         .catch(() => alert('Foto opslaan mislukt — opslag is vol of niet beschikbaar in deze modus.'));
     });
     inp.value = '';
   });
   $$('#inmeten .foto-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v && v.fotos){ const f = imFoto(b.dataset.vid, b.dataset.fid); if(f && f.foto) imPhotoDel(f.foto); v.fotos = v.fotos.filter(x => x.id !== b.dataset.fid); saveDraft(); imRenderCard(b.dataset.vid); } });
-  $$('#inmeten .foto-gevel-sel').forEach(s => s.onchange = () => { const f = imFoto(s.dataset.vid, s.dataset.fid); if(f){ f.gevel = s.value; saveDraft(); } });
+  $$('#inmeten .foto-gevel-sel').forEach(s => s.onchange = () => { const f = imFoto(s.dataset.vid, s.dataset.fid); if(f){ f.gevel = s.value; f.zone = ''; saveDraft(); imRenderCard(s.dataset.vid); } });   // gevel bepaalt de zone-keuze
   $$('#inmeten .foto-zone-sel').forEach(s => s.onchange = () => { const f = imFoto(s.dataset.vid, s.dataset.fid); if(f){ f.zone = s.value; saveDraft(); } });
+  $$('#inmeten .foto-collapse').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.collapsed = true; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .foto-expand').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.collapsed = false; saveDraft(); imRenderCard(b.dataset.vid); } });
   const vgSel = $('#im-voorgevel'); if(vgSel) vgSel.onchange = () => { imData().voorgevel = vgSel.value; saveDraft(); imRender(); };
   $$('#inmeten .foto-wrap').forEach(w => w.onclick = e => {
     if(e.target.closest('.foto-pin')) return;
@@ -784,11 +804,12 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label, refs){
     const [f0, f1] = fext(f);
     imDimH(d, ox + f0 * s, ox + f1 * s, baseY + 5 + i * 5, (f1 - f0).toFixed(2));
   });
-  (refs || []).forEach((r, k) => {                                  // foto-referentienummers in de juiste zone
-    const zc = r.zone && zoneCtr[r.zone];
+  let algN = 0;
+  (refs || []).forEach(r => {                                       // foto-referentienummers in de juiste zone
+    const zc = r.zone && r.zone !== '_alg' && zoneCtr[r.zone];
     let cx, cy;
     if(zc){ const u = zc.used = (zc.used || 0) + 1; cx = zc.cx + (u - 1) * 5.5; cy = zc.cy; }
-    else { cx = ox + 5 + k * 6; cy = by + padT - 3; }
+    else { cx = ox + (aw / 2) * s + algN * 6; cy = baseY - (zmax / 2) * s; algN++; }   // algemene zone / geen match -> midden van de gevel
     d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.8, 'F');
     d.setTextColor(255); d.setFontSize(8.5); d.setFont('helvetica', 'bold'); d.text(String(r.n), cx, cy + 1.4, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
   });
@@ -798,24 +819,25 @@ function imPdfSectie(c, txt){              // teal sectiebalk
   d.setFillColor(35, 76, 94); d.rect(c.M, c.yy - 4.5, c.PW - 2 * c.M, 7, 'F');
   d.setTextColor(255); d.setFont('helvetica', 'bold'); d.setFontSize(10.5); d.text(imPdfClean(txt), c.M + 2, c.yy); d.setTextColor(0); d.setFont('helvetica', 'normal'); c.yy += 9;
 }
-async function imPdfOneFoto(c, v, ft, refN){   // foto met referentienummer + raam-markeringen + lijst
-  const d = c.doc, imgW = 80, imgH = 60;
-  const zNaam = ft.zone ? (((v.zones || []).find(z => z.id === ft.zone) || {}).naam || '') : '';
-  const head = `${refN}.  ${v.naam || 'Verdieping'}${zNaam ? '  -  ' + zNaam : ''}`;
-  if(c.yy > c.PH - (imgH + 12)){ d.addPage(); c.yy = c.M; }
-  d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(35, 76, 94); d.text(imPdfClean(head), c.M, c.yy + 1); d.setTextColor(0); d.setFont('helvetica', 'normal'); c.yy += 4;
+async function imPdfFotoBlock(c, v, ft, refN, x, y, colW){   // foto in een kolom; geeft gebruikte hoogte terug
+  const d = c.doc;
+  const zNaam = ft.zone === '_alg' ? 'algemene zone' : (ft.zone ? (((v.zones || []).find(z => z.id === ft.zone) || {}).naam || '') : '');
+  const head = `${refN}.  ${v.naam || 'Verdieping'}${zNaam ? ' - ' + zNaam : ''}`;
+  d.setFont('helvetica', 'bold'); d.setFontSize(9); d.setTextColor(35, 76, 94); d.text(imPdfClean(head), x, y + 1); d.setTextColor(0); d.setFont('helvetica', 'normal');
+  const yy = y + 4;
   let durl = _imUrl[ft.foto]; if(!durl){ durl = await imPhotoGet(ft.foto); if(durl) _imUrl[ft.foto] = durl; }
-  let iw = imgW, ih = imgH;
+  const maxIW = Math.min(78, colW), maxIH = 56;
+  let iw = maxIW, ih = maxIH;
   if(durl){
-    try { const pr = d.getImageProperties(durl), ar = pr.width / pr.height; if(ar > imgW / imgH) ih = imgW / ar; else iw = imgH * ar; } catch(e){}   // aspect behouden (geen vervorming)
-    try { d.addImage(durl, 'JPEG', c.M, c.yy, iw, ih); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(c.M, c.yy, iw, ih);
-    (ft.marks || []).forEach((m, i) => { const cx = c.M + m.x * iw, cy = c.yy + m.y * ih; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.2, 'F'); d.setTextColor(255); d.setFontSize(7); d.text(String(i + 1), cx, cy + 1.1, { align: 'center' }); }); d.setTextColor(0);
+    try { const pr = d.getImageProperties(durl), ar = pr.width / pr.height; if(ar > maxIW / maxIH) ih = maxIW / ar; else iw = maxIH * ar; } catch(e){}   // aspect behouden
+    try { d.addImage(durl, 'JPEG', x, yy, iw, ih); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(x, yy, iw, ih);
+    (ft.marks || []).forEach((m, i) => { const cx = x + m.x * iw, cy = yy + m.y * ih; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2, 'F'); d.setTextColor(255); d.setFontSize(6.5); d.text(String(i + 1), cx, cy + 1, { align: 'center' }); }); d.setTextColor(0);
   }
-  let ty = c.yy + 3.5; d.setFontSize(8.5);
+  let ty = yy + ih + 4; d.setFontSize(8);
   const marks = ft.marks || [];
-  if(!marks.length) d.text('(geen markeringen)', c.M + iw + 4, ty);
-  marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), c.M + iw + 4, ty); ty += 4.4; });
-  c.yy += Math.max(ih, ty - c.yy) + 5;
+  if(!marks.length){ d.setTextColor(120); d.text('(geen markeringen)', x, ty); d.setTextColor(0); ty += 4; }
+  marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), x, ty); ty += 4; });
+  return (ty - y) + 1;
 }
 async function imPdfInmeet(c){
   const d = c.doc, verds = imData().verdiepingen;
@@ -844,8 +866,16 @@ async function imPdfInmeet(c){
       try { imPdfElevBox(d, floors, c.M, c.yy, c.PW - 2 * c.M, eh, key, '', refs); } catch(e){ d.setTextColor(0); }
       c.yy += eh + 4;
       if(!gfotos.length){ d.setFontSize(9); d.setTextColor(120); d.text(imPdfClean('(geen foto\'s voor deze gevel)'), c.M, c.yy); d.setTextColor(0); c.yy += 6; }
-      for(let i = 0; i < gfotos.length; i++) await imPdfOneFoto(c, gfotos[i].v, gfotos[i].ft, i + 1);
-      c.yy += 2;
+      const colW = (c.PW - 2 * c.M - 8) / 2;                       // 2 foto's per rij
+      let col = 0, rowY = c.yy, rowH = 0;
+      for(let i = 0; i < gfotos.length; i++){
+        if(col === 0 && rowY > c.PH - 82){ d.addPage(); rowY = c.M; }
+        const hh = await imPdfFotoBlock(c, gfotos[i].v, gfotos[i].ft, i + 1, c.M + col * (colW + 8), rowY, colW);
+        rowH = Math.max(rowH, hh);
+        if(++col === 2){ col = 0; rowY += rowH + 5; rowH = 0; }
+      }
+      if(col === 1) rowY += rowH + 5;
+      c.yy = rowY + 2;
     }
   }
 }
