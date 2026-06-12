@@ -706,11 +706,14 @@ function imPdf3D(c, x, y, w, h){
     for(let i = 0; i < n; i++){ const a = f.real[i], b = f.real[(i + 1) % n]; faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2, t: 'wall' }); }
     faces.push({ p: f.real.map(p => P(p[0], p[1], f.z1)), key: f.real.reduce((s, p) => s + p[0] + p[1], 0) / n + f.z1 + 0.01, t: 'top' });
     f.zones.forEach(z => { const m = imPolyMid(z.region); faces.push({ p: z.region.map(p => P(p[0], p[1], f.z1)), key: m[0] + m[1] + f.z1 + 0.03, t: 'zone' }); });
+    f.zones.forEach(z => { const R = z.region, n2 = R.length; for(let i = 0; i < n2; i++){ const a = R[i], b = R[(i + 1) % n2]; if(!imEdgeOnPlan(f.real, a, b)) continue;   // zone-strook op de gevel
+      faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2 + 0.05, t: 'zonewall' }); } });
   });
   faces.sort((a, b) => a.key - b.key);
   d.setLineWidth(0.25);
   faces.forEach(fc => {
     if(fc.t === 'zone'){ d.setFillColor(196, 184, 230); d.setDrawColor(122, 74, 192); }
+    else if(fc.t === 'zonewall'){ d.setFillColor(206, 195, 235); d.setDrawColor(122, 74, 192); }
     else if(fc.t === 'top'){ d.setFillColor(206, 223, 230); d.setDrawColor(60); }
     else { d.setFillColor(231, 238, 241); d.setDrawColor(120); }
     imPdfPoly(d, fc.p, 'FD');
