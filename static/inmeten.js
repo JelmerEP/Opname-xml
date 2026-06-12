@@ -656,7 +656,7 @@ function imBuildFloors(){           // verdiepingen: uitgelijnde footprint + cum
     const real0 = rc.slice(0, rc.length - 1);
     const off = imFloorOffset(v), sh = p => [p[0] + off.dx, p[1] + off.dy];
     const real = real0.map(sh);
-    const zones = (v.zones || []).map(z => { const g = imZoneGeom(v, z); return g ? { region: g.region.map(sh), area: g.area, naam: z.naam } : null; }).filter(Boolean);
+    const zones = (v.zones || []).map(z => { const g = imZoneGeom(v, z); return g ? { id: z.id, region: g.region.map(sh), area: g.area, naam: z.naam } : null; }).filter(Boolean);
     const hgt = imNum(v.hoogte) || 2.6;
     floors.push({ real, real0, dx: off.dx, dy: off.dy, z0: zbase, z1: zbase + hgt, v, zones }); zbase += hgt;
   }
@@ -740,26 +740,18 @@ function imDimV(d, ya, yb, xx, txt, col){   // verticale maatlijn (ya onder = gr
   d.line(xx - 0.9, ya - 0.9, xx + 0.9, ya + 0.9); d.line(xx - 0.9, yb - 0.9, xx + 0.9, yb + 0.9);
   d.setFontSize(7); d.setTextColor(c[0], c[1], c[2]); d.text(txt, xx - 1.3, (ya + yb) / 2, { align: 'center', angle: 90 }); d.setTextColor(0);
 }
-// orthografisch aanzicht: voor/achter (as=x), links/rechts (as=y), boven (footprint x-y)
-function imPdfElevBox(d, floors, x, y, w, h, mode, label){
-  d.setFontSize(8); d.setTextColor(70); d.setFont('helvetica', 'bold'); d.text(label, x + w / 2, y, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
+// orthografisch aanzicht: voor/achter (as=x), links/rechts (as=y). refs = foto-nummers die in hun zone geplaatst worden.
+function imPdfElevBox(d, floors, x, y, w, h, mode, label, refs){
+  d.setFontSize(9); d.setTextColor(35, 76, 94); d.setFont('helvetica', 'bold'); d.text(imPdfClean(label), x + w / 2, y, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
   const by = y + 2, bh = h - 2;
   d.setDrawColor(215); d.setLineWidth(0.2); d.rect(x, by, w, bh);
   const ax = [], ay = []; floors.forEach(f => f.real.forEach(p => { ax.push(p[0]); ay.push(p[1]); }));
   const bb = { minx: Math.min(...ax), maxx: Math.max(...ax), miny: Math.min(...ay), maxy: Math.max(...ay) };
-  if(mode === 'boven'){
-    const pad = 3, fw = (bb.maxx - bb.minx) || 1, fh = (bb.maxy - bb.miny) || 1, s2 = Math.min((w - 2 * pad) / fw, (bh - 2 * pad) / fh);
-    const ox2 = x + (w - fw * s2) / 2 - bb.minx * s2, oy2 = by + (bh - fh * s2) / 2 - bb.miny * s2;
-    d.setLineWidth(0.3);
-    floors.forEach(f => { d.setFillColor(234, 242, 236); d.setDrawColor(70); imPdfPoly(d, f.real.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); });
-    floors.forEach(f => f.zones.forEach(z => { d.setFillColor(214, 224, 245); d.setDrawColor(122, 74, 192); imPdfPoly(d, z.region.map(p => [p[0] * s2 + ox2, p[1] * s2 + oy2]), 'FD'); }));
-    return;
-  }
   const as = (mode === 'links' || mode === 'rechts') ? 1 : 0, mirror = (mode === 'achter' || mode === 'rechts');
   let amin = Infinity, amax = -Infinity, zmax = 0;
   floors.forEach(f => { f.real.forEach(c => { amin = Math.min(amin, c[as]); amax = Math.max(amax, c[as]); }); zmax = Math.max(zmax, f.z1); });
   const aw = (amax - amin) || 1, nf = floors.length;
-  const padL = 10, padR = 5, padT = 7, padB = 5 + nf * 4.6;        // ruimte voor maatlijnen (links hoogtes, onder breedtes, boven zone-breedtes)
+  const padL = 11, padR = 6, padT = 8, padB = 6 + nf * 5;          // ruimte voor maatlijnen (links hoogtes, onder breedtes, boven zone-breedtes)
   const availW = w - padL - padR, availH = bh - padT - padB;
   const s = Math.min(availW / aw, availH / (zmax || 1));
   const ox = x + padL + (availW - aw * s) / 2, baseY = by + padT + availH;
@@ -770,6 +762,7 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
     const [f0, f1] = fext(f);
     d.setFillColor(231, 238, 241); d.setDrawColor(80); d.rect(ox + f0 * s, baseY - f.z1 * s, (f1 - f0) * s, (f.z1 - f.z0) * s, 'FD');
   });
+  const zoneCtr = {};                                              // zone-id -> middelpunt van de breedste strook op deze gevel
   floors.forEach(f => f.zones.forEach(z => {                        // zone-strook op deze gevel (verliesoppervlak)
     const R = z.region, n = R.length;
     for(let i = 0; i < n; i++){
@@ -781,71 +774,79 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
       const ew = (e1 - e0) * s; if(ew < 0.3) continue;
       d.setFillColor(206, 195, 235); d.setDrawColor(122, 74, 192); d.setLineWidth(0.3);
       d.rect(ox + e0 * s, baseY - f.z1 * s, ew, (f.z1 - f.z0) * s, 'FD');
-      imDimH(d, ox + e0 * s, ox + e1 * s, baseY - f.z1 * s - 2.4, (e1 - e0).toFixed(2), [122, 74, 192]);   // zone-breedte als maatlijn (boven de strook)
+      imDimH(d, ox + e0 * s, ox + e1 * s, baseY - f.z1 * s - 2.6, (e1 - e0).toFixed(2), [122, 74, 192]);   // zone-breedte als maatlijn (boven de strook)
+      const cx = ox + (e0 + e1) / 2 * s, cy = baseY - (f.z0 + f.z1) / 2 * s;
+      if(z.id && (!zoneCtr[z.id] || (e1 - e0) > zoneCtr[z.id].ww)) zoneCtr[z.id] = { cx, cy, ww: e1 - e0 };
     }
   }));
   floors.forEach((f, i) => {                                        // maatlijnen: hoogte (links, gestapeld) + breedte (onder, gestapeld)
-    imDimV(d, baseY - f.z0 * s, baseY - f.z1 * s, x + padL - 4.5, (f.z1 - f.z0).toFixed(2));
+    imDimV(d, baseY - f.z0 * s, baseY - f.z1 * s, x + padL - 5, (f.z1 - f.z0).toFixed(2));
     const [f0, f1] = fext(f);
-    imDimH(d, ox + f0 * s, ox + f1 * s, baseY + 4.5 + i * 4.6, (f1 - f0).toFixed(2));
+    imDimH(d, ox + f0 * s, ox + f1 * s, baseY + 5 + i * 5, (f1 - f0).toFixed(2));
+  });
+  (refs || []).forEach((r, k) => {                                  // foto-referentienummers in de juiste zone
+    const zc = r.zone && zoneCtr[r.zone];
+    let cx, cy;
+    if(zc){ const u = zc.used = (zc.used || 0) + 1; cx = zc.cx + (u - 1) * 5.5; cy = zc.cy; }
+    else { cx = ox + 5 + k * 6; cy = by + padT - 3; }
+    d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.8, 'F');
+    d.setTextColor(255); d.setFontSize(8.5); d.setFont('helvetica', 'bold'); d.text(String(r.n), cx, cy + 1.4, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
   });
 }
-function imPdfElevations(c, x, y, w, h){
-  const floors = imBuildFloors(); if(!floors.length) return false;
-  const gv = key => { const o = imGevelOrient(key); return o ? ' (' + o + ')' : ''; };
-  const cw = (w - 9) / 2, ch = (h - 6) / 2;
-  imPdfElevBox(c.doc, floors, x, y, cw, ch, 'voor', 'Voorgevel' + gv('voor'));
-  imPdfElevBox(c.doc, floors, x + cw + 9, y, cw, ch, 'achter', 'Achtergevel' + gv('achter'));
-  imPdfElevBox(c.doc, floors, x, y + ch + 6, cw, ch, 'links', 'Linkergevel' + gv('links'));
-  imPdfElevBox(c.doc, floors, x + cw + 9, y + ch + 6, cw, ch, 'rechts', 'Rechtergevel' + gv('rechts'));
-  return true;
+function imPdfSectie(c, txt){              // teal sectiebalk
+  const d = c.doc; if(c.yy > c.PH - 24){ d.addPage(); c.yy = c.M; }
+  d.setFillColor(35, 76, 94); d.rect(c.M, c.yy - 4.5, c.PW - 2 * c.M, 7, 'F');
+  d.setTextColor(255); d.setFont('helvetica', 'bold'); d.setFontSize(10.5); d.text(imPdfClean(txt), c.M + 2, c.yy); d.setTextColor(0); d.setFont('helvetica', 'normal'); c.yy += 9;
+}
+async function imPdfOneFoto(c, v, ft, refN){   // foto met referentienummer + raam-markeringen + lijst
+  const d = c.doc, imgW = 80, imgH = 60;
+  const zNaam = ft.zone ? (((v.zones || []).find(z => z.id === ft.zone) || {}).naam || '') : '';
+  const head = `${refN}.  ${v.naam || 'Verdieping'}${zNaam ? '  -  ' + zNaam : ''}`;
+  if(c.yy > c.PH - (imgH + 12)){ d.addPage(); c.yy = c.M; }
+  d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(35, 76, 94); d.text(imPdfClean(head), c.M, c.yy + 1); d.setTextColor(0); d.setFont('helvetica', 'normal'); c.yy += 4;
+  let durl = _imUrl[ft.foto]; if(!durl){ durl = await imPhotoGet(ft.foto); if(durl) _imUrl[ft.foto] = durl; }
+  let iw = imgW, ih = imgH;
+  if(durl){
+    try { const pr = d.getImageProperties(durl), ar = pr.width / pr.height; if(ar > imgW / imgH) ih = imgW / ar; else iw = imgH * ar; } catch(e){}   // aspect behouden (geen vervorming)
+    try { d.addImage(durl, 'JPEG', c.M, c.yy, iw, ih); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(c.M, c.yy, iw, ih);
+    (ft.marks || []).forEach((m, i) => { const cx = c.M + m.x * iw, cy = c.yy + m.y * ih; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.2, 'F'); d.setTextColor(255); d.setFontSize(7); d.text(String(i + 1), cx, cy + 1.1, { align: 'center' }); }); d.setTextColor(0);
+  }
+  let ty = c.yy + 3.5; d.setFontSize(8.5);
+  const marks = ft.marks || [];
+  if(!marks.length) d.text('(geen markeringen)', c.M + iw + 4, ty);
+  marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), c.M + iw + 4, ty); ty += 4.4; });
+  c.yy += Math.max(ih, ty - c.yy) + 5;
 }
 async function imPdfInmeet(c){
   const d = c.doc, verds = imData().verdiepingen;
   if(!verds.length) return;
-  if(c.yy > c.PH - 30){ d.addPage(); c.yy = c.M; }
-  d.setFillColor(35, 76, 94); d.rect(c.M, c.yy - 4.5, c.PW - 2 * c.M, 7, 'F');
-  d.setTextColor(255); d.setFont('helvetica', 'bold'); d.setFontSize(10.5); d.text(imPdfClean('Inmeten (plattegronden & foto\'s)' + (imData().voorgevel ? '   -   voorgevel: ' + imData().voorgevel : '')), c.M + 2, c.yy); d.setTextColor(0); c.yy += 7;
-  if(verds.some(v => imReal(v))){
-    try {
-      if(c.yy > c.PH - 64){ d.addPage(); c.yy = c.M; }
-      d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('3D-impressie (plat dak)', c.M, c.yy); d.setTextColor(0); c.yy += 2;
-      const h3 = 58; if(imPdf3D(c, c.M, c.yy, c.PW - 2 * c.M, h3)) c.yy += h3 + 4;
-      const he = 150; if(c.yy > c.PH - (he + 8)){ d.addPage(); c.yy = c.M; }
-      d.setFont('helvetica', 'bold'); d.setFontSize(9.5); d.setTextColor(60); d.text('Aanzichten', c.M, c.yy); d.setTextColor(0); c.yy += 2;
-      if(imPdfElevations(c, c.M, c.yy, c.PW - 2 * c.M, he)) c.yy += he + 4;
-    } catch(e){ d.setTextColor(0); }
+  const floors = imBuildFloors(), hasGeom = verds.some(v => imReal(v));
+  if(hasGeom){                                                      // 3D-impressie
+    imPdfSectie(c, '3D-impressie' + (imData().voorgevel ? '   -   voorgevel: ' + imData().voorgevel : ''));
+    try { if(c.yy > c.PH - 66){ d.addPage(); c.yy = c.M; } const h3 = 62; if(imPdf3D(c, c.M, c.yy, c.PW - 2 * c.M, h3)) c.yy += h3 + 4; } catch(e){ d.setTextColor(0); }
   }
+  imPdfSectie(c, 'Plattegronden per verdieping');                  // plattegronden met maatvoering
   for(const v of verds){
-    if(c.yy > c.PH - 75){ d.addPage(); c.yy = c.M; }
-    d.setFont('helvetica', 'bold'); d.setFontSize(11);
-    const area = imArea(v);
+    if(c.yy > c.PH - 92){ d.addPage(); c.yy = c.M; }
+    d.setFont('helvetica', 'bold'); d.setFontSize(11); const area = imArea(v);
     d.text(imPdfClean(`${v.naam || 'Verdieping'}${v.hoogte ? '  -  h ' + v.hoogte + ' m' : ''}${area ? '  -  ' + area.toFixed(2) + ' m2' : ''}`), c.M, c.yy); c.yy += 4;
     d.setFont('helvetica', 'normal');
-    if(v.sketch && v.sketch.gesloten && imReal(v)){
-      const planH = 60; imPdfPlan(d, v, c.M, c.yy, 96, planH); c.yy += planH + 3;
-    } else { d.setFontSize(9); d.setTextColor(120); d.text('(geen volledige plattegrond)', c.M, c.yy + 3); d.setTextColor(0); c.yy += 8; }
-    for(const ft of (v.fotos || [])){
-      const imgW = 80, imgH = 60;
-      const gLabel = ft.gevel ? imGevelNaam(ft.gevel) + (imGevelOrient(ft.gevel) ? ' (' + imGevelOrient(ft.gevel) + ')' : '') : '';
-      const zNaam = ft.zone ? (((v.zones || []).find(z => z.id === ft.zone) || {}).naam || '') : '';
-      const head = [gLabel, zNaam ? 'Zone: ' + zNaam : ''].filter(Boolean).join('   -   ');
-      if(c.yy > c.PH - (imgH + (head ? 12 : 8))){ d.addPage(); c.yy = c.M; }
-      if(head){ d.setFont('helvetica', 'bold'); d.setFontSize(9); d.setTextColor(35, 76, 94); d.text(imPdfClean(head), c.M, c.yy + 1); d.setTextColor(0); d.setFont('helvetica', 'normal'); c.yy += 4; }
-      let durl = _imUrl[ft.foto]; if(!durl){ durl = await imPhotoGet(ft.foto); if(durl) _imUrl[ft.foto] = durl; }
-      let iw = imgW, ih = imgH;
-      if(durl){
-        try { const pr = d.getImageProperties(durl), ar = pr.width / pr.height; if(ar > imgW / imgH) ih = imgW / ar; else iw = imgH * ar; } catch(e){}   // aspect behouden (geen vervorming)
-        try { d.addImage(durl, 'JPEG', c.M, c.yy, iw, ih); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(c.M, c.yy, iw, ih);
-        (ft.marks || []).forEach((m, i) => { const cx = c.M + m.x * iw, cy = c.yy + m.y * ih; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.2, 'F'); d.setTextColor(255); d.setFontSize(7); d.text(String(i + 1), cx, cy + 1.1, { align: 'center' }); }); d.setTextColor(0);
-      }
-      let ty = c.yy + 3.5; d.setFontSize(8.5);
-      const marks = ft.marks || [];
-      if(!marks.length) d.text('(geen markeringen)', c.M + iw + 4, ty);
-      marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), c.M + iw + 4, ty); ty += 4.4; });
-      c.yy += Math.max(ih, ty - c.yy) + 5;
+    if(v.sketch && v.sketch.gesloten && imReal(v)){ const planH = 80; imPdfPlan(d, v, c.M, c.yy, 124, planH); c.yy += planH + 4; }
+    else { d.setFontSize(9); d.setTextColor(120); d.text('(geen volledige plattegrond)', c.M, c.yy + 3); d.setTextColor(0); c.yy += 8; }
+  }
+  if(hasGeom){                                                      // per aanzicht: aanzicht + bijbehorende foto's
+    for(const g of GEVELS){
+      const key = g[0], orient = imGevelOrient(key);
+      const gfotos = []; verds.forEach(v => (v.fotos || []).forEach(ft => { if(ft.gevel === key) gfotos.push({ v, ft }); }));
+      const eh = 96; if(c.yy > c.PH - (eh + 18)){ d.addPage(); c.yy = c.M; }
+      imPdfSectie(c, g[1] + (orient ? ' (' + orient + ')' : ''));
+      const refs = gfotos.map((gf, i) => ({ n: i + 1, zone: gf.ft.zone }));
+      try { imPdfElevBox(d, floors, c.M, c.yy, c.PW - 2 * c.M, eh, key, '', refs); } catch(e){ d.setTextColor(0); }
+      c.yy += eh + 4;
+      if(!gfotos.length){ d.setFontSize(9); d.setTextColor(120); d.text(imPdfClean('(geen foto\'s voor deze gevel)'), c.M, c.yy); d.setTextColor(0); c.yy += 6; }
+      for(let i = 0; i < gfotos.length; i++) await imPdfOneFoto(c, gfotos[i].v, gfotos[i].ft, i + 1);
+      c.yy += 2;
     }
-    c.yy += 3;
   }
 }
 function imLuchtfotoDataURL(){            // PDOK luchtfoto rond het pand als data-URL (voor de PDF)
