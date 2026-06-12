@@ -9,7 +9,7 @@ const BEGLAZING = ['Enkel glas', 'Dubbel glas', 'HR', 'HR+', 'HR++', 'HR+++ / tr
 const ORIENT8 = ['Noord', 'Noordoost', 'Oost', 'Zuidoost', 'Zuid', 'Zuidwest', 'West', 'Noordwest'];
 // gevels + hun draaiing t.o.v. de voorgevel (stappen van 45°, met de klok mee). voor=0, links=+90, achter=+180, rechts=+270
 const GEVELS = [['voor', 'Voorgevel', 0], ['achter', 'Achtergevel', 4], ['links', 'Linkergevel', 2], ['rechts', 'Rechtergevel', 6]];
-function imGevelNaam(key){ const g = GEVELS.find(x => x[0] === key); return g ? g[1] : ''; }
+function imGevelNaam(key){ if(key === 'dak') return 'Dak / dakvlak'; const g = GEVELS.find(x => x[0] === key); return g ? g[1] : ''; }
 function imGevelOrient(key){ const vi = ORIENT8.indexOf(imData().voorgevel), g = GEVELS.find(x => x[0] === key); return (vi < 0 || !g) ? '' : ORIENT8[(vi + g[2]) % 8]; }
 const GRID = 12;            // snap-raster (px) in de schets
 const SV_W = 360, SV_H = 420, SV_PAD = 32;
@@ -336,7 +336,7 @@ function imRenderEditBar(){
     const ft = imFoto(a.vid, a.fid), m = ft && (ft.marks || []).find(x => x.id === ft.sel); if(!m) return hide();
     const nr = ft.marks.indexOf(m) + 1;
     inner = `<span class="im-bar-lbl">Raam/deur ${nr}</span>
-      <select class="im-bar-sel im-mk" data-k="type" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value="raam"${m.type === 'raam' ? ' selected' : ''}>Raam</option><option value="deur"${m.type === 'deur' ? ' selected' : ''}>Deur</option></select>
+      <select class="im-bar-sel im-mk" data-k="type" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value="raam"${m.type === 'raam' ? ' selected' : ''}>Raam</option><option value="deur"${m.type === 'deur' ? ' selected' : ''}>Deur</option><option value="dakraam"${m.type === 'dakraam' ? ' selected' : ''}>Dakraam</option></select>
       <input class="im-bar-in im-mk" data-k="m2" inputmode="decimal" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}" value="${imEsc(m.m2)}" placeholder="m²">
       <select class="im-bar-sel im-mk" data-k="beglazing" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value=""${!m.beglazing ? ' selected' : ''}>beglazing…</option>${BEGLAZING.map(b => `<option${m.beglazing === b ? ' selected' : ''}>${imEsc(b)}</option>`).join('')}</select>`;
   } else return hide();
@@ -371,6 +371,7 @@ function imSelect(active){   // 1 selectie tegelijk; imRenderCard rendert de bal
 }
 
 function imZonesOnGevel(v, gevelKey){     // zones van v die een buitenmuur-rand op deze gevel hebben
+  if(gevelKey === 'dak') return v.zones || [];   // dakraam kan boven elke zone zitten
   const rc = v && imReal(v); if(!rc) return [];
   const real = rc.slice(0, rc.length - 1), bb = imBbox(real);
   return (v.zones || []).filter(z => { const g = imZoneGeom(v, z); if(!g) return false; const R = g.region;
@@ -398,7 +399,7 @@ function imFotoHtml(vid, ft){
     </div>
     <p class="foto-hint">${marks.length ? 'Tik een raam/deur aan in de foto, of een bestaand bolletje — de gegevens vul je bovenin in.' : 'Tik op elk raam/deur in de foto; de gegevens vul je bovenin in.'}${ft.sel ? ' <button type="button" class="mark-del" data-vid="' + vid + '" data-fid="' + ft.id + '" data-mid="' + ft.sel + '">verwijder bolletje</button>' : ''}</p>
     <div class="foto-foot">
-      <label class="foto-gevel">Gevel<select class="foto-gevel-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— kies —</option>${GEVELS.map(g => { const o = imGevelOrient(g[0]); return `<option value="${g[0]}"${ft.gevel === g[0] ? ' selected' : ''}>${g[1]}${o ? ' (' + o + ')' : ''}</option>`; }).join('')}</select></label>
+      <label class="foto-gevel">Gevel<select class="foto-gevel-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— kies —</option>${GEVELS.map(g => { const o = imGevelOrient(g[0]); return `<option value="${g[0]}"${ft.gevel === g[0] ? ' selected' : ''}>${g[1]}${o ? ' (' + o + ')' : ''}</option>`; }).join('')}<option value="dak"${ft.gevel === 'dak' ? ' selected' : ''}>Dak / dakvlak</option></select></label>
       ${ft.gevel ? `<label class="foto-gevel">Zone<select class="foto-zone-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— n.v.t. —</option><option value="_alg"${ft.zone === '_alg' ? ' selected' : ''}>Algemene (hele gevel)</option>${gZones.map(z => `<option value="${z.id}"${ft.zone === z.id ? ' selected' : ''}>${imEsc(z.naam || 'Zone')}</option>`).join('')}</select></label>` : ''}
       <button type="button" class="foto-del" data-vid="${vid}" data-fid="${ft.id}">Foto verwijderen</button>
     </div>
@@ -407,6 +408,7 @@ function imFotoHtml(vid, ft){
 
 function imCardHtml(v){
   const vs = imData().verdiepingen, idx = vs.indexOf(v), prev = idx > 0 ? vs[idx - 1] : null;
+  const closedVs = vs.filter(x => x.sketch && x.sketch.gesloten && imReal(x)), isTop = closedVs.length && closedVs[closedVs.length - 1] === v;   // dak hoort bij de bovenste verdieping
   const posBlock = (prev && prev.sketch && prev.sketch.gesloten && v.sketch.gesloten) ? imPosHtml(v, prev) : '';
   return `<div class="vd" data-vid="${v.id}">
     <div class="vd-head"><input class="vd-f vd-naam" data-k="naam" data-vid="${v.id}" value="${imEsc(v.naam)}" placeholder="Naam verdieping">
@@ -420,7 +422,8 @@ function imCardHtml(v){
     ${imWallEditHtml(v)}
     ${imZoneControlsHtml(v)}
     <div class="row"><label>Hoogte (m)<input class="vd-f" data-k="hoogte" inputmode="decimal" data-vid="${v.id}" value="${imEsc(v.hoogte)}" placeholder="bv. 2.5"></label>
-      <div class="vd-area">Vloeroppervlak<strong>${imArea(v) ? imArea(v).toFixed(2) + ' m²' : '—'}</strong></div></div>
+      <div class="vd-area">Gebruiksoppervlak<strong>${imArea(v) ? imArea(v).toFixed(2) + ' m²' : '—'}</strong></div></div>
+    ${isTop ? imDakControlsHtml(v) : ''}
     <h4>Ramen &amp; deuren — foto's</h4>
     <div class="fotos">${(v.fotos || []).map(ft => imFotoHtml(v.id, ft)).join('')}</div>
     <input type="file" accept="image/*" capture="environment" class="foto-cam" data-vid="${v.id}" hidden>
@@ -428,24 +431,26 @@ function imCardHtml(v){
   </div>`;
 }
 
-function imDakReadout(dak){
-  const g = imDakGeom(imBuildFloors(), dak);
-  if(!g) return `<div class="dak-readout dak-readout-warn">Vul de hellingshoek in (en teken minstens één verdieping).</div>`;
+const DAK_ICONS = { plat: '4,28 4,11 36,11 36,28', lessenaar: '4,28 4,14 36,6 36,28', zadel: '4,28 4,15 20,4 36,15 36,28', schild: '4,28 4,15 13,6 27,6 36,15 36,28', mansarde: '4,28 4,16 11,10 16,5 24,5 29,10 36,16 36,28' };
+function imDakIcon(type){ return `<svg viewBox="0 0 40 30" class="dak-ico"><polygon points="${DAK_ICONS[type] || DAK_ICONS.plat}"/></svg>`; }
+function imDakReadout(v){
+  const floor = imBuildFloors().find(f => f.v === v), g = floor && imDakGeom(floor, v.dak);
+  if(!g) return `<div class="dak-readout dak-readout-warn">Vul de hellingshoek in.</div>`;
   const tot = g.vlak.reduce((s, f) => s + f.area, 0), pg = g.punt.reduce((s, f) => s + f.area, 0);
   return `<div class="dak-readout">Nokhoogte <strong>${g.nokhoogte.toFixed(2)} m</strong> · Dakvlakken <strong>${tot.toFixed(1)} m&#178;</strong>${pg > 0.05 ? ' · Puntgevels <strong>' + pg.toFixed(1) + ' m&#178;</strong>' : ''}</div>`;
 }
-function imDakControlsHtml(){
-  const dak = imData().dak || { type: 'plat' }, t = dak.type || 'plat';
+function imDakControlsHtml(v){
+  const dak = v.dak || { type: 'plat' }, t = dak.type || 'plat';
   const opt = (val, label, sel) => `<option value="${val}"${sel === val ? ' selected' : ''}>${label}</option>`;
-  let inner = `<label class="dak-f">Daktype<select id="dak-type">${DAKTYPES.map(d => opt(d[0], d[1], t)).join('')}</select></label>`;
+  let inner = `<div class="dak-pick">${DAKTYPES.map(dt => `<button type="button" class="dak-opt${t === dt[0] ? ' on' : ''}" data-vid="${v.id}" data-dt="${dt[0]}">${imDakIcon(dt[0])}<span>${imEsc(dt[1].split(' (')[0])}</span></button>`).join('')}</div>`;
   if(t !== 'plat'){
-    inner += `<div class="dak-row"><label class="dak-f">Hellingshoek (&#176;)<input id="dak-hoek" inputmode="decimal" value="${imEsc(dak.hoek || '')}" placeholder="bv. 45"></label>
-      <label class="dak-f">Maat dakvoet&rarr;nok (m)<input id="dak-maat" inputmode="decimal" value="${imEsc(dak.maat || '')}" placeholder="leeg = uit plattegrond"></label></div>`;
-    if(t === 'lessenaar') inner += `<label class="dak-f">Hoge zijde<select id="dak-richting">${[['voor', 'Voorgevel'], ['achter', 'Achtergevel'], ['links', 'Linkergevel'], ['rechts', 'Rechtergevel']].map(r => opt(r[0], r[1], dak.richting || 'achter')).join('')}</select></label>`;
-    else inner += `<label class="dak-f">Nokrichting<select id="dak-richting">${[['va', 'Vlakken naar voor + achter'], ['lr', 'Vlakken naar links + rechts']].map(r => opt(r[0], r[1], dak.richting || 'va')).join('')}</select></label>`;
-    inner += imDakReadout(dak);
+    inner += `<div class="dak-row"><label class="dak-f">Hellingshoek (&#176;)<input class="dak-hoek" data-vid="${v.id}" inputmode="decimal" value="${imEsc(dak.hoek || '')}" placeholder="bv. 45"></label>
+      <label class="dak-f">Maat dakvoet&rarr;nok (m)<input class="dak-maat" data-vid="${v.id}" inputmode="decimal" value="${imEsc(dak.maat || '')}" placeholder="leeg = uit plattegrond"></label></div>`;
+    if(t === 'lessenaar') inner += `<label class="dak-f">Hoge zijde<select class="dak-richting" data-vid="${v.id}">${[['voor', 'Voorgevel'], ['achter', 'Achtergevel'], ['links', 'Linkergevel'], ['rechts', 'Rechtergevel']].map(r => opt(r[0], r[1], dak.richting || 'achter')).join('')}</select></label>`;
+    else inner += `<label class="dak-f">Nokrichting<select class="dak-richting" data-vid="${v.id}">${[['va', 'Vlakken naar voor + achter'], ['lr', 'Vlakken naar links + rechts']].map(r => opt(r[0], r[1], dak.richting || 'va')).join('')}</select></label>`;
+    inner += imDakReadout(v);
   }
-  return `<div class="dak-block"><h3>Dak</h3>${inner}</div>`;
+  return `<div class="dak-block"><h4>Dak (verliesoppervlak)</h4>${inner}</div>`;
 }
 function imRender(){
   const host = $('#inmeten'); if(!host) return;
@@ -454,9 +459,8 @@ function imRender(){
     <label>Oriëntatie voorgevel<select id="im-voorgevel"><option value="">— kies —</option>${ORIENT8.map(o => `<option${vg === o ? ' selected' : ''}>${o}</option>`).join('')}</select></label>
     ${vg ? `<p class="im-vg-hint">Voor: ${imGevelOrient('voor')} · Links: ${imGevelOrient('links')} · Achter: ${imGevelOrient('achter')} · Rechts: ${imGevelOrient('rechts')}</p>` : ''}
   </div>`;
-  const dakBlock = imData().verdiepingen.some(v => imReal(v)) ? imDakControlsHtml() : '';
   const pdfBtn = imData().verdiepingen.length ? `<button type="button" id="im-pdf" class="im-pdf-btn">📄 PDF-uitdraai (download)</button>` : '';
-  host.innerHTML = vgBlock + imData().verdiepingen.map(imCardHtml).join('') + `<button type="button" id="vd-add" class="vd-add-btn">+ Verdieping toevoegen</button>` + dakBlock + pdfBtn;
+  host.innerHTML = vgBlock + imData().verdiepingen.map(imCardHtml).join('') + `<button type="button" id="vd-add" class="vd-add-btn">+ Verdieping toevoegen</button>` + pdfBtn;
   imBind(); imRenderEditBar();
 }
 function imRenderCard(vid){
@@ -584,12 +588,12 @@ function imBind(){
   $$('#inmeten .foto-collapse').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.collapsed = true; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .foto-expand').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.collapsed = false; saveDraft(); imRenderCard(b.dataset.vid); } });
   const vgSel = $('#im-voorgevel'); if(vgSel) vgSel.onchange = () => { imData().voorgevel = vgSel.value; saveDraft(); imRender(); };
-  const dakGet = () => imData().dak || (imData().dak = { type: 'plat' });
-  const dakReadout = () => { const el = $('#inmeten .dak-readout'); if(!el) return; const tmp = document.createElement('div'); tmp.innerHTML = imDakReadout(imData().dak); if(tmp.firstElementChild) el.replaceWith(tmp.firstElementChild); };
-  const dt = $('#dak-type'); if(dt) dt.onchange = () => { dakGet().type = dt.value; saveDraft(); imRender(); };
-  const dr = $('#dak-richting'); if(dr) dr.onchange = () => { dakGet().richting = dr.value; saveDraft(); dakReadout(); };
-  const dh = $('#dak-hoek'); if(dh) dh.oninput = () => { dakGet().hoek = dh.value; saveDraft(); dakReadout(); };
-  const dm = $('#dak-maat'); if(dm) dm.oninput = () => { dakGet().maat = dm.value; saveDraft(); dakReadout(); };
+  const dakGet = vid => { const v = imVerd(vid); if(!v) return null; if(!v.dak) v.dak = { type: 'plat' }; return v.dak; };
+  const dakReadout = vid => { const card = $(`#inmeten .vd[data-vid="${vid}"]`), el = card && card.querySelector('.dak-readout'), v = imVerd(vid); if(!el || !v) return; const tmp = document.createElement('div'); tmp.innerHTML = imDakReadout(v); if(tmp.firstElementChild) el.replaceWith(tmp.firstElementChild); };
+  $$('#inmeten .dak-opt').forEach(b => b.onclick = () => { const d = dakGet(b.dataset.vid); if(d){ d.type = b.dataset.dt; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .dak-richting').forEach(s => s.onchange = () => { const d = dakGet(s.dataset.vid); if(d){ d.richting = s.value; saveDraft(); dakReadout(s.dataset.vid); } });
+  $$('#inmeten .dak-hoek').forEach(i => i.oninput = () => { const d = dakGet(i.dataset.vid); if(d){ d.hoek = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
+  $$('#inmeten .dak-maat').forEach(i => i.oninput = () => { const d = dakGet(i.dataset.vid); if(d){ d.maat = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
   $$('#inmeten .foto-wrap').forEach(w => w.onclick = e => {
     if(e.target.closest('.foto-pin')) return;
     const f = imFoto(w.dataset.vid, w.dataset.fid); if(!f) return;
@@ -709,11 +713,11 @@ function imBuildFloors(){           // verdiepingen: uitgelijnde footprint + cum
   return floors;
 }
 const DAKTYPES = [['plat', 'Plat dak'], ['lessenaar', 'Lessenaarsdak (1 vlak)'], ['zadel', 'Zadeldak (2 vlakken)'], ['schild', 'Schilddak (4 vlakken)'], ['mansarde', 'Mansardedak']];
-// Dakgeometrie op de bovenste verdieping (rechthoekige benadering van de footprint).
+// Dakgeometrie van één verdieping (rechthoekige benadering van de footprint), op zijn dakvoethoogte.
 // dak = { type, hoek (graden), maat (horizontale dakvoet->nok, optioneel), richting }. Geeft schuine dakvlakken + puntgevels + nokhoogte.
-function imDakGeom(floors, dak){
-  if(!floors.length || !dak || !dak.type || dak.type === 'plat') return null;
-  const top = floors[floors.length - 1], bb = imBbox(top.real), zT = top.z1;
+function imDakGeom(floor, dak){
+  if(!floor || !floor.real || !dak || !dak.type || dak.type === 'plat') return null;
+  const bb = imBbox(floor.real), zT = floor.z1;
   const ad = imNum(dak.hoek) || 0, a = ad * Math.PI / 180; if(a <= 0 || a >= Math.PI / 2) return null;
   const ta = Math.tan(a), ca = Math.cos(a), W = bb.maxx - bb.minx, D = bb.maxy - bb.miny, yc = (bb.miny + bb.maxy) / 2, xc = (bb.minx + bb.maxx) / 2;
   const vlak = [], punt = []; let nok = 0;
@@ -766,7 +770,6 @@ function imDakGeom(floors, dak){
   }
   return { vlak, punt, nokhoogte: nok, zT, bb };
 }
-function imDakById(){ return imData().dak || null; }
 function imPosSnapOffset(v, nd){    // klik magnetisch vast op de hoeken van de verdieping eronder
   const vs = imData().verdiepingen, idx = vs.indexOf(v), prev = idx > 0 ? vs[idx - 1] : null;
   const rcv = imReal(v), rcp = prev && imReal(prev); if(!prev || !rcv || !rcp) return nd;
@@ -801,9 +804,9 @@ function imPdf3D(c, x, y, w, h){
   const d = c.doc, A = Math.PI / 6, ca = Math.cos(A), sa = Math.sin(A);
   const iso = (X, Y, Z) => [(X - Y) * ca, (X + Y) * sa - Z];
   const floors = imBuildFloors(); if(!floors.length) return false;
-  const dak = imDakGeom(floors, imData().dak);
+  const _top = floors[floors.length - 1], _tg = imDakGeom(_top, _top.v.dak), daks = _tg ? [_tg] : [];   // alleen het dak van de bovenste verdieping
   const pts = []; floors.forEach(f => f.real.forEach(p => { pts.push(iso(p[0], p[1], f.z0)); pts.push(iso(p[0], p[1], f.z1)); }));
-  if(dak) dak.vlak.concat(dak.punt).forEach(f => f.poly.forEach(p => pts.push(iso(p[0], p[1], p[2]))));
+  daks.forEach(dk => dk.vlak.concat(dk.punt).forEach(f => f.poly.forEach(p => pts.push(iso(p[0], p[1], p[2])))));
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
   const bw = (maxx - minx) || 1, bh = (maxy - miny) || 1, pad = 4, sc = Math.min((w - 2 * pad) / bw, (h - 2 * pad) / bh);
@@ -818,11 +821,11 @@ function imPdf3D(c, x, y, w, h){
     f.zones.forEach(z => { const R = z.region, n2 = R.length; for(let i = 0; i < n2; i++){ const a = R[i], b = R[(i + 1) % n2]; if(!imEdgeOnPlan(f.real, a, b)) continue;   // zone-strook op de gevel
       faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2 + 0.05, t: 'zonewall' }); } });
   });
-  if(dak){                                              // dakvlakken + puntgevels bovenop
-    const k3 = poly => { const n = poly.length, m = poly.reduce((s, p) => [s[0] + p[0], s[1] + p[1], s[2] + p[2]], [0, 0, 0]); return (m[0] + m[1] + m[2]) / n; };
-    dak.punt.forEach(f => faces.push({ p: f.poly.map(p => P(p[0], p[1], p[2])), key: k3(f.poly) + 0.4, t: 'puntgevel' }));
-    dak.vlak.forEach(f => faces.push({ p: f.poly.map(p => P(p[0], p[1], p[2])), key: k3(f.poly) + 0.5, t: 'dak' }));
-  }
+  const k3 = poly => { const n = poly.length, m = poly.reduce((s, p) => [s[0] + p[0], s[1] + p[1], s[2] + p[2]], [0, 0, 0]); return (m[0] + m[1] + m[2]) / n; };
+  daks.forEach(dk => {                                   // dakvlakken + puntgevels bovenop
+    dk.punt.forEach(f => faces.push({ p: f.poly.map(p => P(p[0], p[1], p[2])), key: k3(f.poly) + 0.4, t: 'puntgevel' }));
+    dk.vlak.forEach(f => faces.push({ p: f.poly.map(p => P(p[0], p[1], p[2])), key: k3(f.poly) + 0.5, t: 'dak' }));
+  });
   faces.sort((a, b) => a.key - b.key);
   d.setLineWidth(0.25);
   faces.forEach(fc => {
@@ -864,6 +867,8 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label, refs){
   const as = (mode === 'links' || mode === 'rechts') ? 1 : 0, mirror = (mode === 'achter' || mode === 'rechts');
   let amin = Infinity, amax = -Infinity, zmax = 0;
   floors.forEach(f => { f.real.forEach(c => { amin = Math.min(amin, c[as]); amax = Math.max(amax, c[as]); }); zmax = Math.max(zmax, f.z1); });
+  const _top = floors[floors.length - 1], _tg = imDakGeom(_top, _top.v.dak), daks = _tg ? [{ f: _top, g: _tg }] : [];   // alleen het dak van de bovenste verdieping
+  daks.forEach(o => { zmax = Math.max(zmax, o.f.z1 + o.g.nokhoogte); });
   const aw = (amax - amin) || 1, nf = floors.length;
   const padL = 11, padR = 6, padT = 8, padB = 6 + nf * 5;          // ruimte voor maatlijnen (links hoogtes, onder breedtes, boven zone-breedtes)
   const availW = w - padL - padR, availH = bh - padT - padB;
@@ -875,6 +880,12 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label, refs){
   floors.forEach(f => {                                            // silhouet (zonder losse tekst)
     const [f0, f1] = fext(f);
     d.setFillColor(231, 238, 241); d.setDrawColor(80); d.rect(ox + f0 * s, baseY - f.z1 * s, (f1 - f0) * s, (f.z1 - f.z0) * s, 'FD');
+  });
+  daks.forEach(({ g }) => {                                        // dak op de gevel: puntgevels + dakvlakken geprojecteerd
+    const proj = poly => poly.map(p => [ox + aproj(p[as]) * s, baseY - p[2] * s]);
+    d.setLineWidth(0.25);
+    g.punt.forEach(face => { d.setFillColor(224, 230, 233); d.setDrawColor(110); imPdfPoly(d, proj(face.poly), 'FD'); });
+    g.vlak.forEach(face => { d.setFillColor(206, 170, 148); d.setDrawColor(150, 100, 78); imPdfPoly(d, proj(face.poly), 'FD'); });
   });
   const zoneCtr = {};                                              // zone-id -> middelpunt van de breedste strook op deze gevel
   floors.forEach(f => f.zones.forEach(z => {                        // zone-strook op deze gevel (verliesoppervlak)
@@ -933,27 +944,29 @@ async function imPdfFotoBlock(c, v, ft, refN, x, y, colW){   // foto in een kolo
   marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), x, ty); ty += 4; });
   return (ty - y) + 1;
 }
-function imPdfDaken(c, floors){           // daken-overzicht: dakvlakken + puntgevels + nokhoogte
-  const d = c.doc, dak = imData().dak, g = imDakGeom(floors || imBuildFloors(), dak); if(!g) return;
-  const naam = (DAKTYPES.find(t => t[0] === dak.type) || [, dak.type])[1];
-  imPdfSectie(c, 'Daken — ' + naam);
-  if(c.yy > c.PH - 36){ d.addPage(); c.yy = c.M; }
-  d.setFont('helvetica', 'normal'); d.setFontSize(9.5); d.setTextColor(40);
-  d.text(imPdfClean(`Hellingshoek ${dak.hoek || '?'} graden   ·   nokhoogte ${g.nokhoogte.toFixed(2)} m`), c.M, c.yy); c.yy += 6;
+function imPdfDaken(c, floors){           // daken-overzicht per verdieping: dakvlakken + puntgevels + nokhoogte
+  const d = c.doc, fl = floors || imBuildFloors(), _top = fl[fl.length - 1], _tg = _top && imDakGeom(_top, _top.v.dak), list = _tg ? [{ f: _top, g: _tg }] : [];   // alleen het dak van de bovenste verdieping
+  if(!list.length) return;
+  imPdfSectie(c, 'Daken (verliesoppervlak)');
   const cx2 = c.M + 52, cx3 = c.M + 104, cx4 = c.M + 134;
-  d.setFont('helvetica', 'bold'); d.setFontSize(9); d.setTextColor(35, 76, 94);
-  d.text('Dakvlak', c.M, c.yy); d.text('Orientatie', cx2, c.yy); d.text('Hoek', cx3, c.yy); d.text('Oppervlak', cx4, c.yy); c.yy += 1.5;
-  d.setDrawColor(200); d.setLineWidth(0.2); d.line(c.M, c.yy, c.PW - c.M, c.yy); c.yy += 4;
-  d.setFont('helvetica', 'normal'); d.setTextColor(30); let tot = 0;
-  g.vlak.forEach((f, i) => { if(c.yy > c.PH - 14){ d.addPage(); c.yy = c.M; } d.text('Dakvlak ' + (i + 1), c.M, c.yy); d.text(imPdfClean(f.orient || '-'), cx2, c.yy); d.text((f.hoek || '?') + ' gr', cx3, c.yy); d.text(f.area.toFixed(2) + ' m2', cx4, c.yy); tot += f.area; c.yy += 4.6; });
-  d.setFont('helvetica', 'bold'); d.text('Totaal dakvlak', c.M, c.yy); d.text(tot.toFixed(2) + ' m2', cx4, c.yy); c.yy += 6;
-  const pts = g.punt.filter(f => f.area >= 0.05);
-  if(pts.length){
-    d.setFont('helvetica', 'bold'); d.setTextColor(35, 76, 94); d.text('Puntgevels / extra geveloppervlak', c.M, c.yy); c.yy += 4.5;
-    d.setFont('helvetica', 'normal'); d.setTextColor(30);
-    pts.forEach(f => { if(c.yy > c.PH - 14){ d.addPage(); c.yy = c.M; } d.text(imPdfClean((imGevelNaam(f.gevel) || f.gevel) + (f.orient ? ' (' + f.orient + ')' : '')), c.M, c.yy); d.text(f.area.toFixed(2) + ' m2', cx4, c.yy); c.yy += 4.6; });
-  }
-  c.yy += 3;
+  list.forEach(({ f, g }) => {
+    const dak = f.v.dak, naam = (DAKTYPES.find(t => t[0] === dak.type) || [, dak.type])[1];
+    if(c.yy > c.PH - 34){ d.addPage(); c.yy = c.M; }
+    d.setFont('helvetica', 'bold'); d.setFontSize(10); d.setTextColor(35, 76, 94);
+    d.text(imPdfClean(`${f.v.naam || 'Verdieping'} — ${naam}`), c.M, c.yy); c.yy += 4.5;
+    d.setFont('helvetica', 'normal'); d.setFontSize(9); d.setTextColor(40);
+    d.text(imPdfClean(`Hellingshoek ${dak.hoek || '?'} graden   ·   nokhoogte ${g.nokhoogte.toFixed(2)} m`), c.M, c.yy); c.yy += 5;
+    d.setFont('helvetica', 'bold'); d.setFontSize(8.5); d.setTextColor(35, 76, 94);
+    d.text('Dakvlak', c.M, c.yy); d.text('Orientatie', cx2, c.yy); d.text('Hoek', cx3, c.yy); d.text('Oppervlak', cx4, c.yy); c.yy += 1.3;
+    d.setDrawColor(200); d.setLineWidth(0.2); d.line(c.M, c.yy, c.PW - c.M, c.yy); c.yy += 4;
+    d.setFont('helvetica', 'normal'); d.setTextColor(30); let tot = 0;
+    g.vlak.forEach((fc, i) => { if(c.yy > c.PH - 14){ d.addPage(); c.yy = c.M; } d.text('Dakvlak ' + (i + 1), c.M, c.yy); d.text(imPdfClean(fc.orient || '-'), cx2, c.yy); d.text((fc.hoek || '?') + ' gr', cx3, c.yy); d.text(fc.area.toFixed(2) + ' m2', cx4, c.yy); tot += fc.area; c.yy += 4.4; });
+    d.setFont('helvetica', 'bold'); d.text('Totaal dakvlak', c.M, c.yy); d.text(tot.toFixed(2) + ' m2', cx4, c.yy); c.yy += 5;
+    const pts = g.punt.filter(fc => fc.area >= 0.05);
+    if(pts.length){ d.setFont('helvetica', 'bold'); d.setFontSize(8.5); d.setTextColor(35, 76, 94); d.text('Puntgevels / extra geveloppervlak', c.M, c.yy); c.yy += 4; d.setFont('helvetica', 'normal'); d.setTextColor(30);
+      pts.forEach(fc => { if(c.yy > c.PH - 14){ d.addPage(); c.yy = c.M; } d.text(imPdfClean((imGevelNaam(fc.gevel) || fc.gevel) + (fc.orient ? ' (' + fc.orient + ')' : '')), c.M, c.yy); d.text(fc.area.toFixed(2) + ' m2', cx4, c.yy); c.yy += 4.4; }); }
+    c.yy += 4;
+  });
 }
 async function imPdfInmeet(c){
   const d = c.doc, verds = imData().verdiepingen;
@@ -988,6 +1001,22 @@ async function imPdfInmeet(c){
       for(let i = 0; i < gfotos.length; i++){
         if(col === 0 && rowY > c.PH - 82){ d.addPage(); rowY = c.M; }
         const hh = await imPdfFotoBlock(c, gfotos[i].v, gfotos[i].ft, i + 1, c.M + col * (colW + 8), rowY, colW);
+        rowH = Math.max(rowH, hh);
+        if(++col === 2){ col = 0; rowY += rowH + 5; rowH = 0; }
+      }
+      if(col === 1) rowY += rowH + 5;
+      c.yy = rowY + 2;
+    }
+    const dakfotos = [];                                            // dakramen: foto's met gevel = dak
+    verds.forEach(v => (v.fotos || []).forEach(ft => { if(ft.gevel === 'dak') dakfotos.push({ v, ft }); }));
+    if(dakfotos.length){
+      if(c.yy > c.PH - 30){ d.addPage(); c.yy = c.M; }
+      imPdfSectie(c, 'Dakvlakken — dakramen');
+      const colW = (c.PW - 2 * c.M - 8) / 2;
+      let col = 0, rowY = c.yy, rowH = 0;
+      for(let i = 0; i < dakfotos.length; i++){
+        if(col === 0 && rowY > c.PH - 82){ d.addPage(); rowY = c.M; }
+        const hh = await imPdfFotoBlock(c, dakfotos[i].v, dakfotos[i].ft, i + 1, c.M + col * (colW + 8), rowY, colW);
         rowH = Math.max(rowH, hh);
         if(++col === 2){ col = 0; rowY += rowH + 5; rowH = 0; }
       }

@@ -188,8 +188,14 @@ textarea{resize:vertical}
 .im-voorgevel{background:#e9f1f3;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px}
 .im-voorgevel label{margin:0;font-weight:600;color:var(--ink);font-size:13px}
 .im-vg-hint{font-size:12px;color:var(--mut);margin:7px 0 0}
-.dak-block{background:#f3eee6;border:1px solid #e0d4c0;border-radius:10px;padding:10px 12px;margin:0 0 12px}
-.dak-block h3{margin:0 0 8px;font-size:14px;color:#6b5836}
+.dak-block{background:#f3eee6;border:1px solid #e0d4c0;border-radius:10px;padding:10px 12px;margin:8px 0 4px}
+.dak-block h4{margin:0 0 8px;font-size:12px;color:#6b5836;text-transform:uppercase;letter-spacing:.03em}
+.dak-pick{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+.dak-opt{flex:1 1 60px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;background:#fff;border:1px solid #e0d4c0;border-radius:9px;cursor:pointer;font-size:11px;color:var(--mut)}
+.dak-opt.on{border-color:#b08948;box-shadow:0 0 0 2px rgba(176,137,72,.25);color:#3e2f12;font-weight:600}
+.dak-ico{width:40px;height:30px}
+.dak-ico polygon{fill:#e7ddc8;stroke:#8a7048;stroke-width:1.4;stroke-linejoin:round}
+.dak-opt.on .dak-ico polygon{fill:#d8c39a;stroke:#6b5836}
 .dak-f{display:block;margin:0 0 8px;font-weight:600;color:var(--ink);font-size:13px}
 .dak-f input,.dak-f select{margin-top:3px}
 .dak-row{display:flex;gap:10px}
