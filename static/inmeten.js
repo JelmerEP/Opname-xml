@@ -371,7 +371,7 @@ function imSelect(active){   // 1 selectie tegelijk; imRenderCard rendert de bal
 }
 
 function imFotoHtml(vid, ft){
-  const marks = ft.marks || [];
+  const marks = ft.marks || [], zones = (imVerd(vid) || {}).zones || [];
   const pins = marks.map((m, i) => `<button type="button" class="foto-pin${ft.sel === m.id ? ' sel' : ''}" style="left:${(m.x * 100).toFixed(1)}%;top:${(m.y * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}">${i + 1}</button>`).join('');
   return `<div class="foto" data-vid="${vid}" data-fid="${ft.id}">
     <div class="foto-wrap" data-vid="${vid}" data-fid="${ft.id}">
@@ -381,6 +381,7 @@ function imFotoHtml(vid, ft){
     <p class="foto-hint">${marks.length ? 'Tik een raam/deur aan in de foto, of een bestaand bolletje — de gegevens vul je bovenin in.' : 'Tik op elk raam/deur in de foto; de gegevens vul je bovenin in.'}${ft.sel ? ' <button type="button" class="mark-del" data-vid="' + vid + '" data-fid="' + ft.id + '" data-mid="' + ft.sel + '">verwijder bolletje</button>' : ''}</p>
     <div class="foto-foot">
       <label class="foto-gevel">Gevel<select class="foto-gevel-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— kies —</option>${GEVELS.map(g => { const o = imGevelOrient(g[0]); return `<option value="${g[0]}"${ft.gevel === g[0] ? ' selected' : ''}>${g[1]}${o ? ' (' + o + ')' : ''}</option>`; }).join('')}</select></label>
+      ${zones.length ? `<label class="foto-gevel">Zone<select class="foto-zone-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— n.v.t. —</option>${zones.map(z => `<option value="${z.id}"${ft.zone === z.id ? ' selected' : ''}>${imEsc(z.naam || 'Zone')}</option>`).join('')}</select></label>` : ''}
       <button type="button" class="foto-del" data-vid="${vid}" data-fid="${ft.id}">Foto verwijderen</button>
     </div>
   </div>`;
@@ -541,6 +542,7 @@ function imBind(){
   });
   $$('#inmeten .foto-del').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v && v.fotos){ const f = imFoto(b.dataset.vid, b.dataset.fid); if(f && f.foto) imPhotoDel(f.foto); v.fotos = v.fotos.filter(x => x.id !== b.dataset.fid); saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .foto-gevel-sel').forEach(s => s.onchange = () => { const f = imFoto(s.dataset.vid, s.dataset.fid); if(f){ f.gevel = s.value; saveDraft(); } });
+  $$('#inmeten .foto-zone-sel').forEach(s => s.onchange = () => { const f = imFoto(s.dataset.vid, s.dataset.fid); if(f){ f.zone = s.value; saveDraft(); } });
   const vgSel = $('#im-voorgevel'); if(vgSel) vgSel.onchange = () => { imData().voorgevel = vgSel.value; saveDraft(); imRender(); };
   $$('#inmeten .foto-wrap').forEach(w => w.onclick = e => {
     if(e.target.closest('.foto-pin')) return;
@@ -655,10 +657,8 @@ function imBuildFloors(){           // verdiepingen: uitgelijnde footprint + cum
     const off = imFloorOffset(v), sh = p => [p[0] + off.dx, p[1] + off.dy];
     const real = real0.map(sh);
     const zones = (v.zones || []).map(z => { const g = imZoneGeom(v, z); return g ? { region: g.region.map(sh), area: g.area, naam: z.naam } : null; }).filter(Boolean);
-    const openings = [];                                            // ramen/deuren uit de foto-markers (per gevel)
-    (v.fotos || []).forEach(ft => { if(!ft.gevel) return; (ft.marks || []).forEach(mk => openings.push({ gevel: ft.gevel, x: mk.x, y: mk.y, m2: imNum(mk.m2) || 0, type: mk.type || 'raam' })); });
     const hgt = imNum(v.hoogte) || 2.6;
-    floors.push({ real, real0, dx: off.dx, dy: off.dy, z0: zbase, z1: zbase + hgt, v, zones, openings }); zbase += hgt;
+    floors.push({ real, real0, dx: off.dx, dy: off.dy, z0: zbase, z1: zbase + hgt, v, zones }); zbase += hgt;
   }
   return floors;
 }
@@ -710,20 +710,12 @@ function imPdf3D(c, x, y, w, h){
     f.zones.forEach(z => { const m = imPolyMid(z.region); faces.push({ p: z.region.map(p => P(p[0], p[1], f.z1)), key: m[0] + m[1] + f.z1 + 0.03, t: 'zone' }); });
     f.zones.forEach(z => { const R = z.region, n2 = R.length; for(let i = 0; i < n2; i++){ const a = R[i], b = R[(i + 1) % n2]; if(!imEdgeOnPlan(f.real, a, b)) continue;   // zone-strook op de gevel
       faces.push({ p: [P(a[0], a[1], f.z0), P(b[0], b[1], f.z0), P(b[0], b[1], f.z1), P(a[0], a[1], f.z1)], key: (a[0] + b[0] + a[1] + b[1]) / 2 + (f.z0 + f.z1) / 2 + 0.05, t: 'zonewall' }); } });
-    f.openings.forEach(o => {                                         // ramen/deuren op de gevelvlakken
-      const e = imGevelMainEdge(f.real, o.gevel); if(!e) return;
-      const len = Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1]) || 1, ux = (e.b[0] - e.a[0]) / len, uy = (e.b[1] - e.a[1]) / len;
-      const cx = e.a[0] + o.x * (e.b[0] - e.a[0]), cy = e.a[1] + o.x * (e.b[1] - e.a[1]), zc = f.z1 - o.y * (f.z1 - f.z0), hw = Math.max(0.4, Math.sqrt(o.m2 || 0.6)) / 2;
-      faces.push({ p: [P(cx - ux * hw, cy - uy * hw, zc - hw), P(cx + ux * hw, cy + uy * hw, zc - hw), P(cx + ux * hw, cy + uy * hw, zc + hw), P(cx - ux * hw, cy - uy * hw, zc + hw)], key: (e.a[0] + e.b[0] + e.a[1] + e.b[1]) / 2 + (f.z0 + f.z1) / 2 + 0.08, t: o.type === 'deur' ? 'deur' : 'raam' });
-    });
   });
   faces.sort((a, b) => a.key - b.key);
   d.setLineWidth(0.25);
   faces.forEach(fc => {
     if(fc.t === 'zone'){ d.setFillColor(196, 184, 230); d.setDrawColor(122, 74, 192); }
     else if(fc.t === 'zonewall'){ d.setFillColor(206, 195, 235); d.setDrawColor(122, 74, 192); }
-    else if(fc.t === 'raam'){ d.setFillColor(188, 212, 232); d.setDrawColor(70, 110, 150); }
-    else if(fc.t === 'deur'){ d.setFillColor(170, 145, 115); d.setDrawColor(110, 85, 60); }
     else if(fc.t === 'top'){ d.setFillColor(206, 223, 230); d.setDrawColor(60); }
     else { d.setFillColor(231, 238, 241); d.setDrawColor(120); }
     imPdfPoly(d, fc.p, 'FD');
@@ -735,17 +727,6 @@ function imZoneSegGevel(seg, bb){
   const horiz = Math.abs(seg.b[0] - seg.a[0]) >= Math.abs(seg.b[1] - seg.a[1]);
   if(horiz) return seg.a[1] > (bb.miny + bb.maxy) / 2 ? 'voor' : 'achter';
   return seg.a[0] < (bb.minx + bb.maxx) / 2 ? 'links' : 'rechts';
-}
-function imOpeningStyle(d, type){ if(type === 'deur'){ d.setFillColor(170, 145, 115); d.setDrawColor(110, 85, 60); } else { d.setFillColor(188, 212, 232); d.setDrawColor(70, 110, 150); } }
-function imGevelMainEdge(real, gevel){   // langste buitenmuur-rand die bij deze gevel hoort (voor plaatsing in 3D)
-  const bb = imBbox(real); let best = null, bestLen = 0;
-  for(let i = 0; i < real.length; i++){
-    const a = real[i], b = real[(i + 1) % real.length], horiz = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]);
-    const g = horiz ? ((a[1] + b[1]) / 2 > (bb.miny + bb.maxy) / 2 ? 'voor' : 'achter') : ((a[0] + b[0]) / 2 < (bb.minx + bb.maxx) / 2 ? 'links' : 'rechts');
-    if(g !== gevel) continue;
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]); if(len > bestLen){ bestLen = len; best = { a, b }; }
-  }
-  return best;
 }
 function imDimH(d, xa, xb, yy, txt, col){   // horizontale maatlijn met 45-graden streepjes
   if(xb - xa < 1.5) return; const c = col || [110, 110, 110];
@@ -778,7 +759,7 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
   let amin = Infinity, amax = -Infinity, zmax = 0;
   floors.forEach(f => { f.real.forEach(c => { amin = Math.min(amin, c[as]); amax = Math.max(amax, c[as]); }); zmax = Math.max(zmax, f.z1); });
   const aw = (amax - amin) || 1, nf = floors.length;
-  const padL = 10, padR = 5, padT = 4, padB = 5 + nf * 4.6;        // ruimte voor maatlijnen (links hoogtes, onder breedtes)
+  const padL = 10, padR = 5, padT = 7, padB = 5 + nf * 4.6;        // ruimte voor maatlijnen (links hoogtes, onder breedtes, boven zone-breedtes)
   const availW = w - padL - padR, availH = bh - padT - padB;
   const s = Math.min(availW / aw, availH / (zmax || 1));
   const ox = x + padL + (availW - aw * s) / 2, baseY = by + padT + availH;
@@ -800,14 +781,8 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label){
       const ew = (e1 - e0) * s; if(ew < 0.3) continue;
       d.setFillColor(206, 195, 235); d.setDrawColor(122, 74, 192); d.setLineWidth(0.3);
       d.rect(ox + e0 * s, baseY - f.z1 * s, ew, (f.z1 - f.z0) * s, 'FD');
-      if(ew > 6){ d.setFontSize(6); d.setTextColor(90, 60, 150); d.text((e1 - e0).toFixed(2), ox + (e0 + e1) / 2 * s, baseY - (f.z0 + f.z1) / 2 * s + 1, { align: 'center' }); d.setTextColor(0); }
+      imDimH(d, ox + e0 * s, ox + e1 * s, baseY - f.z1 * s - 2.4, (e1 - e0).toFixed(2), [122, 74, 192]);   // zone-breedte als maatlijn (boven de strook)
     }
-  }));
-  floors.forEach(f => f.openings.forEach(o => {                      // ramen/deuren op deze gevel
-    if(o.gevel !== mode) return;
-    const [f0, f1] = fext(f), ex = ox + (f0 + o.x * (f1 - f0)) * s, zc = f.z1 - o.y * (f.z1 - f.z0), ey = baseY - zc * s;
-    const side = Math.max(0.4, Math.sqrt(o.m2 || 0.6)) * s;
-    imOpeningStyle(d, o.type); d.setLineWidth(0.3); d.rect(ex - side / 2, ey - side / 2, side, side, 'FD');
   }));
   floors.forEach((f, i) => {                                        // maatlijnen: hoogte (links, gestapeld) + breedte (onder, gestapeld)
     imDimV(d, baseY - f.z0 * s, baseY - f.z1 * s, x + padL - 4.5, (f.z1 - f.z0).toFixed(2));
@@ -851,19 +826,24 @@ async function imPdfInmeet(c){
       const planH = 60; imPdfPlan(d, v, c.M, c.yy, 96, planH); c.yy += planH + 3;
     } else { d.setFontSize(9); d.setTextColor(120); d.text('(geen volledige plattegrond)', c.M, c.yy + 3); d.setTextColor(0); c.yy += 8; }
     for(const ft of (v.fotos || [])){
-      const imgW = 58, imgH = 43;
+      const imgW = 80, imgH = 60;
       const gLabel = ft.gevel ? imGevelNaam(ft.gevel) + (imGevelOrient(ft.gevel) ? ' (' + imGevelOrient(ft.gevel) + ')' : '') : '';
-      if(c.yy > c.PH - (imgH + (gLabel ? 12 : 8))){ d.addPage(); c.yy = c.M; }
-      if(gLabel){ d.setFont('helvetica', 'bold'); d.setFontSize(9); d.setTextColor(35, 76, 94); d.text(imPdfClean(gLabel), c.M, c.yy + 1); d.setTextColor(0); d.setFont('helvetica', 'normal'); c.yy += 4; }
+      const zNaam = ft.zone ? (((v.zones || []).find(z => z.id === ft.zone) || {}).naam || '') : '';
+      const head = [gLabel, zNaam ? 'Zone: ' + zNaam : ''].filter(Boolean).join('   -   ');
+      if(c.yy > c.PH - (imgH + (head ? 12 : 8))){ d.addPage(); c.yy = c.M; }
+      if(head){ d.setFont('helvetica', 'bold'); d.setFontSize(9); d.setTextColor(35, 76, 94); d.text(imPdfClean(head), c.M, c.yy + 1); d.setTextColor(0); d.setFont('helvetica', 'normal'); c.yy += 4; }
       let durl = _imUrl[ft.foto]; if(!durl){ durl = await imPhotoGet(ft.foto); if(durl) _imUrl[ft.foto] = durl; }
-      if(durl){ try { d.addImage(durl, 'JPEG', c.M, c.yy, imgW, imgH); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(c.M, c.yy, imgW, imgH);
-        (ft.marks || []).forEach((m, i) => { const cx = c.M + m.x * imgW, cy = c.yy + m.y * imgH; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.2, 'F'); d.setTextColor(255); d.setFontSize(7); d.text(String(i + 1), cx, cy + 1.1, { align: 'center' }); }); d.setTextColor(0);
+      let iw = imgW, ih = imgH;
+      if(durl){
+        try { const pr = d.getImageProperties(durl), ar = pr.width / pr.height; if(ar > imgW / imgH) ih = imgW / ar; else iw = imgH * ar; } catch(e){}   // aspect behouden (geen vervorming)
+        try { d.addImage(durl, 'JPEG', c.M, c.yy, iw, ih); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(c.M, c.yy, iw, ih);
+        (ft.marks || []).forEach((m, i) => { const cx = c.M + m.x * iw, cy = c.yy + m.y * ih; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.2, 'F'); d.setTextColor(255); d.setFontSize(7); d.text(String(i + 1), cx, cy + 1.1, { align: 'center' }); }); d.setTextColor(0);
       }
       let ty = c.yy + 3.5; d.setFontSize(8.5);
       const marks = ft.marks || [];
-      if(!marks.length) d.text('(geen markeringen)', c.M + imgW + 4, ty);
-      marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), c.M + imgW + 4, ty); ty += 4.4; });
-      c.yy += Math.max(imgH, ty - c.yy) + 5;
+      if(!marks.length) d.text('(geen markeringen)', c.M + iw + 4, ty);
+      marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), c.M + iw + 4, ty); ty += 4.4; });
+      c.yy += Math.max(ih, ty - c.yy) + 5;
     }
     c.yy += 3;
   }
