@@ -188,6 +188,15 @@ textarea{resize:vertical}
 .im-voorgevel{background:#e9f1f3;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px}
 .im-voorgevel label{margin:0;font-weight:600;color:var(--ink);font-size:13px}
 .im-vg-hint{font-size:12px;color:var(--mut);margin:7px 0 0}
+.dak-block{background:#f3eee6;border:1px solid #e0d4c0;border-radius:10px;padding:10px 12px;margin:0 0 12px}
+.dak-block h3{margin:0 0 8px;font-size:14px;color:#6b5836}
+.dak-f{display:block;margin:0 0 8px;font-weight:600;color:var(--ink);font-size:13px}
+.dak-f input,.dak-f select{margin-top:3px}
+.dak-row{display:flex;gap:10px}
+.dak-row .dak-f{flex:1}
+.dak-readout{font-size:13px;color:#6b5836;background:#fff;border:1px solid #e0d4c0;border-radius:8px;padding:8px 10px;margin-top:2px}
+.dak-readout strong{color:#3e2f12}
+.dak-readout-warn{color:#9a6a2a;background:#fbf3e6}
 /* vaste invul-balk bovenin (boven het toetsenbord) */
 .im-editbar{position:fixed;top:0;left:0;right:0;z-index:8;background:#fff;border-bottom:2px solid var(--blue);box-shadow:0 3px 12px rgba(0,0,0,.18);padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top))}
 .im-bar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;max-width:640px;margin:0 auto}
