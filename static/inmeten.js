@@ -319,14 +319,19 @@ function imOpenCamera(vid){       // doorlopende camera (zoals de iPhone-camera)
   if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ const inp = $(`#inmeten .vd[data-vid="${vid}"] .foto-cam`); if(inp) inp.click(); return; }
   const ov = document.createElement('div'); ov.className = 'im-cam';
   ov.innerHTML = `<video class="im-cam-vid" playsinline autoplay muted></video>
+    <div class="im-cam-ctrls"><button type="button" class="im-cam-torch" hidden aria-label="Flits">⚡</button><input type="range" class="im-cam-zoom" hidden min="1" max="5" step="0.1" value="1" aria-label="Zoom"></div>
     <div class="im-cam-bar"><span class="im-cam-cnt">0 foto's</span><button type="button" class="im-cam-shot" aria-label="Foto maken"></button><button type="button" class="im-cam-close">Klaar</button></div>`;
   document.body.appendChild(ov);
-  const video = ov.querySelector('.im-cam-vid'), cnt = ov.querySelector('.im-cam-cnt');
-  let n = 0, stream = null, busy = false;
+  const video = ov.querySelector('.im-cam-vid'), cnt = ov.querySelector('.im-cam-cnt'), torchBtn = ov.querySelector('.im-cam-torch'), zoomInp = ov.querySelector('.im-cam-zoom');
+  let n = 0, stream = null, busy = false, track = null, torchOn = false;
   const close = () => { if(stream) stream.getTracks().forEach(t => t.stop()); ov.remove(); if(n) imRenderCard(vid); };
   navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false })
-    .then(s => { stream = s; video.srcObject = s; const p = video.play(); if(p && p.catch) p.catch(() => {}); })
-    .catch(() => { alert('Camera kon niet worden geopend — gebruik anders "Foto toevoegen".'); close(); });
+    .then(s => { stream = s; video.srcObject = s; const p = video.play(); if(p && p.catch) p.catch(() => {});
+      track = s.getVideoTracks()[0]; const caps = (track && track.getCapabilities) ? track.getCapabilities() : {};
+      if(caps.torch){ torchBtn.hidden = false; torchBtn.onclick = () => { torchOn = !torchOn; track.applyConstraints({ advanced: [{ torch: torchOn }] }).catch(() => {}); torchBtn.classList.toggle('on', torchOn); }; }
+      if(caps.zoom){ zoomInp.hidden = false; zoomInp.min = caps.zoom.min; zoomInp.max = caps.zoom.max; zoomInp.step = caps.zoom.step || 0.1; zoomInp.value = (track.getSettings && track.getSettings().zoom) || caps.zoom.min; zoomInp.oninput = () => track.applyConstraints({ advanced: [{ zoom: +zoomInp.value }] }).catch(() => {}); }
+    })
+    .catch(() => { alert('Camera kon niet worden geopend — gebruik anders "Losse foto".'); close(); });
   const shot = () => {
     if(busy || !video.videoWidth) return; busy = true;
     const cv = document.createElement('canvas'), sc = Math.min(1, 1400 / video.videoWidth);
@@ -344,6 +349,7 @@ function imOpenCamera(vid){       // doorlopende camera (zoals de iPhone-camera)
 // --- vaste invul-balk bovenin (boven het toetsenbord); veld verschijnt hier i.p.v. onder de tik ---
 let _imActive = null;   // { vid, type:'wall'|'zonewall'|'mark', fid?/zid? } | null
 let _imPosDrag = null;  // verdieping-sleep: { vid, sx, sy, dx0, dy0, a, d, sc } | null
+let _imFotoDrag = null; // foto-annotatie slepen: { el, rect, sx, sy, moved, nx, ny } | null
 function imBar(){ let b = document.getElementById('im-editbar'); if(!b){ b = document.createElement('div'); b.id = 'im-editbar'; b.className = 'im-editbar'; b.hidden = true; document.body.appendChild(b); } return b; }
 function imRenderEditBar(){
   const bar = imBar(), a = _imActive;
@@ -435,13 +441,14 @@ function imFotoHtml(vid, ft){
   const svg = `<svg class="foto-ann" viewBox="0 0 100 100" preserveAspectRatio="none">${lijnen.map(l => ln(l, 'foto-line' + (ft.sel === l.id ? ' sel' : ''))).join('')}${ft._ls ? `<circle cx="${(ft._ls.x * 100).toFixed(1)}" cy="${(ft._ls.y * 100).toFixed(1)}" r="1.6" class="foto-lstart"/>` : ''}${lijnen.map(l => ln(l, 'foto-line-hit')).join('')}</svg>`;
   const lmaat = lijnen.map(l => `<button type="button" class="foto-lmaat${ft.sel === l.id ? ' sel' : ''}" style="left:${((l.x1 + l.x2) / 2 * 100).toFixed(1)}%;top:${((l.y1 + l.y2) / 2 * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-lid="${l.id}">${l.maat ? imEsc(l.maat) + ' m' : '? m'}</button>`).join('');
   const notes = notities.map(nt => `<button type="button" class="foto-note${ft.sel === nt.id ? ' sel' : ''}" style="left:${(nt.x * 100).toFixed(1)}%;top:${(nt.y * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-nid="${nt.id}">${imEsc(nt.tekst || 'notitie')}</button>`).join('');
+  const lpts = lijnen.filter(l => ft.sel === l.id).map(l => [['1', l.x1, l.y1], ['2', l.x2, l.y2]].map(p => `<button type="button" class="foto-lpt" style="left:${(p[1] * 100).toFixed(1)}%;top:${(p[2] * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-lid="${l.id}" data-pt="${p[0]}"></button>`).join('')).join('');
   const hint = mode === 'lijn' ? (ft._ls ? 'Tik het 2e punt van de lijn.' : 'Tik 2 punten voor een lijn; de maat vul je bovenin in.') : mode === 'notitie' ? 'Tik waar je een notitie wilt plaatsen.' : 'Tik op elk raam/deur; de gegevens vul je bovenin in.';
   return `<div class="foto" data-vid="${vid}" data-fid="${ft.id}">
     <div class="foto-tophead"><span>Foto — ${imEsc(gLabel)}</span><button type="button" class="foto-collapse" data-vid="${vid}" data-fid="${ft.id}">▾ Inklappen</button></div>
     <div class="foto-modes">${[['mark', '📍 Raam/deur'], ['lijn', '📏 Lijn'], ['notitie', '📝 Notitie']].map(m => `<button type="button" class="foto-mode${mode === m[0] ? ' on' : ''}" data-vid="${vid}" data-fid="${ft.id}" data-m="${m[0]}">${m[1]}</button>`).join('')}</div>
     <div class="foto-wrap foto-wrap-${mode}" data-vid="${vid}" data-fid="${ft.id}">
       <img class="foto-img" data-foto="${imEsc(ft.foto)}" alt="foto ramen/deuren">
-      ${svg}${pins}${lmaat}${notes}
+      ${svg}${pins}${lmaat}${notes}${lpts}
     </div>
     <p class="foto-hint">${hint}${ft.sel ? ' <button type="button" class="ann-del" data-vid="' + vid + '" data-fid="' + ft.id + '">verwijder selectie</button>' : ''}</p>
     <div class="foto-foot">
@@ -654,7 +661,7 @@ function imBind(){
   $$('#inmeten .dak-hoek').forEach(i => i.oninput = () => { const o = dakGet(i.dataset.vid, i.dataset.g); if(o){ o.hoek = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
   $$('#inmeten .dak-dakvoet').forEach(i => i.oninput = () => { const o = dakGet(i.dataset.vid, i.dataset.g); if(o){ o.dakvoet = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
   $$('#inmeten .foto-wrap').forEach(w => w.onclick = e => {
-    if(e.target.closest('.foto-pin') || e.target.closest('.foto-note') || e.target.closest('.foto-lmaat') || e.target.closest('.foto-line-hit')) return;
+    if(e.target.closest('.foto-pin') || e.target.closest('.foto-note') || e.target.closest('.foto-lmaat') || e.target.closest('.foto-line-hit') || e.target.closest('.foto-lpt')) return;
     const f = imFoto(w.dataset.vid, w.dataset.fid); if(!f) return;
     const rect = w.getBoundingClientRect();
     const x = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)), y = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
@@ -667,7 +674,17 @@ function imBind(){
   });
   $$('#inmeten .foto-pin').forEach(p => p.onclick = e => { e.stopPropagation(); imSelect({ vid: p.dataset.vid, type: 'mark', fid: p.dataset.fid, mid: p.dataset.mid }); });
   $$('#inmeten .foto-lmaat, #inmeten .foto-line-hit').forEach(p => p.addEventListener('click', e => { e.stopPropagation(); imSelect({ vid: p.dataset.vid, type: 'lijn', fid: p.dataset.fid, lid: p.dataset.lid }); }));
-  $$('#inmeten .foto-note').forEach(p => p.onclick = e => { e.stopPropagation(); imSelect({ vid: p.dataset.vid, type: 'notitie', fid: p.dataset.fid, nid: p.dataset.nid }); });
+  $$('#inmeten .foto-note, #inmeten .foto-lpt').forEach(el => {   // notitie/lijn-eindpunt: tik = selecteer, sleep = verplaatsen
+    if(el._db) return; el._db = true; el.style.touchAction = 'none';
+    el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); const wrap = el.closest('.foto-wrap'); if(!wrap) return; _imFotoDrag = { el, rect: wrap.getBoundingClientRect(), sx: e.clientX, sy: e.clientY, moved: false }; try { el.setPointerCapture(e.pointerId); } catch(_){} });
+    el.addEventListener('pointermove', e => { const d = _imFotoDrag; if(!d || d.el !== el) return; if(!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 4) d.moved = true; if(!d.moved) return; d.nx = Math.min(1, Math.max(0, (e.clientX - d.rect.left) / d.rect.width)); d.ny = Math.min(1, Math.max(0, (e.clientY - d.rect.top) / d.rect.height)); el.style.left = (d.nx * 100).toFixed(1) + '%'; el.style.top = (d.ny * 100).toFixed(1) + '%'; });
+    el.addEventListener('pointerup', () => {
+      const d = _imFotoDrag; if(!d || d.el !== el) return; _imFotoDrag = null; const f = imFoto(el.dataset.vid, el.dataset.fid); if(!f) return;
+      if(!d.moved){ if(el.dataset.nid) imSelect({ vid: el.dataset.vid, type: 'notitie', fid: el.dataset.fid, nid: el.dataset.nid }); else imSelect({ vid: el.dataset.vid, type: 'lijn', fid: el.dataset.fid, lid: el.dataset.lid }); return; }
+      if(el.dataset.nid){ const nt = (f.notities || []).find(n => n.id === el.dataset.nid); if(nt){ nt.x = d.nx; nt.y = d.ny; saveDraft(); } }
+      else { const l = (f.lijnen || []).find(x => x.id === el.dataset.lid); if(l){ if(el.dataset.pt === '1'){ l.x1 = d.nx; l.y1 = d.ny; } else { l.x2 = d.nx; l.y2 = d.ny; } saveDraft(); imRenderCard(el.dataset.vid); } }
+    });
+  });
   $$('#inmeten .foto-mode').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.mode = b.dataset.m; f._ls = null; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .ann-del').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f && f.sel){ const id = f.sel; f.marks = (f.marks || []).filter(m => m.id !== id); f.lijnen = (f.lijnen || []).filter(l => l.id !== id); f.notities = (f.notities || []).filter(n => n.id !== id); f.sel = null; _imActive = null; saveDraft(); imRenderCard(b.dataset.vid); imRenderEditBar(); } });
   $$('#inmeten .vd-f').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v[i.dataset.k] = i.value; saveDraft(); } });
