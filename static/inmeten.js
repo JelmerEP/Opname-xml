@@ -314,6 +314,32 @@ function imLoadImages(root){
 }
 function imFoto(vid, fid){ const v = imVerd(vid); return v && v.fotos ? v.fotos.find(f => f.id === fid) : null; }
 function imMark(vid, fid, mid){ const f = imFoto(vid, fid); return f ? (f.marks || []).find(m => m.id === mid) : null; }
+function imOpenCamera(vid){       // doorlopende camera (zoals de iPhone-camera): snel meerdere foto's, geen bevestiging per foto
+  const v = imVerd(vid); if(!v) return;
+  if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ const inp = $(`#inmeten .vd[data-vid="${vid}"] .foto-cam`); if(inp) inp.click(); return; }
+  const ov = document.createElement('div'); ov.className = 'im-cam';
+  ov.innerHTML = `<video class="im-cam-vid" playsinline autoplay muted></video>
+    <div class="im-cam-bar"><span class="im-cam-cnt">0 foto's</span><button type="button" class="im-cam-shot" aria-label="Foto maken"></button><button type="button" class="im-cam-close">Klaar</button></div>`;
+  document.body.appendChild(ov);
+  const video = ov.querySelector('.im-cam-vid'), cnt = ov.querySelector('.im-cam-cnt');
+  let n = 0, stream = null, busy = false;
+  const close = () => { if(stream) stream.getTracks().forEach(t => t.stop()); ov.remove(); if(n) imRenderCard(vid); };
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false })
+    .then(s => { stream = s; video.srcObject = s; const p = video.play(); if(p && p.catch) p.catch(() => {}); })
+    .catch(() => { alert('Camera kon niet worden geopend — gebruik anders "Foto toevoegen".'); close(); });
+  const shot = () => {
+    if(busy || !video.videoWidth) return; busy = true;
+    const cv = document.createElement('canvas'), sc = Math.min(1, 1400 / video.videoWidth);
+    cv.width = Math.round(video.videoWidth * sc); cv.height = Math.round(video.videoHeight * sc);
+    cv.getContext('2d').drawImage(video, 0, 0, cv.width, cv.height);
+    const durl = cv.toDataURL('image/jpeg', 0.85), pid = imId();
+    ov.classList.add('im-cam-flash'); setTimeout(() => ov.classList.remove('im-cam-flash'), 130);
+    imPhotoPut(pid, durl).then(() => { if(!v.fotos) v.fotos = []; v.fotos.push({ id: imId(), foto: pid, marks: [], sel: null, collapsed: true }); n++; cnt.textContent = n + (n === 1 ? ' foto' : " foto's"); saveDraft(); busy = false; })
+      .catch(() => { busy = false; alert('Foto opslaan mislukt — opslag vol of niet beschikbaar.'); });
+  };
+  ov.querySelector('.im-cam-shot').onclick = shot;
+  ov.querySelector('.im-cam-close').onclick = close;
+}
 
 // --- vaste invul-balk bovenin (boven het toetsenbord); veld verschijnt hier i.p.v. onder de tik ---
 let _imActive = null;   // { vid, type:'wall'|'zonewall'|'mark', fid?/zid? } | null
@@ -428,7 +454,7 @@ function imCardHtml(v){
     <h4>Ramen &amp; deuren — foto's</h4>
     <div class="fotos">${(v.fotos || []).map(ft => imFotoHtml(v.id, ft)).join('')}</div>
     <input type="file" accept="image/*" capture="environment" class="foto-cam" data-vid="${v.id}" hidden>
-    <button type="button" class="foto-add" data-vid="${v.id}">📷 Foto toevoegen</button>
+    <div class="foto-btns"><button type="button" class="foto-cam-open" data-vid="${v.id}">📸 Camera (meerdere)</button><button type="button" class="foto-add" data-vid="${v.id}">🖼️ Losse foto</button></div>
   </div>`;
 }
 
@@ -461,9 +487,9 @@ function imDakControlsHtml(v){
   const dak = v.dak || {};
   const row = key => { const g = dak[key] || {}, o = imGevelOrient(key); return `<div class="dak-grow"><span class="dak-glbl">${imGevelNaam(key)}${o ? ' (' + o + ')' : ''}</span>
     <label>helling°<input class="dak-hoek" data-vid="${v.id}" data-g="${key}" inputmode="decimal" value="${imEsc(g.hoek || '')}" placeholder="0"></label>
-    <label>inzet m<input class="dak-inzet" data-vid="${v.id}" data-g="${key}" inputmode="decimal" value="${imEsc(g.inzet || '')}" placeholder="0"></label></div>`; };
+    <label>dakvoet m<input class="dak-dakvoet" data-vid="${v.id}" data-g="${key}" inputmode="decimal" value="${imEsc(g.dakvoet || '')}" placeholder="0"></label></div>`; };
   return `<div class="dak-block"><h4>Dak (verliesoppervlak)</h4>
-    <p class="dak-hint">Vul per gevel de hellingshoek in en waar het dak begint te hellen (inzet, vaak 0 m). Geen helling = die kant is recht (puntgevel).</p>
+    <p class="dak-hint">Per gevel: de hellingshoek + de dakvoethoogte (m boven de muurtop waar het dak begint te hellen, vaak 0). Geen helling = die kant is recht (puntgevel). Zelfde hoek met een hogere dakvoet aan één kant → nok schuift op.</p>
     ${DAK_GEVELS.map(row).join('')}
     <div class="dak-live">${imDakLive(v)}</div></div>`;
 }
@@ -584,7 +610,8 @@ function imBind(){
     el.addEventListener('pointerup', finish);
     el.addEventListener('pointercancel', () => { _imPosDrag = null; el.removeAttribute('transform'); });
   });
-  $$('#inmeten .foto-add').forEach(b => b.onclick = () => { const inp = b.parentElement.querySelector('.foto-cam'); if(inp) inp.click(); });
+  $$('#inmeten .foto-cam-open').forEach(b => b.onclick = () => imOpenCamera(b.dataset.vid));
+  $$('#inmeten .foto-add').forEach(b => b.onclick = () => { const card = $(`#inmeten .vd[data-vid="${b.dataset.vid}"]`), inp = card && card.querySelector('.foto-cam'); if(inp) inp.click(); });
   $$('#inmeten .foto-cam').forEach(inp => inp.onchange = () => {
     const file = inp.files && inp.files[0]; if(!file) return;
     imResizeToDataURL(file, 1400, durl => {
@@ -606,7 +633,7 @@ function imBind(){
   const dakGet = (vid, g) => { const v = imVerd(vid); if(!v) return null; if(!v.dak) v.dak = {}; if(g && !v.dak[g]) v.dak[g] = {}; return g ? v.dak[g] : v.dak; };
   const dakReadout = vid => { const card = $(`#inmeten .vd[data-vid="${vid}"]`), el = card && card.querySelector('.dak-live'), v = imVerd(vid); if(el && v) el.innerHTML = imDakLive(v); };
   $$('#inmeten .dak-hoek').forEach(i => i.oninput = () => { const o = dakGet(i.dataset.vid, i.dataset.g); if(o){ o.hoek = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
-  $$('#inmeten .dak-inzet').forEach(i => i.oninput = () => { const o = dakGet(i.dataset.vid, i.dataset.g); if(o){ o.inzet = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
+  $$('#inmeten .dak-dakvoet').forEach(i => i.oninput = () => { const o = dakGet(i.dataset.vid, i.dataset.g); if(o){ o.dakvoet = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
   $$('#inmeten .foto-wrap').forEach(w => w.onclick = e => {
     if(e.target.closest('.foto-pin')) return;
     const f = imFoto(w.dataset.vid, w.dataset.fid); if(!f) return;
@@ -734,8 +761,8 @@ function imDakTypeNaam(sloping){            // afgeleide naam uit het hellingspa
   const opp = (s.includes('voor') && s.includes('achter')) || (s.includes('links') && s.includes('rechts'));
   return opp ? 'Zadeldak' : 'Hoekdak';
 }
-// Dakgeometrie per verdieping: per gevel een inzet (waar het dak begint te hellen) + hellingshoek.
-// dak = { voor:{inzet,hoek}, achter:{...}, links:{...}, rechts:{...} }. Het dak = laagste hellingsvlak per punt.
+// Dakgeometrie per verdieping: per gevel een dakvoethoogte (m boven de muurtop, vaak 0) + hellingshoek.
+// dak = { voor:{dakvoet,hoek}, achter:{...}, links:{...}, rechts:{...} }. Het dak = laagste hellingsvlak per punt.
 function imDakGeom(floor, dak){
   if(!floor || !floor.real || !dak) return null;
   const bb = imBbox(floor.real), zT = floor.z1, W = bb.maxx - bb.minx, D = bb.maxy - bb.miny;
@@ -743,9 +770,9 @@ function imDakGeom(floor, dak){
     { key: 'voor', dist: (x, y) => bb.maxy - y }, { key: 'achter', dist: (x, y) => y - bb.miny },
     { key: 'links', dist: (x, y) => x - bb.minx }, { key: 'rechts', dist: (x, y) => bb.maxx - x }
   ];
-  const sloping = defs.map(o => { const g = dak[o.key] || {}, ang = imNum(g.hoek) || 0; return ang > 0 ? { key: o.key, dist: o.dist, tan: Math.tan(ang * Math.PI / 180), inzet: imNum(g.inzet) || 0, ang, orient: imGevelOrient(o.key) || '' } : null; }).filter(Boolean);
+  const sloping = defs.map(o => { const g = dak[o.key] || {}, ang = imNum(g.hoek) || 0; return ang > 0 ? { key: o.key, dist: o.dist, tan: Math.tan(ang * Math.PI / 180), dakvoet: Math.max(0, imNum(g.dakvoet) || 0), ang, orient: imGevelOrient(o.key) || '' } : null; }).filter(Boolean);
   if(!sloping.length) return null;
-  const hAt = (x, y) => { let h = Infinity, who = null; for(const g of sloping){ const z = Math.max(0, g.dist(x, y) - g.inzet) * g.tan; if(z < h){ h = z; who = g; } } return { h: h === Infinity ? 0 : h, who }; };
+  const hAt = (x, y) => { let h = Infinity, who = null; for(const g of sloping){ const z = g.dakvoet + g.dist(x, y) * g.tan; if(z < h){ h = z; who = g; } } return { h: h === Infinity ? 0 : Math.max(0, h), who }; };   // h = hoogte boven de muurtop (dakvoet = eigen begin-hoogte)
   const nx = Math.max(2, Math.min(18, Math.round(W / 0.6))), ny = Math.max(2, Math.min(18, Math.round(D / 0.6)));
   const xs = [], ys = []; for(let i = 0; i <= nx; i++) xs.push(bb.minx + W * i / nx); for(let j = 0; j <= ny; j++) ys.push(bb.miny + D * j / ny);
   const zG = xs.map(x => ys.map(y => hAt(x, y).h));
@@ -760,8 +787,8 @@ function imDakGeom(floor, dak){
     vlak.push({ poly: p, gevel: key, orient: who ? who.orient : '', area: ar, hoek: who ? who.ang : 0 });
   }
   const vlakSummary = sloping.map(g => ({ gevel: g.key, orient: g.orient, hoek: g.ang, area: areaBy[g.key] || 0 })).filter(s => s.area > 0.05);
-  const punt = [];                          // niet-hellende gevels -> verticaal puntgevel-stuk onder het dak
-  defs.forEach(o => { if((imNum((dak[o.key] || {}).hoek) || 0) > 0) return;
+  const punt = [];                          // verticaal gevelstuk tussen muurtop en dakrand (puntgevel of opgetrokken dakvoet)
+  defs.forEach(o => {
     const fix = o.key === 'links' ? bb.minx : o.key === 'rechts' ? bb.maxx : null, fiy = o.key === 'voor' ? bb.maxy : o.key === 'achter' ? bb.miny : null;
     const along = (fix != null) ? ys : xs, pts = along.map(t => { const x = fix != null ? fix : t, y = fiy != null ? fiy : t; return [x, y, zT + hAt(x, y).h]; });
     if(pts.every(p => p[2] - zT < 0.02)) return;

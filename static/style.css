@@ -181,7 +181,18 @@ textarea{resize:vertical}
 .mark-edit-h{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:var(--blue)}
 .mark-del{font-size:12px;color:#d9480f;background:#fff;border:1px solid #f3c4b0;border-radius:8px;padding:5px 9px;cursor:pointer}
 .foto-del{font-size:12px;color:#d9480f;background:#fff;border:1px solid #f3c4b0;border-radius:8px;padding:6px 10px;cursor:pointer;margin-top:2px}
-.foto-add{font-size:14px;font-weight:600;color:#fff;background:var(--blue);border:1px solid var(--blue);border-radius:9px;padding:10px 12px;cursor:pointer;width:100%}
+.foto-btns{display:flex;gap:8px}
+.foto-cam-open{flex:2;font-size:14px;font-weight:600;color:#fff;background:var(--blue);border:1px solid var(--blue);border-radius:9px;padding:11px 12px;cursor:pointer}
+.foto-add{flex:1;font-size:14px;font-weight:600;color:var(--blue);background:#fff;border:1px solid var(--blue);border-radius:9px;padding:11px 12px;cursor:pointer}
+.im-cam{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column}
+.im-cam-vid{flex:1;width:100%;min-height:0;object-fit:cover;background:#000}
+.im-cam.im-cam-flash::after{content:"";position:absolute;inset:0;background:#fff;opacity:.7;pointer-events:none;animation:imflash .13s ease-out}
+@keyframes imflash{from{opacity:.7}to{opacity:0}}
+.im-cam-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px calc(18px + env(safe-area-inset-bottom));background:#000}
+.im-cam-cnt{color:#fff;font-size:14px;flex:1}
+.im-cam-shot{flex:0 0 auto;width:68px;height:68px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,.35);cursor:pointer}
+.im-cam-shot:active{transform:scale(.94)}
+.im-cam-close{flex:1;text-align:right;color:#fff;background:none;border:none;font-size:16px;font-weight:600;cursor:pointer}
 .foto-foot{display:flex;gap:10px;align-items:flex-end;margin-top:6px}
 .foto-gevel{flex:1;margin:0;font-size:12px;color:var(--mut)}
 .foto-foot .foto-del{flex:0 0 auto;margin-top:0}
