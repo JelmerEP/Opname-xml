@@ -338,7 +338,8 @@ function imRenderEditBar(){
     inner = `<span class="im-bar-lbl">Raam/deur ${nr}</span>
       <select class="im-bar-sel im-mk" data-k="type" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value="raam"${m.type === 'raam' ? ' selected' : ''}>Raam</option><option value="deur"${m.type === 'deur' ? ' selected' : ''}>Deur</option><option value="dakraam"${m.type === 'dakraam' ? ' selected' : ''}>Dakraam</option></select>
       <input class="im-bar-in im-mk" data-k="m2" inputmode="decimal" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}" value="${imEsc(m.m2)}" placeholder="m²">
-      <select class="im-bar-sel im-mk" data-k="beglazing" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value=""${!m.beglazing ? ' selected' : ''}>beglazing…</option>${BEGLAZING.map(b => `<option${m.beglazing === b ? ' selected' : ''}>${imEsc(b)}</option>`).join('')}</select>`;
+      <select class="im-bar-sel im-mk" data-k="beglazing" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value=""${!m.beglazing ? ' selected' : ''}>beglazing…</option>${BEGLAZING.map(b => `<option${m.beglazing === b ? ' selected' : ''}>${imEsc(b)}</option>`).join('')}</select>
+      <input class="im-bar-in im-mk" data-k="paneel" inputmode="decimal" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}" value="${imEsc(m.paneel || '')}" placeholder="paneel m²">`;
   } else return hide();
   bar.innerHTML = `<div class="im-bar-row">${inner}<button type="button" class="im-bar-done">Klaar</button></div>`;
   bar.hidden = false; imBindBar();
@@ -435,7 +436,7 @@ const DAK_ICONS = { plat: '4,28 4,11 36,11 36,28', lessenaar: '4,28 4,14 36,6 36
 function imDakIcon(type){ return `<svg viewBox="0 0 40 30" class="dak-ico"><polygon points="${DAK_ICONS[type] || DAK_ICONS.plat}"/></svg>`; }
 function imDakReadout(v){
   const floor = imBuildFloors().find(f => f.v === v), g = floor && imDakGeom(floor, v.dak);
-  if(!g) return `<div class="dak-readout dak-readout-warn">Vul de hellingshoek in.</div>`;
+  if(!g) return `<div class="dak-readout dak-readout-warn">Vul de hellingshoek of nokhoogte in.</div>`;
   const tot = g.vlak.reduce((s, f) => s + f.area, 0), pg = g.punt.reduce((s, f) => s + f.area, 0);
   return `<div class="dak-readout">Nokhoogte <strong>${g.nokhoogte.toFixed(2)} m</strong> · Dakvlakken <strong>${tot.toFixed(1)} m&#178;</strong>${pg > 0.05 ? ' · Puntgevels <strong>' + pg.toFixed(1) + ' m&#178;</strong>' : ''}</div>`;
 }
@@ -445,7 +446,7 @@ function imDakControlsHtml(v){
   let inner = `<div class="dak-pick">${DAKTYPES.map(dt => `<button type="button" class="dak-opt${t === dt[0] ? ' on' : ''}" data-vid="${v.id}" data-dt="${dt[0]}">${imDakIcon(dt[0])}<span>${imEsc(dt[1].split(' (')[0])}</span></button>`).join('')}</div>`;
   if(t !== 'plat'){
     inner += `<div class="dak-row"><label class="dak-f">Hellingshoek (&#176;)<input class="dak-hoek" data-vid="${v.id}" inputmode="decimal" value="${imEsc(dak.hoek || '')}" placeholder="bv. 45"></label>
-      <label class="dak-f">Maat dakvoet&rarr;nok (m)<input class="dak-maat" data-vid="${v.id}" inputmode="decimal" value="${imEsc(dak.maat || '')}" placeholder="leeg = uit plattegrond"></label></div>`;
+      <label class="dak-f">Nokhoogte (m)<input class="dak-maat" data-vid="${v.id}" inputmode="decimal" value="${imEsc(dak.maat || '')}" placeholder="leeg = uit hoek"></label></div>`;
     if(t === 'lessenaar') inner += `<label class="dak-f">Hoge zijde<select class="dak-richting" data-vid="${v.id}">${[['voor', 'Voorgevel'], ['achter', 'Achtergevel'], ['links', 'Linkergevel'], ['rechts', 'Rechtergevel']].map(r => opt(r[0], r[1], dak.richting || 'achter')).join('')}</select></label>`;
     else inner += `<label class="dak-f">Nokrichting<select class="dak-richting" data-vid="${v.id}">${[['va', 'Vlakken naar voor + achter'], ['lr', 'Vlakken naar links + rechts']].map(r => opt(r[0], r[1], dak.richting || 'va')).join('')}</select></label>`;
     inner += imDakReadout(v);
@@ -714,54 +715,55 @@ function imBuildFloors(){           // verdiepingen: uitgelijnde footprint + cum
 }
 const DAKTYPES = [['plat', 'Plat dak'], ['lessenaar', 'Lessenaarsdak (1 vlak)'], ['zadel', 'Zadeldak (2 vlakken)'], ['schild', 'Schilddak (4 vlakken)'], ['mansarde', 'Mansardedak']];
 // Dakgeometrie van één verdieping (rechthoekige benadering van de footprint), op zijn dakvoethoogte.
-// dak = { type, hoek (graden), maat (horizontale dakvoet->nok, optioneel), richting }. Geeft schuine dakvlakken + puntgevels + nokhoogte.
+// dak = { type, hoek (graden), maat (= nokhoogte in m, optioneel; anders uit de hoek), richting }.
+// Zadel/schild: nok altijd in het midden -> symmetrisch. Geeft schuine dakvlakken + puntgevels + nokhoogte.
 function imDakGeom(floor, dak){
   if(!floor || !floor.real || !dak || !dak.type || dak.type === 'plat') return null;
   const bb = imBbox(floor.real), zT = floor.z1;
-  const ad = imNum(dak.hoek) || 0, a = ad * Math.PI / 180; if(a <= 0 || a >= Math.PI / 2) return null;
-  const ta = Math.tan(a), ca = Math.cos(a), W = bb.maxx - bb.minx, D = bb.maxy - bb.miny, yc = (bb.miny + bb.maxy) / 2, xc = (bb.minx + bb.maxx) / 2;
+  const a0 = (imNum(dak.hoek) || 0) * Math.PI / 180, W = bb.maxx - bb.minx, D = bb.maxy - bb.miny, yc = (bb.miny + bb.maxy) / 2, xc = (bb.minx + bb.maxx) / 2;
   const vlak = [], punt = []; let nok = 0;
   const ori = key => imGevelOrient(key) || '';
-  const addV = (poly, proj, key) => vlak.push({ poly, area: proj / ca, hoek: ad, orient: ori(key), gevel: key });
+  const mk = run => { let H = imNum(dak.maat); if(!(H > 0)) H = run * Math.tan(a0); return { H, run, aEff: H > 0 ? Math.atan2(H, run) : 0 }; };   // H = nokhoogte (maat) of uit hoek
+  const addV = (poly, proj, key, aEff) => vlak.push({ poly, area: proj / Math.cos(aEff), hoek: Math.round(aEff * 180 / Math.PI), orient: ori(key), gevel: key });
   const addP = (poly, area, key) => punt.push({ poly, area, orient: ori(key), gevel: key });
   if(dak.type === 'lessenaar'){
     const high = dak.richting || 'achter', vert = (high === 'links' || high === 'rechts');
-    const run = imNum(dak.maat) || (vert ? W : D), H = run * ta; nok = H;
+    const { H, run, aEff } = mk(vert ? W : D); if(!(H > 0)) return null; nok = H;
     if(!vert){
       const hiA = high === 'achter', yL = hiA ? bb.maxy : bb.miny, yH = hiA ? bb.miny : bb.maxy;
-      addV([[bb.minx, yL, zT], [bb.maxx, yL, zT], [bb.maxx, yH, zT + H], [bb.minx, yH, zT + H]], W * run, high);
+      addV([[bb.minx, yL, zT], [bb.maxx, yL, zT], [bb.maxx, yH, zT + H], [bb.minx, yH, zT + H]], W * run, high, aEff);
       addP([[bb.minx, yH, zT], [bb.maxx, yH, zT], [bb.maxx, yH, zT + H], [bb.minx, yH, zT + H]], W * H, high);
       addP([[bb.minx, yL, zT], [bb.minx, yH, zT], [bb.minx, yH, zT + H]], D * H / 2, 'links');
       addP([[bb.maxx, yL, zT], [bb.maxx, yH, zT], [bb.maxx, yH, zT + H]], D * H / 2, 'rechts');
     } else {
       const hiL = high === 'links', xL = hiL ? bb.maxx : bb.minx, xH = hiL ? bb.minx : bb.maxx;
-      addV([[xL, bb.miny, zT], [xL, bb.maxy, zT], [xH, bb.maxy, zT + H], [xH, bb.miny, zT + H]], D * run, high);
+      addV([[xL, bb.miny, zT], [xL, bb.maxy, zT], [xH, bb.maxy, zT + H], [xH, bb.miny, zT + H]], D * run, high, aEff);
       addP([[xH, bb.miny, zT], [xH, bb.maxy, zT], [xH, bb.maxy, zT + H], [xH, bb.miny, zT + H]], D * H, high);
       addP([[xL, bb.miny, zT], [xH, bb.miny, zT], [xH, bb.miny, zT + H]], W * H / 2, 'achter');
       addP([[xL, bb.maxy, zT], [xH, bb.maxy, zT], [xH, bb.maxy, zT + H]], W * H / 2, 'voor');
     }
-  } else {                                              // zadel / mansarde (vereenvoudigd) / schild
+  } else {                                              // zadel / mansarde (vereenvoudigd) / schild — nok in het midden
     const schild = dak.type === 'schild', va = (dak.richting || 'va') === 'va';   // va: nok links-rechts (vlakken naar voor+achter)
     if(va){
-      const run = schild ? D / 2 : (imNum(dak.maat) || D / 2), H = run * ta; nok = H;
-      const yV = bb.maxy - run, yA = bb.miny + run, rxL = schild ? bb.minx + run : bb.minx, rxR = schild ? bb.maxx - run : bb.maxx;
-      addV([[bb.minx, bb.maxy, zT], [bb.maxx, bb.maxy, zT], [rxR, yV, zT + H], [rxL, yV, zT + H]], (schild ? (W - run) : W) * run, 'voor');
-      addV([[bb.minx, bb.miny, zT], [bb.maxx, bb.miny, zT], [rxR, yA, zT + H], [rxL, yA, zT + H]], (schild ? (W - run) : W) * run, 'achter');
+      const { H, run, aEff } = mk(D / 2); if(!(H > 0)) return null; nok = H;       // run = D/2 -> nok gecentreerd op yc
+      const rxL = schild ? bb.minx + run : bb.minx, rxR = schild ? bb.maxx - run : bb.maxx;
+      addV([[bb.minx, bb.maxy, zT], [bb.maxx, bb.maxy, zT], [rxR, yc, zT + H], [rxL, yc, zT + H]], (schild ? (W - run) : W) * run, 'voor', aEff);
+      addV([[bb.minx, bb.miny, zT], [bb.maxx, bb.miny, zT], [rxR, yc, zT + H], [rxL, yc, zT + H]], (schild ? (W - run) : W) * run, 'achter', aEff);
       if(schild){
-        addV([[bb.minx, bb.miny, zT], [bb.minx, bb.maxy, zT], [rxL, yc, zT + H]], D * run / 2, 'links');
-        addV([[bb.maxx, bb.miny, zT], [bb.maxx, bb.maxy, zT], [rxR, yc, zT + H]], D * run / 2, 'rechts');
+        addV([[bb.minx, bb.miny, zT], [bb.minx, bb.maxy, zT], [rxL, yc, zT + H]], D * run / 2, 'links', aEff);
+        addV([[bb.maxx, bb.miny, zT], [bb.maxx, bb.maxy, zT], [rxR, yc, zT + H]], D * run / 2, 'rechts', aEff);
       } else {
         addP([[bb.minx, bb.maxy, zT], [bb.minx, bb.miny, zT], [bb.minx, yc, zT + H]], D * H / 2, 'links');
         addP([[bb.maxx, bb.maxy, zT], [bb.maxx, bb.miny, zT], [bb.maxx, yc, zT + H]], D * H / 2, 'rechts');
       }
     } else {
-      const run = schild ? W / 2 : (imNum(dak.maat) || W / 2), H = run * ta; nok = H;
-      const xL = bb.minx + run, xR = bb.maxx - run, ryB = schild ? bb.miny + run : bb.miny, ryV = schild ? bb.maxy - run : bb.maxy;
-      addV([[bb.minx, bb.miny, zT], [bb.minx, bb.maxy, zT], [xL, ryV, zT + H], [xL, ryB, zT + H]], (schild ? (D - run) : D) * run, 'links');
-      addV([[bb.maxx, bb.miny, zT], [bb.maxx, bb.maxy, zT], [xR, ryV, zT + H], [xR, ryB, zT + H]], (schild ? (D - run) : D) * run, 'rechts');
+      const { H, run, aEff } = mk(W / 2); if(!(H > 0)) return null; nok = H;       // run = W/2 -> nok gecentreerd op xc
+      const ryB = schild ? bb.miny + run : bb.miny, ryV = schild ? bb.maxy - run : bb.maxy;
+      addV([[bb.minx, bb.miny, zT], [bb.minx, bb.maxy, zT], [xc, ryV, zT + H], [xc, ryB, zT + H]], (schild ? (D - run) : D) * run, 'links', aEff);
+      addV([[bb.maxx, bb.miny, zT], [bb.maxx, bb.maxy, zT], [xc, ryV, zT + H], [xc, ryB, zT + H]], (schild ? (D - run) : D) * run, 'rechts', aEff);
       if(schild){
-        addV([[bb.minx, bb.miny, zT], [bb.maxx, bb.miny, zT], [xc, ryB, zT + H]], W * run / 2, 'achter');
-        addV([[bb.minx, bb.maxy, zT], [bb.maxx, bb.maxy, zT], [xc, ryV, zT + H]], W * run / 2, 'voor');
+        addV([[bb.minx, bb.miny, zT], [bb.maxx, bb.miny, zT], [xc, ryB, zT + H]], W * run / 2, 'achter', aEff);
+        addV([[bb.minx, bb.maxy, zT], [bb.maxx, bb.maxy, zT], [xc, ryV, zT + H]], W * run / 2, 'voor', aEff);
       } else {
         addP([[bb.minx, bb.miny, zT], [bb.maxx, bb.miny, zT], [xc, bb.miny, zT + H]], W * H / 2, 'achter');
         addP([[bb.minx, bb.maxy, zT], [bb.maxx, bb.maxy, zT], [xc, bb.maxy, zT + H]], W * H / 2, 'voor');
@@ -910,11 +912,11 @@ function imPdfElevBox(d, floors, x, y, w, h, mode, label, refs){
     imDimH(d, ox + f0 * s, ox + f1 * s, baseY + 5 + i * 5, (f1 - f0).toFixed(2));
   });
   let algN = 0;
-  (refs || []).forEach(r => {                                       // foto-referentienummers in de juiste zone
+  (refs || []).forEach(r => {                                       // foto-referentienummers in de juiste zone, op de hoogte van hun verdieping
     const zc = r.zone && r.zone !== '_alg' && zoneCtr[r.zone];
     let cx, cy;
     if(zc){ const u = zc.used = (zc.used || 0) + 1; cx = zc.cx + (u - 1) * 5.5; cy = zc.cy; }
-    else { cx = ox + (aw / 2) * s + algN * 6; cy = baseY - (zmax / 2) * s; algN++; }   // algemene zone / geen match -> midden van de gevel
+    else { cx = ox + (aw / 2) * s + algN * 6; cy = baseY - (r.z1 != null ? (r.z0 + r.z1) / 2 : zmax / 2) * s; algN++; }   // algemene zone -> midden van de gevel, op verdieping-hoogte
     d.setFillColor(35, 76, 94); d.circle(cx, cy, 2.8, 'F');
     d.setTextColor(255); d.setFontSize(8.5); d.setFont('helvetica', 'bold'); d.text(String(r.n), cx, cy + 1.4, { align: 'center' }); d.setFont('helvetica', 'normal'); d.setTextColor(0);
   });
@@ -941,7 +943,7 @@ async function imPdfFotoBlock(c, v, ft, refN, x, y, colW){   // foto in een kolo
   let ty = yy + ih + 4; d.setFontSize(8);
   const marks = ft.marks || [];
   if(!marks.length){ d.setTextColor(120); d.text('(geen markeringen)', x, ty); d.setTextColor(0); ty += 4; }
-  marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}`), x, ty); ty += 4; });
+  marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}${m.paneel ? ' - paneel ' + m.paneel + ' m2' : ''}`), x, ty); ty += 4; });
   return (ty - y) + 1;
 }
 function imPdfDaken(c, floors){           // daken-overzicht per verdieping: dakvlakken + puntgevels + nokhoogte
@@ -992,7 +994,7 @@ async function imPdfInmeet(c){
       const gfotos = []; verds.forEach(v => (v.fotos || []).forEach(ft => { if(ft.gevel === key) gfotos.push({ v, ft }); }));
       const eh = 96; if(c.yy > c.PH - (eh + 18)){ d.addPage(); c.yy = c.M; }
       imPdfSectie(c, g[1] + (orient ? ' (' + orient + ')' : ''));
-      const refs = gfotos.map((gf, i) => ({ n: i + 1, zone: gf.ft.zone }));
+      const refs = gfotos.map((gf, i) => { const fl = floors.find(f => f.v === gf.v); return { n: i + 1, zone: gf.ft.zone, z0: fl ? fl.z0 : 0, z1: fl ? fl.z1 : 0 }; });   // z = hoogte van de verdieping van de foto
       try { imPdfElevBox(d, floors, c.M, c.yy, c.PW - 2 * c.M, eh, key, '', refs); } catch(e){ d.setTextColor(0); }
       c.yy += eh + 4;
       if(!gfotos.length){ d.setFontSize(9); d.setTextColor(120); d.text(imPdfClean('(geen foto\'s voor deze gevel)'), c.M, c.yy); d.setTextColor(0); c.yy += 6; }
