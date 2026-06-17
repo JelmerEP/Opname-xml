@@ -462,9 +462,18 @@ function imFotoHtml(vid, ft){
 function imCardHtml(v){
   const vs = imData().verdiepingen, idx = vs.indexOf(v), prev = idx > 0 ? vs[idx - 1] : null;
   const closedVs = vs.filter(x => x.sketch && x.sketch.gesloten && imReal(x)), isTop = closedVs.length && closedVs[closedVs.length - 1] === v;   // dak hoort bij de bovenste verdieping
+  const area = imArea(v), nz = (v.zones || []).length, nf = (v.fotos || []).length;
+  if(v.collapsed){
+    const sum = [v.hoogte ? 'h ' + v.hoogte + ' m' : '', area ? area.toFixed(1) + ' m²' : '', nz ? nz + ' zone' + (nz > 1 ? 's' : '') : '', nf ? nf + (nf === 1 ? ' foto' : " foto's") : ''].filter(Boolean).join(' · ');
+    return `<div class="vd vd-collapsed" data-vid="${v.id}">
+      <button type="button" class="vd-exp" data-vid="${v.id}"><span class="vd-exp-naam">▸ ${imEsc(v.naam || 'Verdieping')}</span><span class="vd-exp-sum">${imEsc(sum)}</span></button>
+      <button type="button" class="vd-del" data-vid="${v.id}" title="Verwijder verdieping">×</button>
+    </div>`;
+  }
   const posBlock = (prev && prev.sketch && prev.sketch.gesloten && v.sketch.gesloten) ? imPosHtml(v, prev) : '';
+  const fotosOpen = v.fotosOpen !== false;
   return `<div class="vd" data-vid="${v.id}">
-    <div class="vd-head"><input class="vd-f vd-naam" data-k="naam" data-vid="${v.id}" value="${imEsc(v.naam)}" placeholder="Naam verdieping">
+    <div class="vd-head"><button type="button" class="vd-collapse" data-vid="${v.id}" title="Inklappen">▾</button><input class="vd-f vd-naam" data-k="naam" data-vid="${v.id}" value="${imEsc(v.naam)}" placeholder="Naam verdieping">
       <button type="button" class="vd-del" data-vid="${v.id}" title="Verwijder verdieping">×</button></div>
     ${imSketchSvg(v)}
     <div class="sketch-act">
@@ -475,12 +484,14 @@ function imCardHtml(v){
     ${imWallEditHtml(v)}
     ${imZoneControlsHtml(v)}
     <div class="row"><label>Hoogte (m)<input class="vd-f" data-k="hoogte" inputmode="decimal" data-vid="${v.id}" value="${imEsc(v.hoogte)}" placeholder="bv. 2.5"></label>
-      <div class="vd-area">Gebruiksoppervlak<strong>${imArea(v) ? imArea(v).toFixed(2) + ' m²' : '—'}</strong></div></div>
+      <div class="vd-area">Gebruiksoppervlak<strong>${area ? area.toFixed(2) + ' m²' : '—'}</strong></div></div>
     ${isTop ? imDakControlsHtml(v) : ''}
-    <h4>Ramen &amp; deuren — foto's</h4>
-    <div class="fotos">${(v.fotos || []).map(ft => imFotoHtml(v.id, ft)).join('')}</div>
-    <input type="file" accept="image/*" capture="environment" class="foto-cam" data-vid="${v.id}" hidden>
-    <div class="foto-btns"><button type="button" class="foto-cam-open" data-vid="${v.id}">📸 Camera (meerdere)</button><button type="button" class="foto-add" data-vid="${v.id}">🖼️ Losse foto</button></div>
+    <div class="foto-sec">
+      <button type="button" class="foto-sec-head" data-vid="${v.id}">${fotosOpen ? '▾' : '▸'} Ramen &amp; deuren — foto's (${nf})</button>
+      ${fotosOpen ? `<div class="fotos">${(v.fotos || []).map(ft => imFotoHtml(v.id, ft)).join('')}</div>
+      <input type="file" accept="image/*" capture="environment" class="foto-cam" data-vid="${v.id}" hidden>
+      <div class="foto-btns"><button type="button" class="foto-cam-open" data-vid="${v.id}">📸 Camera (meerdere)</button><button type="button" class="foto-add" data-vid="${v.id}">🖼️ Losse foto</button></div>` : ''}
+    </div>
   </div>`;
 }
 
@@ -609,7 +620,10 @@ function imSelWall(vid, i){
   imSelect({ vid, type: 'wall', i });
 }
 function imBind(){
-  const add = $('#vd-add'); if(add) add.onclick = () => { const d = imData(), nr = d.verdiepingen.length; d.verdiepingen.push({ id: imId(), naam: nr === 0 ? 'Begane grond' : nr + 'e verdieping', sketch: { punten: [], gesloten: false }, muren: [], hoogte: '', fotos: [] }); saveDraft(); imRender(); };
+  const add = $('#vd-add'); if(add) add.onclick = () => { const d = imData(), nr = d.verdiepingen.length; d.verdiepingen.forEach(x => x.collapsed = true); d.verdiepingen.push({ id: imId(), naam: nr === 0 ? 'Begane grond' : nr + 'e verdieping', sketch: { punten: [], gesloten: false }, muren: [], hoogte: '', fotos: [] }); saveDraft(); imRender(); };
+  $$('#inmeten .vd-collapse').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.collapsed = true; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .vd-exp').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.collapsed = false; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .foto-sec-head').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.fotosOpen = !(v.fotosOpen !== false); saveDraft(); imRenderCard(b.dataset.vid); } });
   imBindPlan(document);
   $$('#inmeten .sk-undo').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch.punten.pop(); saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .sk-clear').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ v.sketch = { punten: [], gesloten: false }; v.muren = []; v.selWall = null; v.zoneDraw = null; v.zones = []; v.pos = null; _imActive = null; saveDraft(); imRenderCard(b.dataset.vid); } });
