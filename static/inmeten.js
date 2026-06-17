@@ -366,6 +366,12 @@ function imRenderEditBar(){
       <input class="im-bar-in im-mk" data-k="m2" inputmode="decimal" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}" value="${imEsc(m.m2)}" placeholder="m²">
       <select class="im-bar-sel im-mk" data-k="beglazing" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}"><option value=""${!m.beglazing ? ' selected' : ''}>beglazing…</option>${BEGLAZING.map(b => `<option${m.beglazing === b ? ' selected' : ''}>${imEsc(b)}</option>`).join('')}</select>
       <input class="im-bar-in im-mk" data-k="paneel" inputmode="decimal" data-vid="${a.vid}" data-fid="${a.fid}" data-mid="${m.id}" value="${imEsc(m.paneel || '')}" placeholder="paneel m²">`;
+  } else if(a.type === 'lijn'){
+    const ft = imFoto(a.vid, a.fid), l = ft && (ft.lijnen || []).find(x => x.id === ft.sel); if(!l) return hide();
+    inner = `<span class="im-bar-lbl">Lijn (m)</span><input class="im-bar-in im-lijn" inputmode="decimal" data-vid="${a.vid}" data-fid="${a.fid}" data-lid="${l.id}" value="${imEsc(l.maat || '')}" placeholder="lengte m"><button type="button" class="im-bar-del" data-vid="${a.vid}" data-fid="${a.fid}">✕</button>`;
+  } else if(a.type === 'notitie'){
+    const ft = imFoto(a.vid, a.fid), nt = ft && (ft.notities || []).find(x => x.id === ft.sel); if(!nt) return hide();
+    inner = `<span class="im-bar-lbl">Notitie</span><input class="im-bar-in im-notitie" data-vid="${a.vid}" data-fid="${a.fid}" data-nid="${nt.id}" value="${imEsc(nt.tekst || '')}" placeholder="tekst…"><button type="button" class="im-bar-del" data-vid="${a.vid}" data-fid="${a.fid}">✕</button>`;
   } else return hide();
   bar.innerHTML = `<div class="im-bar-row">${inner}<button type="button" class="im-bar-done">Klaar</button></div>`;
   bar.hidden = false; imBindBar();
@@ -376,11 +382,14 @@ function imBindBar(){
   bar.querySelectorAll('.im-wall-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v.muren[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   bar.querySelectorAll('.im-zwall-len').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid), z = v && imZoneById(v, i.dataset.zid); if(z){ if(!z.lens) z.lens = []; z.lens[+i.dataset.i] = i.value; saveDraft(); imRefreshSketch(i.dataset.vid); } });
   bar.querySelectorAll('.im-mk').forEach(el => { const ev = el.tagName === 'SELECT' ? 'onchange' : 'oninput'; el[ev] = () => { const m = imMark(el.dataset.vid, el.dataset.fid, el.dataset.mid); if(m){ m[el.dataset.k] = el.value; saveDraft(); } }; });
+  bar.querySelectorAll('.im-lijn').forEach(i => i.oninput = () => { const f = imFoto(i.dataset.vid, i.dataset.fid), l = f && (f.lijnen || []).find(x => x.id === i.dataset.lid); if(l){ l.maat = i.value; saveDraft(); const lbl = $(`#inmeten .foto-lmaat[data-lid="${i.dataset.lid}"]`); if(lbl) lbl.textContent = (l.maat ? l.maat + ' m' : '? m'); } });
+  bar.querySelectorAll('.im-notitie').forEach(i => i.oninput = () => { const f = imFoto(i.dataset.vid, i.dataset.fid), nt = f && (f.notities || []).find(x => x.id === i.dataset.nid); if(nt){ nt.tekst = i.value; saveDraft(); const lbl = $(`#inmeten .foto-note[data-nid="${i.dataset.nid}"]`); if(lbl) lbl.textContent = (nt.tekst || 'notitie'); } });
+  bar.querySelectorAll('.im-bar-del').forEach(b => b.onclick = () => { const a = _imActive; if(!a) return; const f = imFoto(a.vid, a.fid); if(f && f.sel){ const id = f.sel; f.lijnen = (f.lijnen || []).filter(l => l.id !== id); f.notities = (f.notities || []).filter(n => n.id !== id); f.sel = null; } _imActive = null; saveDraft(); if(f) imRenderCard(a.vid); imRenderEditBar(); });
   const done = bar.querySelector('.im-bar-done'); if(done) done.onclick = imCloseBar;
 }
 function imCloseBar(){
   const a = _imActive; _imActive = null;
-  if(a){ const v = imVerd(a.vid); if(v){ if(a.type === 'wall') v.selWall = null; else if(a.type === 'mark'){ const f = imFoto(a.vid, a.fid); if(f) f.sel = null; } else if(a.type === 'zonewall'){ const z = imZoneById(v, a.zid); if(z) z.wsel = null; } } saveDraft(); if(a) imRenderCard(a.vid); }
+  if(a){ const v = imVerd(a.vid); if(v){ if(a.type === 'wall') v.selWall = null; else if(a.type === 'mark' || a.type === 'lijn' || a.type === 'notitie'){ const f = imFoto(a.vid, a.fid); if(f){ f.sel = null; f._ls = null; } } else if(a.type === 'zonewall'){ const z = imZoneById(v, a.zid); if(z) z.wsel = null; } } saveDraft(); if(a) imRenderCard(a.vid); }
   imRenderEditBar();
 }
 function imSelect(active){   // 1 selectie tegelijk; imRenderCard rendert de balk -> focus die
@@ -393,6 +402,8 @@ function imSelect(active){   // 1 selectie tegelijk; imRenderCard rendert de bal
   v.selWall = null; (v.fotos || []).forEach(f => f.sel = null); (v.zones || []).forEach(z => z.wsel = null);
   if(active.type === 'wall') v.selWall = active.i;
   else if(active.type === 'mark'){ const f = imFoto(active.vid, active.fid); if(f) f.sel = active.mid; }
+  else if(active.type === 'lijn'){ const f = imFoto(active.vid, active.fid); if(f) f.sel = active.lid; }
+  else if(active.type === 'notitie'){ const f = imFoto(active.vid, active.fid); if(f) f.sel = active.nid; }
   else if(active.type === 'zonewall'){ const z = imZoneById(v, active.zid); if(z) z.wsel = active.i; }
   _imActive = active; saveDraft(); imRenderCard(active.vid); imFocusBar();
 }
@@ -406,25 +417,33 @@ function imZonesOnGevel(v, gevelKey){     // zones van v die een buitenmuur-rand
 }
 function imFotoZLabel(v, ft){ return ft.zone === '_alg' ? 'algemene zone' : (ft.zone ? (((v.zones || []).find(z => z.id === ft.zone) || {}).naam || '') : ''); }
 function imFotoHtml(vid, ft){
-  const v = imVerd(vid) || {}, marks = ft.marks || [], collapsed = ft.collapsed !== false;
+  const v = imVerd(vid) || {}, marks = ft.marks || [], lijnen = ft.lijnen || [], notities = ft.notities || [], collapsed = ft.collapsed !== false;
   const gLabel = ft.gevel ? (imGevelNaam(ft.gevel) + (imGevelOrient(ft.gevel) ? ' (' + imGevelOrient(ft.gevel) + ')' : '')) : 'gevel?';
   const zLabel = imFotoZLabel(v, ft);
   if(collapsed){                                   // ingeklapt: thumbnail + samenvatting
+    const extra = [marks.length ? marks.length + ' raam/deur' : '', lijnen.length ? lijnen.length + ' lijn' : '', notities.length ? notities.length + ' notitie' : ''].filter(Boolean).join(' · ') || 'geen markeringen';
     return `<div class="foto foto-collapsed" data-vid="${vid}" data-fid="${ft.id}">
       <img class="foto-img foto-thumb" data-foto="${imEsc(ft.foto)}" alt="foto">
-      <div class="foto-csum"><strong>${imEsc(gLabel)}</strong><span>${zLabel ? imEsc(zLabel) + ' · ' : ''}${marks.length} raam/deur</span></div>
+      <div class="foto-csum"><strong>${imEsc(gLabel)}</strong><span>${zLabel ? imEsc(zLabel) + ' · ' : ''}${extra}</span></div>
       <button type="button" class="foto-expand" data-vid="${vid}" data-fid="${ft.id}">Bewerken</button>
     </div>`;
   }
   const gZones = ft.gevel ? imZonesOnGevel(v, ft.gevel) : [];     // alleen zones die op de gekozen gevel liggen
+  const mode = ft.mode || 'mark';
   const pins = marks.map((m, i) => `<button type="button" class="foto-pin${ft.sel === m.id ? ' sel' : ''}" style="left:${(m.x * 100).toFixed(1)}%;top:${(m.y * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-mid="${m.id}">${i + 1}</button>`).join('');
+  const ln = (l, cls) => `<line x1="${(l.x1 * 100).toFixed(1)}" y1="${(l.y1 * 100).toFixed(1)}" x2="${(l.x2 * 100).toFixed(1)}" y2="${(l.y2 * 100).toFixed(1)}" class="${cls}"${cls === 'foto-line-hit' ? ` data-vid="${vid}" data-fid="${ft.id}" data-lid="${l.id}"` : ''}/>`;
+  const svg = `<svg class="foto-ann" viewBox="0 0 100 100" preserveAspectRatio="none">${lijnen.map(l => ln(l, 'foto-line' + (ft.sel === l.id ? ' sel' : ''))).join('')}${ft._ls ? `<circle cx="${(ft._ls.x * 100).toFixed(1)}" cy="${(ft._ls.y * 100).toFixed(1)}" r="1.6" class="foto-lstart"/>` : ''}${lijnen.map(l => ln(l, 'foto-line-hit')).join('')}</svg>`;
+  const lmaat = lijnen.map(l => `<button type="button" class="foto-lmaat${ft.sel === l.id ? ' sel' : ''}" style="left:${((l.x1 + l.x2) / 2 * 100).toFixed(1)}%;top:${((l.y1 + l.y2) / 2 * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-lid="${l.id}">${l.maat ? imEsc(l.maat) + ' m' : '? m'}</button>`).join('');
+  const notes = notities.map(nt => `<button type="button" class="foto-note${ft.sel === nt.id ? ' sel' : ''}" style="left:${(nt.x * 100).toFixed(1)}%;top:${(nt.y * 100).toFixed(1)}%" data-vid="${vid}" data-fid="${ft.id}" data-nid="${nt.id}">${imEsc(nt.tekst || 'notitie')}</button>`).join('');
+  const hint = mode === 'lijn' ? (ft._ls ? 'Tik het 2e punt van de lijn.' : 'Tik 2 punten voor een lijn; de maat vul je bovenin in.') : mode === 'notitie' ? 'Tik waar je een notitie wilt plaatsen.' : 'Tik op elk raam/deur; de gegevens vul je bovenin in.';
   return `<div class="foto" data-vid="${vid}" data-fid="${ft.id}">
     <div class="foto-tophead"><span>Foto — ${imEsc(gLabel)}</span><button type="button" class="foto-collapse" data-vid="${vid}" data-fid="${ft.id}">▾ Inklappen</button></div>
-    <div class="foto-wrap" data-vid="${vid}" data-fid="${ft.id}">
+    <div class="foto-modes">${[['mark', '📍 Raam/deur'], ['lijn', '📏 Lijn'], ['notitie', '📝 Notitie']].map(m => `<button type="button" class="foto-mode${mode === m[0] ? ' on' : ''}" data-vid="${vid}" data-fid="${ft.id}" data-m="${m[0]}">${m[1]}</button>`).join('')}</div>
+    <div class="foto-wrap foto-wrap-${mode}" data-vid="${vid}" data-fid="${ft.id}">
       <img class="foto-img" data-foto="${imEsc(ft.foto)}" alt="foto ramen/deuren">
-      ${pins}
+      ${svg}${pins}${lmaat}${notes}
     </div>
-    <p class="foto-hint">${marks.length ? 'Tik een raam/deur aan in de foto, of een bestaand bolletje — de gegevens vul je bovenin in.' : 'Tik op elk raam/deur in de foto; de gegevens vul je bovenin in.'}${ft.sel ? ' <button type="button" class="mark-del" data-vid="' + vid + '" data-fid="' + ft.id + '" data-mid="' + ft.sel + '">verwijder bolletje</button>' : ''}</p>
+    <p class="foto-hint">${hint}${ft.sel ? ' <button type="button" class="ann-del" data-vid="' + vid + '" data-fid="' + ft.id + '">verwijder selectie</button>' : ''}</p>
     <div class="foto-foot">
       <label class="foto-gevel">Gevel<select class="foto-gevel-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— kies —</option>${GEVELS.map(g => { const o = imGevelOrient(g[0]); return `<option value="${g[0]}"${ft.gevel === g[0] ? ' selected' : ''}>${g[1]}${o ? ' (' + o + ')' : ''}</option>`; }).join('')}<option value="dak"${ft.gevel === 'dak' ? ' selected' : ''}>Dak / dakvlak</option></select></label>
       ${ft.gevel ? `<label class="foto-gevel">Zone<select class="foto-zone-sel" data-vid="${vid}" data-fid="${ft.id}"><option value="">— n.v.t. —</option><option value="_alg"${ft.zone === '_alg' ? ' selected' : ''}>Algemene (hele gevel)</option>${gZones.map(z => `<option value="${z.id}"${ft.zone === z.id ? ' selected' : ''}>${imEsc(z.naam || 'Zone')}</option>`).join('')}</select></label>` : ''}
@@ -635,16 +654,22 @@ function imBind(){
   $$('#inmeten .dak-hoek').forEach(i => i.oninput = () => { const o = dakGet(i.dataset.vid, i.dataset.g); if(o){ o.hoek = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
   $$('#inmeten .dak-dakvoet').forEach(i => i.oninput = () => { const o = dakGet(i.dataset.vid, i.dataset.g); if(o){ o.dakvoet = i.value; saveDraft(); dakReadout(i.dataset.vid); } });
   $$('#inmeten .foto-wrap').forEach(w => w.onclick = e => {
-    if(e.target.closest('.foto-pin')) return;
+    if(e.target.closest('.foto-pin') || e.target.closest('.foto-note') || e.target.closest('.foto-lmaat') || e.target.closest('.foto-line-hit')) return;
     const f = imFoto(w.dataset.vid, w.dataset.fid); if(!f) return;
     const rect = w.getBoundingClientRect();
     const x = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)), y = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
-    if(!f.marks) f.marks = [];
-    const id = imId(); f.marks.push({ id, x, y, type: 'raam', m2: '', beglazing: '' });
-    imSelect({ vid: w.dataset.vid, type: 'mark', fid: w.dataset.fid, mid: id });
+    const mode = f.mode || 'mark';
+    if(mode === 'notitie'){ if(!f.notities) f.notities = []; const id = imId(); f.notities.push({ id, x, y, tekst: '' }); imSelect({ vid: w.dataset.vid, type: 'notitie', fid: w.dataset.fid, nid: id }); }
+    else if(mode === 'lijn'){
+      if(!f._ls){ f._ls = { x, y }; saveDraft(); imRenderCard(w.dataset.vid); }
+      else { if(!f.lijnen) f.lijnen = []; const id = imId(); f.lijnen.push({ id, x1: f._ls.x, y1: f._ls.y, x2: x, y2: y, maat: '' }); f._ls = null; imSelect({ vid: w.dataset.vid, type: 'lijn', fid: w.dataset.fid, lid: id }); }
+    } else { if(!f.marks) f.marks = []; const id = imId(); f.marks.push({ id, x, y, type: 'raam', m2: '', beglazing: '' }); imSelect({ vid: w.dataset.vid, type: 'mark', fid: w.dataset.fid, mid: id }); }
   });
   $$('#inmeten .foto-pin').forEach(p => p.onclick = e => { e.stopPropagation(); imSelect({ vid: p.dataset.vid, type: 'mark', fid: p.dataset.fid, mid: p.dataset.mid }); });
-  $$('#inmeten .mark-del').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.marks = (f.marks || []).filter(m => m.id !== b.dataset.mid); if(f.sel === b.dataset.mid){ f.sel = null; _imActive = null; } saveDraft(); imRenderCard(b.dataset.vid); imRenderEditBar(); } });
+  $$('#inmeten .foto-lmaat, #inmeten .foto-line-hit').forEach(p => p.addEventListener('click', e => { e.stopPropagation(); imSelect({ vid: p.dataset.vid, type: 'lijn', fid: p.dataset.fid, lid: p.dataset.lid }); }));
+  $$('#inmeten .foto-note').forEach(p => p.onclick = e => { e.stopPropagation(); imSelect({ vid: p.dataset.vid, type: 'notitie', fid: p.dataset.fid, nid: p.dataset.nid }); });
+  $$('#inmeten .foto-mode').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f){ f.mode = b.dataset.m; f._ls = null; saveDraft(); imRenderCard(b.dataset.vid); } });
+  $$('#inmeten .ann-del').forEach(b => b.onclick = () => { const f = imFoto(b.dataset.vid, b.dataset.fid); if(f && f.sel){ const id = f.sel; f.marks = (f.marks || []).filter(m => m.id !== id); f.lijnen = (f.lijnen || []).filter(l => l.id !== id); f.notities = (f.notities || []).filter(n => n.id !== id); f.sel = null; _imActive = null; saveDraft(); imRenderCard(b.dataset.vid); imRenderEditBar(); } });
   $$('#inmeten .vd-f').forEach(i => i.oninput = () => { const v = imVerd(i.dataset.vid); if(v){ v[i.dataset.k] = i.value; saveDraft(); } });
   $$('#inmeten .zone-add').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid); if(v){ if(!v.zones) v.zones = []; const id = imId(); v.zones.push({ id, naam: 'Zone ' + (v.zones.length + 1), div: [], lens: [], wsel: null }); v.zoneDraw = id; saveDraft(); imRenderCard(b.dataset.vid); } });
   $$('#inmeten .zone-undo').forEach(b => b.onclick = () => { const v = imVerd(b.dataset.vid), z = v && imZoneDrawing(v); if(z){ z.div.pop(); saveDraft(); imRenderCard(b.dataset.vid); } });
@@ -972,12 +997,16 @@ async function imPdfFotoBlock(c, v, ft, refN, x, y, colW){   // foto in een kolo
   if(durl){
     try { const pr = d.getImageProperties(durl), ar = pr.width / pr.height; if(ar > maxIW / maxIH) ih = maxIW / ar; else iw = maxIH * ar; } catch(e){}   // aspect behouden
     try { d.addImage(durl, 'JPEG', x, yy, iw, ih); } catch(e){} d.setDrawColor(150); d.setLineWidth(0.2); d.rect(x, yy, iw, ih);
+    (ft.lijnen || []).forEach((l, i) => { const x1 = x + l.x1 * iw, y1 = yy + l.y1 * ih, x2 = x + l.x2 * iw, y2 = yy + l.y2 * ih; d.setDrawColor(214, 110, 20); d.setLineWidth(0.6); d.line(x1, y1, x2, y2); const mx = (x1 + x2) / 2, my = (y1 + y2) / 2; d.setFillColor(214, 110, 20); d.circle(mx, my, 1.8, 'F'); d.setTextColor(255); d.setFontSize(6); d.text(String(i + 1), mx, my + 0.9, { align: 'center' }); d.setTextColor(0); });
+    (ft.notities || []).forEach((nt, i) => { const cx = x + nt.x * iw, cy = yy + nt.y * ih; d.setFillColor(60, 130, 60); d.circle(cx, cy, 1.8, 'F'); d.setTextColor(255); d.setFontSize(6); d.text(String.fromCharCode(65 + i), cx, cy + 0.9, { align: 'center' }); d.setTextColor(0); });
     (ft.marks || []).forEach((m, i) => { const cx = x + m.x * iw, cy = yy + m.y * ih; d.setFillColor(35, 76, 94); d.circle(cx, cy, 2, 'F'); d.setTextColor(255); d.setFontSize(6.5); d.text(String(i + 1), cx, cy + 1, { align: 'center' }); }); d.setTextColor(0);
   }
   let ty = yy + ih + 4; d.setFontSize(8);
-  const marks = ft.marks || [];
-  if(!marks.length){ d.setTextColor(120); d.text('(geen markeringen)', x, ty); d.setTextColor(0); ty += 4; }
+  const marks = ft.marks || [], lijnen = ft.lijnen || [], notities = ft.notities || [];
+  if(!marks.length && !lijnen.length && !notities.length){ d.setTextColor(120); d.text('(geen markeringen)', x, ty); d.setTextColor(0); ty += 4; }
   marks.forEach((m, i) => { d.text(imPdfClean(`${i + 1}. ${m.type || 'raam'} - ${m.m2 ? m.m2 + ' m2' : '? m2'} - ${m.beglazing || '-'}${m.paneel ? ' - paneel ' + m.paneel + ' m2' : ''}`), x, ty); ty += 4; });
+  lijnen.forEach((l, i) => { d.setTextColor(180, 90, 10); d.text(imPdfClean(`Lijn ${i + 1}: ${l.maat ? l.maat + ' m' : '?'}`), x, ty); d.setTextColor(0); ty += 4; });
+  notities.forEach((nt, i) => { if(!(nt.tekst || '').trim()) return; d.setTextColor(40, 100, 40); d.text(imPdfClean(`${String.fromCharCode(65 + i)}: ${nt.tekst}`), x, ty); d.setTextColor(0); ty += 4; });
   return (ty - y) + 1;
 }
 function imPdfDaken(c, floors){           // daken-overzicht per verdieping: dakvlakken + puntgevels + nokhoogte
